@@ -7,7 +7,22 @@ running = True
 clock = pygame.time.Clock()
 screen_color = (0,0,0)
 
+class Ship(pygame.sprite.Sprite):
+    def __init__(self,x,y,w,h,image_path,damage,hp):
+        super().__init__()
+        self.x = x
+        self.y = y
+        self.w = w
+        self.h = h
+        self.image_path = image_path
+        self.image = pygame.transform.scale(pygame.image.load(self.image_path).convert_alpha(),(w,h))
+        self.rect = self.image.get_rect(topleft = (x,y))
+        self.damage = damage
+        self.hp = hp
 
+pro_ships = pygame.sprite.Group()
+ship = Ship(100,100,40,40,"ship.png",1,10)
+pro_ships.add(ship)
 
 while running:
     clock.tick(FPS)
@@ -15,7 +30,8 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-        keys = pygame.key.get_pressed()
-        mouse_pos = pygame.mouse.get_pos()
-        screen.fill(screen_color)
-        pygame.display.flip()
+    keys = pygame.key.get_pressed()
+    mouse_pos = pygame.mouse.get_pos()
+    screen.fill(screen_color)
+    pro_ships.draw(screen)
+    pygame.display.flip()
