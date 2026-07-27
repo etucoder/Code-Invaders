@@ -4,7 +4,11 @@ import random
 pygame.init()
 pygame.font.init()
 font = pygame.font.SysFont(None,96)
+title_font = pygame.font.Font("PressStart2P.ttf", 72)
+subtitle_font = pygame.font.Font("PressStart2P.ttf", 42)
 card_font = pygame.font.SysFont(None,20)
+ui_font = pygame.font.Font("VT323-Regular.ttf", 20)
+small_font = ui_font = pygame.font.Font("VT323-Regular.ttf", 18)
 WIDTH , HEIGHT = 1000 ,600
 FPS =  60                
 screen = pygame.display.set_mode((WIDTH,HEIGHT))
@@ -12,6 +16,43 @@ running = True
 clock = pygame.time.Clock()
 screen_color = (0,0,0)
 particles = []
+game_state = 0
+
+#### Menu Stuff #####
+
+
+class MenuButton():
+    def __init__(self,text,center_x,center_y,width,height,target_state,color = (30,30,35)):
+        self.text = text
+        self.width = width
+        self.height = height
+        self.target_state = target_state
+
+        self.rect = pygame.Rect(0,0,width,height)
+        self.rect.center = (center_x,center_y)
+        self.idle_color = color
+        self.hover_color = (0,180,255)
+    def draw(self,screen,font,mousepos):
+        the_color = (0,0,0)
+        if self.rect.collidepoint(mousepos):
+            the_color = self.hover_color
+        else:
+            the_color = self.idle_color
+
+        pygame.draw.rect(screen,the_color,self.rect,border_radius=8)
+        pygame.draw.rect(screen,(255,255,255),self.rect,width=2,border_radius=8)
+
+        text_surface = font.render(self.text,True,(255,255,255))
+        text_rect = text_surface.get_rect(center = self.rect.center)
+        screen.blit(text_surface,text_rect)
+
+    def check_clicks(self,mouse_pos , mouse_pressed ):
+        if self.rect.collidepoint(mouse_pos) and mouse_pressed[0]:
+            return True
+        return False
+
+
+##### Game Stuff #####
 class Ship(pygame.sprite.Sprite):
     def __init__(self,x,y,w,h,image_path,damage,hp = 10,speed = 6,knockback = 0,pierce = 0):
         super().__init__()
@@ -71,9 +112,12 @@ class Ship(pygame.sprite.Sprite):
         if self.rect.y >= HEIGHT - self.h:
             self.rect.y = HEIGHT - self.h
     def update(self):
+        global lives_left
         if self.hp <= 0:
-            self.cooldown = self.max_cooldown * 10
+            lives_left -= 1
             self.hp = self.max_hp
+            self.rect.x = WIDTH // 2 - (self.w//2)
+            self.rect.y = 400
     def shoot(self):
         global lasers
         if (keys[pygame.K_SPACE] or keys[pygame.K_e] or keys[pygame.K_q]) and self.cooldown <= 0:
@@ -179,15 +223,13 @@ class Bug(pygame.sprite.Sprite):
         for ship in pro_ships:
             if self.rect.colliderect(ship.rect):
                 if ship.is_dashing == False:
-                    self.kill()
+                    self.hp = 0
                     ship.hp -= self.damage
-                    for bug in bugs:
-                        bug.float_y -= 75
                 else:
                     self.hp -= ship.dash_damage
         for file in files:
             if self.rect.colliderect(file.rect):
-                self.kill()
+                self.hp = 0
                 file.hp -= self.damage
         global spacer
         if self.hp <= self.max_hp * 0.5 and self.image_path == "indentationerror.png":
@@ -434,10 +476,13 @@ files.add(gitignore)
 pro_ships = pygame.sprite.Group()
 
 ship = Ship(100,100,27,33,"ship.png",1,10)
+ship.rect.x = WIDTH // 2 - (ship.w//2)
+ship.rect.y = 400
 pro_ships.add(ship)
 lasers = []
 
-
+mouse_pos = ()
+mouse_pressed = False
 
 ####################################################################333333
 current_level = 1
@@ -481,165 +526,274 @@ card_was_chosen = True
 cards_were_shuffled = False
 bugsnum = 0
 bugs = pygame.sprite.Group()
-for row in level:
-    for exception in row:
-        if exception == "e":
-            bug = Bug(startx + rowindex * spacer,starty - colindex,24,24,"exception.png",1,1,1)
-        
-        elif exception == "i":
-            bug = Bug(startx + rowindex * spacer,starty - colindex,24,24,"indentationerror.png",1.5,2,1)
-
-        elif exception == "x":
-            bug = Bug(startx + rowindex * spacer,starty - colindex,24,24,"indexerror.png",1,1,1,y_speed = 1.5)
-        elif exception == "m":
-            bug = Bug(startx + rowindex * spacer,starty - colindex,24,24,"memoryerror.png",3,10,0.4,y_speed = 0.5)
-        elif exception == "p":
-            bug = Bug(startx + rowindex * spacer,starty - colindex,24,24,"importerror.png",3,15,0.4,y_speed = 0.5)
-
-        elif exception == "b":
-            bug = Bug(startx + rowindex * spacer,starty - colindex,24,24,"brokenpipe.png",3,1,0.4,y_speed = 0.5)
-        if exception != "":
-            bugs.add(bug)
-        rowindex += 1
-    colindex -= spacer
-    rowindex = 0
-
 
 
 add_pierce_possible = True
 dash_possible = 2
 heal_possible = True
+
+############# More start menu stuff ###############
+
+menu_buttons = [
+    MenuButton("Start Programming (Play Game)",WIDTH//2,320,320,55,1),
+    MenuButton("Read README.md (Tutorial)", WIDTH // 2 , 410, 320,55, 2),
+    MenuButton("View Error Log (See Enemy Stats)", WIDTH // 2 , 500,320,55,3)
+]
+
+back_button = MenuButton("Return to IDE (Start Menu)" ,WIDTH//2 + 290 , 205,320,55,0)
+
+
+
+lives_left = 3
+
+current_enemy = 0
+
+full_title = "CODE INVADERS"
+current_typed = ""
+typed_frame = 0
+type_letter = 0
+typer_speed = 10
+
 async def main():
-    global heal_1,heal_possible,server,enemy_lasers,particles,dash_possible,add_pierce_possible,ship,pierce_1,files_destroyed,bugsnum,cards_were_shuffled,card_options,card_was_chosen,symbols,current_level,keys,running,files,pro_ships,lasers,level_list,level,startx,starty,rowindex,colindex,spacer,bugs
+    global keys,current_enemy,full_title,current_typed,typed_frame,type_letter,typer_speed,menu_buttons,back_button,game_state,mouse_pressed,mouse_pos,heal_1,heal_possible,server,enemy_lasers,particles,dash_possible,add_pierce_possible,ship,pierce_1,files_destroyed,bugsnum,cards_were_shuffled,card_options,card_was_chosen,symbols,current_level,keys,running,files,pro_ships,lasers,level_list,level,startx,starty,rowindex,colindex,spacer,bugs
+
     while running:
         clock.tick(FPS)
+        mouse_pos = pygame.mouse.get_pos()
+        mouse_pressed = pygame.mouse.get_pressed()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+
             elif event.type == pygame.KEYDOWN:
+                if game_state == 3:
+                    if event.key == pygame.K_RIGHT:
+                        current_enemy += 1
+                        if current_enemy > 5:
+                            current_enemy = 0
+                        
+                    elif event.key == pygame.K_LEFT:
+                        current_enemy -= 1
+                        if current_enemy < -6:
+                            current_enemy = 5
                 for card  in cards:
                     if card.effect(event.key):
                         print("Upgrade Completed!")
                         card_was_chosen = True
-        if (not card_options.__contains__(pierce_1)) and ship.damage > 1 and ship.cooldown < 15 and add_pierce_possible:
-            card_options.append(pierce_1)
-            add_pierce_possible = False
-        if ship.speed >= 8 and dash_possible > 0:
-                card_options.append(dash_1)
-                card_options.append(dash_1)
-                dash_possible = 0
-        if server.max_hp > 5 and heal_possible == True:
-            card_options.append(heal_1)
-            card_options.append(heal_1)
-            heal_possible = False
-        keys = pygame.key.get_pressed()
-        mouse_pos = pygame.mouse.get_pos()
+
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button:
+                if game_state == 0:
+                    print("Yipee!")
+                    mouse_pressed = pygame.mouse.get_pressed()
+                    for btn in menu_buttons:
+                        if btn.check_clicks(mouse_pos,mouse_pressed):
+                            print("Oh Yeah!")
+                            game_state = btn.target_state
+                # elif game_state in [1,2,3]:
+                #     if back_button.check_clicks(mouse_pos,mouse_pressed):
+                #         game_state = back_button.target_state
+
         screen.fill(screen_color)
-        pro_ships.draw(screen)
-        bugs.draw(screen)
-        files.draw(screen)
-        if not files_destroyed:
-            for file in files:
-                file.update()
-            for laser in lasers:
-                laser.draw()
-                laser.update()
-            for ship in pro_ships:
-                ship.move()
-                ship.shoot()
-                ship.update()
-            previous_bugsnum = bugsnum
-            if card_was_chosen == True:
-                bugsnum = 0
-            for bug in bugs:
-                bug.move()
-                bug.check_for_collisions()
-                bugsnum += 1
-            for card in cards:
-                card.draw()
-            for enlaser in enemy_lasers:
-                enlaser.draw()
-                enlaser.update()
-            symbols.draw(screen)
-            if bugsnum == 0 :
-                if card_was_chosen == True and previous_bugsnum > 0:
-                    card_was_chosen = False
-                    cards_were_shuffled = False
-                if not cards_were_shuffled:
-                    card_options_current = card_options[:]
-                    card1= random.choice(card_options_current)
-                    card_options_current.remove(card1)
-                    card2= random.choice(card_options_current)
-                    card_options_current.remove(card2)
-                    card3= random.choice(card_options_current)
-                    card_options_current.remove(card3)
-                    card1.lineupnum = 0
-                    card2.lineupnum = 1
-                    card3.lineupnum = 2
-                    cards.append(card1)
-                    cards.append(card2)
-                    cards.append(card3)
-                    cards_were_shuffled = True
+        keys = pygame.key.get_pressed()
+        print(mouse_pos,mouse_pressed[0])
+        if game_state == 0:
+            if type_letter < len(full_title):
+                typed_frame += 1
+
+                if typed_frame >= typer_speed:
+                    current_typed += full_title[type_letter]
+                    type_letter += 1
+                    typed_frame = 0
+
+            title_surface = title_font.render(current_typed,True,(0,255,80))
+            screen.blit(title_surface,title_surface.get_rect(center = (WIDTH // 2 ,180)))
+            for btn in menu_buttons:
+                btn.draw(screen,ui_font,mouse_pos)
+
+        elif game_state == 2:
+            tutorial_title = subtitle_font.render("README.md (How to play)",True,(0,180,255))
+            screen.blit(tutorial_title,tutorial_title.get_rect(center = (WIDTH//2, 100)))
+            pygame.draw.rect(screen, (20, 20, 25), (70, 160, 900, 420), border_radius=24)
+            pygame.draw.rect(screen, (0, 255, 0), (70, 160, 900, 420), width=8, border_radius=12)
+
+            tutorial_text = [
+                "Controls : WASD or Arrow Keys to Control Ship Movement",
+                "Controls : Spacebar, Q, or E to fire lasers",
+                "Controls : Press Right Shift to Dash (Once Unlocked)",
+                "Goal : Protect your code files at the bottom from the endless waves of bugs (like in real programming...)!\n If they reach 0 HP , the game is over!",
+                "Upgrades : After you clear a wave of bugs, you get to choose one of 2-3 upgrade cards to upgrade your stats.",
+                "Upgrades : Some upgrades can only be unlocked after using others (ex. Pierce need ATK+ and Cooldown+)",
+                "Waves : There are 16 Waves (So Far). Beat all of them to finally finish your program :)",
+                "IRL : If you like the game , play the real version... by learning Python! (Or just play the game again...)"
+            ]
+
+            for i, line in enumerate(tutorial_text):
+                txt = small_font.render(line,True,(240,240,240))
+                screen.blit(txt,(100,200 + i * 45))
+            back_button.draw(screen, ui_font, mouse_pos)
+            
+
+        elif game_state == 3:
+            error_log_title = subtitle_font.render("SYSTEM ERROR LOG \n(Enemy Index)",True,(0,255,100))
+            screen.blit(error_log_title,error_log_title.get_rect(center = (WIDTH//2 , 60)))
+            continue_text = ui_font.render("Use Left and Right Arrows to scroll through enemies.",True,(0,255,100))
+            error_list = [ 
+
+                "Exception : The basic enemy. HP : 1, ATK : 1, Speed : 0.5",
+                "IndentationError : A stronger enemy. HP : 3, ATK : 1.5, Speed : 0.5",
+                "IndexError : A fast, rusher enemy. HP : 1 , ATK : 1, Speed : 1",
+                "MemoryError : A Highly Tanky spotlight enemy. You have to defeat this error to be able to attack any other one.\n HP : 10 , ATK : 3 , Speed : 0.5",
+                "ImportError : A Highly Tanky Spawner error. It spawns Exceptions every few seconds. HP : 15 , ATK : 5, Speed : 0.5",
+                "BrokenPipeError : A fragile shooter error. It shoots projectiles straight toward you and your files. HP : 1 , ATK : 0.5 , Speed : 0.5"
+
+            ]
+
+            image_list = [
+                "exception.png",
+                "indentationerror.png",
+                "indexerror.png",
+                "memoryerror.png",
+                "importerror.png",
+                "brokenpipe.png"
+            ]
+
+
+            text = ui_font.render(error_list[int(current_enemy)],True,(255,255,255))
+            image = pygame.image.load(image_list[int(current_enemy)]).convert_alpha()
+            image = pygame.transform.scale(image,(96,96))
+            screen.blit(text,text.get_rect(center = (WIDTH//2 , 400)))
+            screen.blit(image,(WIDTH//2 - (image.width //2),200))
+            screen.blit(continue_text,continue_text.get_rect(center = (WIDTH//2 , 350)))
+            # if keys[pygame.K_RIGHT]:
+            #     current_enemy += 0.25
+            #     if current_enemy > 5:
+            #         current_enemy = 0
+            # elif keys[pygame.K_LEFT]:
+            #     current_enemy -= 0.25
+            back_button.draw(screen, ui_font, mouse_pos)
+        elif game_state == 1:
+            for i in range(lives_left):
+                image = pygame.image.load("ship.png").convert_alpha()
+                image = pygame.transform.scale(image,(27,33))
+                screen.blit(image,(i*30,5))
+            if (not card_options.__contains__(pierce_1)) and ship.damage > 1 and ship.cooldown < 15 and add_pierce_possible:
+                card_options.append(pierce_1)
+                add_pierce_possible = False
+            if ship.speed >= 8 and dash_possible > 0:
+                    card_options.append(dash_1)
+                    card_options.append(dash_1)
+                    dash_possible = 0
+            if server.max_hp > 5 and heal_possible == True:
+                card_options.append(heal_1)
+                card_options.append(heal_1)
+                heal_possible = False
+            keys = pygame.key.get_pressed()
+            mouse_pos = pygame.mouse.get_pos()
+            pro_ships.draw(screen)
+            bugs.draw(screen)
+            files.draw(screen)
+            if not files_destroyed:
+                for file in files:
+                    file.update()
+                for laser in lasers:
+                    laser.draw()
+                    laser.update()
+                for ship in pro_ships:
+                    ship.move()
+                    ship.shoot()
+                    ship.update()
+                previous_bugsnum = bugsnum
                 if card_was_chosen == True:
-                    cards.clear()
-                    symbols.empty()
-                if card_was_chosen == True and current_level < len(level_list):
-                    current_level += 1
-                    level = level_list[current_level-1]
-                    startx = (WIDTH // 2) - ((len(level[0]) / 2) * spacer)
-                    colindex = 0
-                    for row in level:
-                        for exception in row:
-                            if exception == "e":
-                                bug = Bug(startx + rowindex * spacer,starty - colindex,24,24,"exception.png",1,1,1)
-                            
-                            elif exception == "i":
-                                bug = Bug(startx + rowindex * spacer,starty - colindex,24,24,"indentationerror.png",1.5,3,0.8)
+                    bugsnum = 0
+                for bug in bugs:
+                    bug.move()
+                    bug.check_for_collisions()
+                    bugsnum += 1
+                for card in cards:
+                    card.draw()
+                for enlaser in enemy_lasers:
+                    enlaser.draw()
+                    enlaser.update()
+                symbols.draw(screen)
+                if bugsnum == 0 :
+                    if card_was_chosen == True and previous_bugsnum > 0:
+                        card_was_chosen = False
+                        cards_were_shuffled = False
+                    if not cards_were_shuffled:
+                        card_options_current = card_options[:]
+                        card1= random.choice(card_options_current)
+                        card_options_current.remove(card1)
+                        card2= random.choice(card_options_current)
+                        card_options_current.remove(card2)
+                        card3= random.choice(card_options_current)
+                        card_options_current.remove(card3)
+                        card1.lineupnum = 0
+                        card2.lineupnum = 1
+                        card3.lineupnum = 2
+                        cards.append(card1)
+                        cards.append(card2)
+                        cards.append(card3)
+                        cards_were_shuffled = True
+                    if card_was_chosen == True:
+                        cards.clear()
+                        symbols.empty()
+                    if card_was_chosen == True and current_level < len(level_list):
+                        current_level += 1
+                        level = level_list[current_level-1]
+                        startx = (WIDTH // 2) - ((len(level[0]) / 2) * spacer)
+                        colindex = 0
+                        for row in level:
+                            for exception in row:
+                                if exception == "e":
+                                    bug = Bug(startx + rowindex * spacer,starty - colindex,24,24,"exception.png",1,1,1)
+                                
+                                elif exception == "i":
+                                    bug = Bug(startx + rowindex * spacer,starty - colindex,24,24,"indentationerror.png",1.5,3,0.8)
 
-                            elif exception == "x":
-                                bug = Bug(startx + rowindex * spacer,starty - colindex,24,24,"indexerror.png",1,1,1,y_speed = 1.2)
-                            elif exception == "m":
-                                bug = Bug(startx + rowindex * spacer,starty - colindex,24,24,"memoryerror.png",3,10,0.4,y_speed = 0.2)
-                            elif exception == "p":
-                                bug = Bug(startx + rowindex * spacer,starty - colindex,24,24,"importerror.png",3,15,0.25,y_speed = 0.2)
+                                elif exception == "x":
+                                    bug = Bug(startx + rowindex * spacer,starty - colindex,24,24,"indexerror.png",1,1,1,y_speed = 1.2)
+                                elif exception == "m":
+                                    bug = Bug(startx + rowindex * spacer,starty - colindex,24,24,"memoryerror.png",3,10,0.4,y_speed = 0.2)
+                                elif exception == "p":
+                                    bug = Bug(startx + rowindex * spacer,starty - colindex,24,24,"importerror.png",3,15,0.25,y_speed = 0.2)
 
-                            elif exception == "b":
-                                bug = Bug(startx + rowindex * spacer,starty - colindex,24,24,"brokenpipe.png",3,1,0.4,y_speed = 0.5)
-
-
-                            bugs.add(bug)
-                            rowindex += 1
-                        colindex -= spacer
-                        rowindex = 0
-                elif current_level >= len(level_list):
-                    win  = font.render(f"YOU WIN (for now)",True , (0,255,0))
-                    screen.blit(win,(WIDTH//2 - 300,HEIGHT//2  - 100))
-                else:
-                    pass  
+                                elif exception == "b":
+                                    bug = Bug(startx + rowindex * spacer,starty - colindex,24,24,"brokenpipe.png",3,1,0.4,y_speed = 0.5)
 
 
-
-        for particle in particles[:]:
-            particle[0][0] += particle[1][0] # Adding the x velocity to the x
-            particle[0][1] += particle[1][1] # Adding the y velocity to the y
-            particle[2] -= 0.1 # Decrease particle size
-            rect_particle = pygame.rect.Rect(particle[0][0],particle[0][1],particle[2],particle[2])
-            try:
-                color = particle[3]
-                pygame.draw.rect(screen,particle[3],rect_particle)
-            except:
-                pygame.draw.rect(screen,(0,200,100),rect_particle)
-
-            if particle[2] <= 0:
-                particles.remove(particle) 
+                                bugs.add(bug)
+                                rowindex += 1
+                            colindex -= spacer
+                            rowindex = 0
+                    elif current_level >= len(level_list):
+                        win  = font.render(f"YOU WIN (for now)",True , (0,255,0))
+                        screen.blit(win,(WIDTH//2 - 300,HEIGHT//2  - 100))
+                    else:
+                        pass  
 
 
 
-        if files_destroyed:
-            win  = font.render(f"YOU LOSE...",True , (255,0,0))
-            screen.blit(win,(WIDTH//2 - 300,HEIGHT//2  - 100))
-            current_level = 0
-            ship = Ship(100,100,27,33,"ship.png",1,1)
+            for particle in particles[:]:
+                particle[0][0] += particle[1][0] # Adding the x velocity to the x
+                particle[0][1] += particle[1][1] # Adding the y velocity to the y
+                particle[2] -= 0.1 # Decrease particle size
+                rect_particle = pygame.rect.Rect(particle[0][0],particle[0][1],particle[2],particle[2])
+                try:
+                    color = particle[3]
+                    pygame.draw.rect(screen,particle[3],rect_particle)
+                except:
+                    pygame.draw.rect(screen,(0,200,100),rect_particle)
+
+                if particle[2] <= 0:
+                    particles.remove(particle) 
+
+
+
+            if files_destroyed or lives_left <= 0:
+                win  = font.render(f"YOU LOSE...",True , (255,0,0))
+                screen.blit(win,(WIDTH//2 - 300,HEIGHT//2  - 100))
+                current_level = 0
+                ship = Ship(100,100,27,33,"ship.png",1,1)
         pygame.display.flip()
         await asyncio.sleep(0)
 asyncio.run(main())

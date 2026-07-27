@@ -1,6 +1,6 @@
 # Code Invaders
-This is a Space-Invaders Themed Game
-# How to play
+A Space-Invaders Themed Game where you defend your code files from different errors and upgrade your ship to survive...
+# How to open
 Option 1 : Open the Itch.io page, and click the 'play' button 
 
 # How to play
@@ -21,5 +21,7 @@ Focus on rows, not columns.
 If a file has low health, protect it
 If a file is about to take a final hit before it dies, and you have 3 lives, jump in front of it to block the hit, preventing the game from ending
 
+# Hours Spent
+12
 
 
