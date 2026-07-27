@@ -3,7 +3,7 @@ import pygame
 pygame.init()
 pygame.font.init()
 font = pygame.font.SysFont(None,96)
-card_font = pygame.font.SysFont(None,20)
+
 WIDTH , HEIGHT = 1000 ,600
 FPS = 60
 screen = pygame.display.set_mode((WIDTH,HEIGHT))
@@ -165,86 +165,9 @@ class FileTower(pygame.sprite.Sprite):
         green_rect = pygame.rect.Rect(self.rect.x + 10,self.rect.top - 25,(50/self.max_hp) * self.hp,5)
         pygame.draw.rect(screen,(255,0,0),red_rect)
         pygame.draw.rect(screen,(0,255,0),green_rect)
-
-class SymbolSprite(pygame.sprite.Sprite):
-    def __init__(self, x,y,w,h,image_path):
-        super().__init__()
-        self.x = x
-        self.y = y
-        self.w = w
-        self.h = h
-        self.image_path = image_path
-        self.image = pygame.transform.scale(pygame.image.load(self.image_path).convert_alpha(),(w,h))
-        self.rect = self.image.get_rect(topleft = (x,y))
-
-
-class UpgradeCard(pygame.sprite.Sprite):
-    def __init__(self, x, y, w, h, typeofcard, upgradeitem, amounttoadd, lineupnum,upgrade_name = "Laser"):
-        super().__init__() # 🌟 Added sprite initialization tag
-        self.x = x
-        self.y = y
-        self.w = w
-        self.h = h
-        self.typeofcard = typeofcard
-        self.upgradeitem = upgradeitem
-        self.amounttoadd = amounttoadd
-        self.x_values = [100, 400, 600]
-        self.lineupnum = lineupnum
-        self.upgrade_name = upgrade_name
-        self.the_color = (255,255,255)
         
-    def draw(self):
-        
-        self.x = self.x_values[self.lineupnum]
-        card_rect = pygame.Rect(self.x, self.y, self.w, self.h)
-        
-
-        pygame.draw.rect(screen, (142, 142, 142), card_rect)
-
-
-        symbol = self.typeofcard
-        if symbol == "Triangle":
-            symbol = SymbolSprite(self.x, self.y, 70, 70, "redtriangle.png")
-            self.the_color = (255,0,0)
-        elif symbol == "Square":
-            symbol = SymbolSprite(self.x, self.y, 70, 70, "orangesquare.png")
-            self.the_color = (255,165,0)
-        elif symbol == "Circle":
-            symbol = SymbolSprite(self.x, self.y, 50, 50, "yellowcircle.png")
-            self.the_color = (255,255,0)
-        elif symbol == "Pentagon":
-            symbol = SymbolSprite(self.x, self.y, 50, 50, "greenpentagon.png")
-            self.the_color = (0,255,0)
-        
-    
-        symbol.rect.center = (card_rect.centerx, card_rect.top + 60)
-        symbols.add(symbol)
-
-        type_text = card_font.render(f"Item Upgrading : {self.upgrade_name}", True, self.the_color)
-        stat_text = card_font.render(f"Stat Upgrading : {self.upgradeitem}", True, self.the_color)
-        description = card_font.render(f"Upgrade {self.upgradeitem} by {self.amounttoadd}", True, self.the_color)
- 
-        text_rect = description.get_rect()
-        stat_rect = stat_text.get_rect()
-        type_rect = type_text.get_rect()
-        
-      
-        text_rect.center = (card_rect.centerx, card_rect.bottom - 30) 
-        stat_rect.center = (card_rect.centerx, card_rect.bottom - 65) 
-        type_rect.center = (card_rect.centerx, card_rect.bottom - 100) 
-
-    
-        screen.blit(description, text_rect)
-        screen.blit(stat_text, stat_rect)
-        screen.blit(type_text, type_rect)
-
-
-        
-
-
 keys = pygame.key.get_pressed()
 files = pygame.sprite.Group()
-symbols = pygame.sprite.Group()
 main = FileTower(WIDTH//2 - 40 , HEIGHT - 130,80,120,"main.png",10)
 server = FileTower(WIDTH//2 - 140 , HEIGHT - 130,80,120,"server.png",5)
 client = FileTower(WIDTH//2 + 60 , HEIGHT - 130,80,120,"client.png",5)
@@ -254,11 +177,6 @@ devlog = FileTower(WIDTH//2 - 380 , HEIGHT - 130,80,120,"devlog.png",5)
 error_log = FileTower(WIDTH//2 + 300 , HEIGHT - 130,100,120,"error_log.png",5)
 readme = FileTower(WIDTH//2 - 480 , HEIGHT - 130,80,120,"readme.png",5)
 gitignore = FileTower(WIDTH//2 + 410 , HEIGHT - 130,80,120,"gitignore.png",5)
-cards = []
-card1 = UpgradeCard(0,HEIGHT//2 - 180,200,300,"Square","Cooldown",-1,0)
-card2 = UpgradeCard(0,HEIGHT//2 - 180,200,300,"Square","Atk",+0.5,1)
-cards.append(card1)
-cards.append(card2)
 files.add(readme)
 files.add(devlog)
 files.add(spritesheets)
@@ -281,7 +199,8 @@ level4 = [["e","e","e","e","e","e"],["e","e","e","e","e","e",],["i","i","i","i",
 level5 = [["i","i","i","i","i","i"],["e","e","e","e","e","e",],["e","e","e","e","e","e",],["x","x","x","x","x","x"]]
 level6 = [["i","i","i","i","i","i"],["x","x","x","x","x","x",],["e","e","e","e","e","e",],["x","x","x","x","x","x"]]
 level7 = [["i","i","i","i","i","i","i","i","i","i","i"],["i","i","i","i","i","i","i","i","i","i"]]
-level_list = [level1,level2,level3,level4,level5,level6,level7]
+level8 = [["i","x","e","i","x","e","i","x","e","x","e"],["i","x","e","i","x","e","i","x","e","x","e"],["i","x","e","i","x","e","i","x","e","x","e"]]
+level_list = [level1,level2,level3,level4,level5,level6,level7,level8]
 level = level_list[current_level-1]
 startx = (WIDTH // 2) - 75
 starty = 0
@@ -290,7 +209,7 @@ colindex = 0
 spacer = 30
 startx = (WIDTH // 2) - ((len(level[0]) / 2) * spacer)
 async def main():
-    global symbols,current_level,keys,running,files,pro_ships,lasers,level_list,level,startx,starty,rowindex,colindex,spacer,bugs
+    global current_level,keys,running,files,pro_ships,lasers,level_list,level,startx,starty,rowindex,colindex,spacer,bugs
     while running:
         clock.tick(FPS)
         for event in pygame.event.get():
@@ -317,10 +236,7 @@ async def main():
             bug.move()
             bug.check_for_collisions()
             bugsnum += 1
-        for card in cards:
-            card.draw()
-        symbols.draw(screen)
-        if bugsnum == 0:
+        if bugsnum == 0 and len(level_list) > current_level:
             current_level += 1
             level = level_list[current_level-1]
             startx = (WIDTH // 2) - ((len(level[0]) / 2) * spacer)
@@ -339,8 +255,9 @@ async def main():
                     rowindex += 1
                 colindex -= spacer
                 rowindex = 0
-                win  = font.render(f"YOU WIN (for now)",True , (0,255,0))
-                screen.blit(win,(WIDTH//2 - 300,HEIGHT//2  - 100))
+        if len(level_list) <= current_level and bugsnum == 0:
+            win  = font.render(f"YOU WIN (for now)",True , (0,255,0))
+            screen.blit(win,(WIDTH//2 - 300,HEIGHT//2  - 100))
                      
         pygame.display.flip()
         await asyncio.sleep(0)
