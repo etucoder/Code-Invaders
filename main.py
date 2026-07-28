@@ -216,7 +216,8 @@ class Bug(pygame.sprite.Sprite):
                 color = (165,42,42)
             elif self.image_path == "brokenpipe.png":
                 color = (255,255,255)
-
+            elif self.image_path == "typeerror.png":
+                color = (random.randint(0,255),random.randint(0,255),random.randint(0,255))
         
             for i in range(9):
                 particles.append([[self.rect.centerx, self.rect.centery] , [random.randint(-3,3),random.randint(-3,3)] , random.randint(4,8), color])
@@ -439,8 +440,80 @@ class UpgradeCard(pygame.sprite.Sprite):
                 return True
         return False
 
-        
 
+
+class RecursionBoss(pygame.sprite.Sprite):
+    def __init__(self, x,y,w,h,image_path,damage,hp):
+        super().__init__()
+        self.x = x
+        self.y = y
+        self.w = w
+        self.h = h
+        self.image_path = image_path
+        self.image = pygame.transform.scale(pygame.image.load(self.image_path).convert_alpha(),(w,h))
+        self.rect = self.image.get_rect(topleft = (x,y))
+        self.damage = damage
+        self.hp = hp
+        self.max_hp = hp
+        self.create_child_cooldown = 300
+        self.max_create_chile_cooldown = self.create_child_cooldown
+        self.laser_cooldown = 50
+        self.max_laser_cooldwon = self.laser_cooldown
+        self.stage = "Base"
+        self.direction = "None"
+        self.speed = 2.4
+        self.float_x = self.x
+        self.float_y = self.y
+    def update(self):
+        if self.direction == "None":
+            self.direction = random.choice(("Left","Right"))
+        if self.direction == "Left":
+            self.float_x -= self.speed
+            self.rect.x = int(self.float_x)
+            if self.rect.left <= 0:
+                self.direction = "Right"
+        if self.direction == "Right":
+            self.float_x += self.speed
+            self.rect.x = int(self.float_x)
+            if self.rect.right >= WIDTH:
+                self.direction = "Left"
+        
+        self.rect.y = int(self.float_y) 
+    def check_for_collisions(self):
+            global bugs,enemy_lasers
+            memory_error_alive = any(bug.image_path == "memoryerror.png" for bug in bugs)
+            if memory_error_alive == True:
+                self.image.set_alpha(100)
+                self.y_speed = 0.5 * self.og_y_speed
+                self.max_creation_cooldown = 200
+            else:
+                self.max_creation_cooldown = 100
+            for laser in lasers:
+                memory_error_alive = any(bug.image_path == "memoryerror.png" for bug in bugs)
+                if memory_error_alive == False or self.image_path == "memoryerror.png":
+                    self.image.set_alpha(255)
+                    if self.rect.colliderect(laser):
+                        for i in range(3):
+                            particles.append([[laser.centerx, laser.centery] , [random.randint(-3,3),random.randint(-3,3)] , random.randint(4,8), (0,255,0)])
+                        for i in range(3):
+                            particles.append([[laser.centerx, laser.centery] , [random.randint(-3,3),random.randint(-3,3)] , random.randint(4,8), (0,0,255)])
+                        for i in range(3):
+                            particles.append([[laser.centerx, laser.centery] , [random.randint(-3,3),random.randint(-3,3)] , random.randint(4,8), (255,0,0)])
+
+                        for i in range(3):
+                            particles.append([[laser.centerx, laser.centery] , [random.randint(-3,3),random.randint(-3,3)] , random.randint(4,8), (128,0,128)])
+                        self.hp -= laser.damage
+                        self.float_y -= laser.knockback
+                        for bug in bugs:
+                            if self.x == bug.x:
+                                bug.float_y -= laser.knockback
+                        if laser in lasers:
+                            if laser.pierce <= 0 or self.hp > 0 :
+                                lasers.remove(laser)
+                            elif self.hp <= 0:
+                                laser.pierce -= 1
+                elif memory_error_alive == True:
+                    self.image.set_alpha(100)
 enemy_lasers = []
 keys = pygame.key.get_pressed()
 files = pygame.sprite.Group()
@@ -485,7 +558,7 @@ mouse_pos = ()
 mouse_pressed = False
 
 ####################################################################333333
-current_level = 1
+current_level = 19
 level1 = [["e","e","e","e","e"],["e","e","e","e","e"],["e","e","e","e","e"],["e","e","e","e","e"]]
 level2 = [["e","e","e","e","e","e","e"],["e","e","e","e","e","e","e"],["e","e","e","e","e","e","e"],["e","e","e","e","e","e","e"]]
 level3 = [["i","i","i","i","i","i"],["e","e","e","e","e","e",],["i","i","i","i","i","i"],["e","e","e","e","e","e",]]
@@ -503,7 +576,10 @@ level14 = [['p','p','p','p','p'],['e','e','e','e','e'],['e','e','e','e','e'],[""
 level15 = [["x","x","x","x","x","x","x","x"],["x","x","x","x","x","x","x","x"],["x","x","x","x","x","x","x","x"],["x","x","x","x","x","x","x","x"]]
 level16 = [['b','b','b','b','b','b','b'],['i','i','i','i','i','i','i']]
 level17 = [["","m","m","m",""],["b","b","b","b","b"],["b","b","b","b","b"]]
-level_list = [level1,level2,level3,level4,level5,level6,level7,level8,level9,level10,level11,level12,level13,level14,level15,level16,level17]
+level18 = [["b","b","b","b","b"],["b","b","b","b","b"],["b","b","b","b","b"],["b","b","b","b","b"]]
+level19 = [["b","b","b","b","b"],["b","b","b","b","b"],["t","t","t","t","t"]]
+level20 = [["BOSS"]]
+level_list = [level1,level2,level3,level4,level5,level6,level7,level8,level9,level10,level11,level12,level13,level14,level15,level16,level17,level18,level19,level20]
 level = level_list[current_level-1]
 ###########################################################################################################33
 
@@ -527,7 +603,7 @@ cards_were_shuffled = False
 bugsnum = 0
 bugs = pygame.sprite.Group()
 
-
+bosses = pygame.sprite.Group()
 add_pierce_possible = True
 dash_possible = 2
 heal_possible = True
@@ -714,8 +790,9 @@ async def main():
                 if card_was_chosen == True:
                     bugsnum = 0
                 for bug in bugs:
-                    bug.move()
-                    bug.check_for_collisions()
+                    if bug.image_path != "recursionboss.png":
+                        bug.move()
+                        bug.check_for_collisions()
                     bugsnum += 1
                 for card in cards:
                     card.draw()
@@ -771,19 +848,26 @@ async def main():
                                 elif exception == "b":
                                     bug = Bug(startx + rowindex * spacer,starty - colindex,24,24,"brokenpipe.png",3,1,0.4,y_speed = 0.5)
 
-
+                                elif exception == "t":
+                                    bug = Bug(startx + rowindex * spacer,starty - colindex,24,24,"typeerror.png",random.randint(1,7),random.randint(1,7),0.4,y_speed = random.uniform(0.5,1.5))
+                                elif exception == "BOSS":
+                                    bug = RecursionBoss(WIDTH//2 - 150,10,240,120,"recursionboss.png",1,100)
+                                    bosses.add(bug)
+                                
                                 bugs.add(bug)
                                 rowindex += 1
                             colindex -= spacer
                             rowindex = 0
-                    elif current_level >= len(level_list):
+                    elif current_level > len(level_list):
                         win  = title_font.render(f"YOU WIN (for now)",True , (0,255,0))
                         screen.blit(win,(WIDTH//2 - 300,HEIGHT//2  - 100))
                     else:
                         pass  
 
-
-
+            bosses.draw(screen)
+            bosses.update()
+            for boss in bosses:
+                boss.check_for_collisions()
             for particle in particles[:]:
                 particle[0][0] += particle[1][0] # Adding the x velocity to the x
                 particle[0][1] += particle[1][1] # Adding the y velocity to the y
