@@ -1,6 +1,7 @@
 import asyncio # For the itch.io page oh no
 import pygame
 import random
+import math
 pygame.init()
 pygame.font.init()
 font = pygame.font.SysFont(None,96)
@@ -64,10 +65,10 @@ class Ship(pygame.sprite.Sprite):
         self.pierce = pierce
         self.image = pygame.transform.scale(pygame.image.load(self.image_path).convert_alpha(),(w,h))
         self.rect = self.image.get_rect(topleft = (x,y))
-        self.damage = damage
+        self.damage = 30
         self.hp = hp
         self.speed = speed
-        self.cooldown = 15
+        self.cooldown = 12
         self.max_cooldown = self.cooldown
         self.max_hp = hp
         self.knockback = knockback
@@ -172,7 +173,7 @@ class Bug(pygame.sprite.Sprite):
         self.rect.y = int(self.float_y)
 
     def check_for_collisions(self):
-        global bugs,enemy_lasers
+        global bugs,enemy_lasers,current_level
         memory_error_alive = any(bug.image_path == "memoryerror.png" for bug in bugs)
         if memory_error_alive == True:
             self.image.set_alpha(100)
@@ -229,9 +230,10 @@ class Bug(pygame.sprite.Sprite):
                 else:
                     self.hp -= ship.dash_damage
         for file in files:
-            if self.rect.colliderect(file.rect):
-                self.hp = 0
-                file.hp -= self.damage
+            if current_level != 20:
+                if self.rect.colliderect(file.rect):
+                    self.hp = 0
+                    file.hp -= self.damage
         global spacer
         if self.hp <= self.max_hp * 0.5 and self.image_path == "indentationerror.png":
             self.image_path = "indentationerrorlow.png"
@@ -251,6 +253,12 @@ class Bug(pygame.sprite.Sprite):
             self.cooldown = self.max_cooldown
         elif self.image_path == "brokenpipe.png" and self.cooldown > 0:
             self.cooldown -= 1
+
+
+
+
+        if self.rect.bottom >= HEIGHT:
+            self.kill()
 class EnemyLaser(pygame.rect.Rect):
     def __init__(self,x,y,w,h,color = (0,0,255),speed = 9, damage = 1, knockback = 0,pierce = 0):
         self.x = x
@@ -449,43 +457,75 @@ class RecursionBoss(pygame.sprite.Sprite):
         self.y = y
         self.w = w
         self.h = h
-        self.hp = 200
+        self.hp = 400
         self.image_path = image_path
         self.image = pygame.transform.scale(pygame.image.load(self.image_path).convert_alpha(),(w,h))
         self.rect = self.image.get_rect(topleft = (x,y))
         self.damage = damage
-        self.hp = hp
-        self.max_hp = hp
+
+        self.max_hp = 400
         self.create_child_cooldown = 300
         self.max_create_chile_cooldown = self.create_child_cooldown
-        self.laser_cooldown = 50
+        self.laser_cooldown = 125
         self.max_laser_cooldwon = self.laser_cooldown
         self.stage = "Base"
         self.direction = "None"
         self.speed = 2.4
         self.float_x = self.x
         self.float_y = self.y
+        self.phase = "Movement"
+        self.frame_shoot_delay = 5
+        self.burst_count = 0
+        self.max_burst_count = 4
+        self.beam_count = 0
+        self.max_beam_count = 20
+        self.shoot_style = 2
+        self.started_shooting = False
+        self.giant_beam_count = 0 
+        self.max_giant_beam_count = 3
+        self.shots_fired = 0
     def update(self):
-        if self.direction == "None":
-            self.direction = random.choice(("Left","Right"))
-        if self.direction == "Left":
-            self.float_x -= self.speed
-            self.rect.x = int(self.float_x)
-            if self.rect.left <= 0:
-                self.direction = "Right"
-        if self.direction == "Right":
-            self.float_x += self.speed
-            self.rect.x = int(self.float_x)
-            if self.rect.right >= WIDTH:
-                self.direction = "Left"
-        
-        self.rect.y = int(self.float_y) 
+        if self.stage == "Moving":
+            self.shoot_style = random.choice((1,2,3))
+            if self.direction == "None":
+                self.direction = random.choice(("Left","Right"))
+            if self.direction == "Left":
+                self.float_x -= self.speed
+                self.rect.x = int(self.float_x)
+                if self.rect.left <= 0:
+                    self.direction = "Right"
+            if self.direction == "Right":
+                self.float_x += self.speed
+                self.rect.x = int(self.float_x)
+                if self.rect.right >= WIDTH:
+                    self.direction = "Left"
+            
+            self.rect.y = int(self.float_y) 
+        if self.hp <= 0:
+            self.kill()
+            for i in range(90):
+                particles.append([[self.rect.centerx, self.rect.centery] , [random.randint(-10,10),random.randint(-10,10)] , random.randint(4,20), (0,255,0)])
+            for i in range(90):
+                particles.append([[self.rect.centerx, self.rect.centery] , [random.randint(-10,10),random.randint(-10,10)] , random.randint(4,20), (0,0,255)])
+            for i in range(90):
+                particles.append([[self.rect.centerx, self.rect.centery] , [random.randint(-10,10),random.randint(-10,10)] , random.randint(4,20), (255,0,0)])
+
+            for i in range(90):
+                particles.append([[self.rect.centerx, self.rect.centery] , [random.randint(-10,10),random.randint(-10,10)] , random.randint(4,20), (128,0,128)])
+
+
+        red_rect = pygame.rect.Rect(self.rect.centerx  - self.w // 2,self.rect.top - 25,150,5)
+        green_rect = pygame.rect.Rect(self.rect.centerx  - self.w // 2,self.rect.top - 25,(150/self.max_hp) * self.hp,5)
+        pygame.draw.rect(screen,(255,0,0),red_rect)
+        pygame.draw.rect(screen,(0,255,0),green_rect)
+
+
     def check_for_collisions(self):
             global bugs,enemy_lasers
             memory_error_alive = any(bug.image_path == "memoryerror.png" for bug in bugs)
             if memory_error_alive == True:
                 self.image.set_alpha(100)
-                self.y_speed = 0.5 * self.og_y_speed
+                self.y_speed = 0
                 self.max_creation_cooldown = 200
             else:
                 self.max_creation_cooldown = 100
@@ -494,15 +534,15 @@ class RecursionBoss(pygame.sprite.Sprite):
                 if memory_error_alive == False or self.image_path == "memoryerror.png":
                     self.image.set_alpha(255)
                     if self.rect.colliderect(laser):
-                        for i in range(3):
-                            particles.append([[laser.centerx, laser.centery] , [random.randint(-3,3),random.randint(-3,3)] , random.randint(4,8), (0,255,0)])
-                        for i in range(3):
-                            particles.append([[laser.centerx, laser.centery] , [random.randint(-3,3),random.randint(-3,3)] , random.randint(4,8), (0,0,255)])
-                        for i in range(3):
-                            particles.append([[laser.centerx, laser.centery] , [random.randint(-3,3),random.randint(-3,3)] , random.randint(4,8), (255,0,0)])
+                        for i in range(2):
+                            particles.append([[laser.centerx, laser.centery] , [random.randint(-2,2),random.randint(-2,2)] , random.randint(4,8), (0,255,0)])
+                        for i in range(2):
+                            particles.append([[laser.centerx, laser.centery] , [random.randint(-2,2),random.randint(-2,2)] , random.randint(4,8), (0,0,255)])
+                        for i in range(2):
+                            particles.append([[laser.centerx, laser.centery] , [random.randint(-2,2),random.randint(-2,2)] , random.randint(4,8), (255,0,0)])
 
-                        for i in range(3):
-                            particles.append([[laser.centerx, laser.centery] , [random.randint(-3,3),random.randint(-3,3)] , random.randint(4,8), (128,0,128)])
+                        for i in range(2):
+                            particles.append([[laser.centerx, laser.centery] , [random.randint(-2,2),random.randint(-2,2)] , random.randint(4,8), (128,0,128)])
                         self.hp -= laser.damage
                         self.float_y -= laser.knockback
                         for bug in bugs:
@@ -515,6 +555,173 @@ class RecursionBoss(pygame.sprite.Sprite):
                                 laser.pierce -= 1
                 elif memory_error_alive == True:
                     self.image.set_alpha(100)
+                    self.y_speed = 0
+    def shoot(self):
+        coord_pairs = [(-4.24,4.24),(-3.00,5.20),(-1.55,5.80),(0.00,6.00),(1.55,5.80),(3.00,5.20),(4.24,4.24)]
+        self.speed = 0
+        if self.laser_cooldown <= 0:
+            
+            self.stage = "Shooting"
+            if self.shoot_style == 1:
+                for vx,vy in coord_pairs:
+                    bullet = BossLaser(self.rect.x+147,self.rect.centery,vx ,vy,1,(255,0,0),speed=6)
+                    boss_lasers.append(bullet)
+
+                self.burst_count += 1
+
+                if self.burst_count < self.max_burst_count:
+                    self.laser_cooldown = self.frame_shoot_delay
+                    if self.burst_count == 1:
+                        if self.hp <= 499:
+                            if self.hp <= 499 and self.shots_fired >= 3:
+                                self.shots_fired = 0
+                                for i in range(5):
+                                    the_choice = random.choice(("exception.png",
+                                                    "indentationerror.png",
+                                                    "indexerror.png",
+                                                    "memoryerror.png",
+                                                    "importerror.png",
+                                                    "brokenpipe.png","typeerror.png"))
+                                    
+                                    if the_choice == "exception.png":
+                                        bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,"exception.png",1,1,1)
+                                                                        
+                                    elif the_choice == "indentationerror.png":
+                                            bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,"indentationerror.png",1.5,3,0.8)
+
+                                    elif the_choice == "indexerror.png":
+                                        bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,"indexerror.png",1,1,1,y_speed = 1.2)
+                                    elif the_choice == "memoryerror.png":
+                                        bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,"memoryerror.png",3,10,0.4,y_speed = 0.2)
+                                    elif the_choice == "importerror.png":
+                                        bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,"importerror.png",3,15,0.25,y_speed = 0.2)
+
+                                    elif the_choice == "brokenpipe.png":
+                                        bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,"brokenpipe.png",3,1,0.4,y_speed = 0.5)
+
+                                    elif the_choice == "typeerror.png":
+                                        bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,"typeerror.png",random.randint(1,7),random.randint(1,7),0.4,y_speed = random.uniform(0.5,1.5))
+                                    bugs.add(bug)
+
+                else:
+                    self.burst_count = 0
+                    self.laser_cooldown = self.max_laser_cooldwon
+                    self.stage = "Moving"
+                    self.shots_fired += 1
+            elif self.shoot_style == 2:
+                self.stage = "Shooting"
+                bullet1 = BossLaser(self.rect.centerx - 22,self.rect.centery,0,8,1,(255,255,0),9)
+                bullet2 = BossLaser(self.rect.centerx + 22,self.rect.centery,0,8,1,(255,255,0),9)
+                boss_lasers.append(bullet1)
+                boss_lasers.append(bullet2)
+
+                self.beam_count += 1
+
+                if self.beam_count < self.max_beam_count:
+                    self.laser_cooldown = 1
+                    if self.beam_count == 1:
+                        if self.hp <= 499  and self.shots_fired >= 3:
+                            for i in range(5):
+                                the_choice = random.choice(("exception.png",
+                                                "indentationerror.png",
+                                                "indexerror.png",
+                                                "memoryerror.png",
+                                                "importerror.png",
+                                                "brokenpipe.png","typeerror.png"))
+                                
+                                if the_choice == "exception.png":
+                                    bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,"exception.png",1,1,1)
+                                                                    
+                                elif the_choice == "indentationerror.png":
+                                        bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,"indentationerror.png",1.5,3,0.8)
+
+                                elif the_choice == "indexerror.png":
+                                    bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,"indexerror.png",1,1,1,y_speed = 1.2)
+                                elif the_choice == "memoryerror.png":
+                                    bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,"memoryerror.png",3,10,0.4,y_speed = 0.2)
+                                elif the_choice == "importerror.png":
+                                    bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,"importerror.png",3,15,0.25,y_speed = 0.2)
+
+                                elif the_choice == "brokenpipe.png":
+                                    bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,"brokenpipe.png",3,1,0.4,y_speed = 0.5)
+
+                                elif the_choice == "typeerror.png":
+                                    bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,"typeerror.png",random.randint(1,7),random.randint(1,7),0.4,y_speed = random.uniform(0.5,1.5))
+                                bugs.add(bug)
+                    
+                else:
+                    self.beam_count = 0
+                    self.laser_cooldown = self.max_laser_cooldwon
+                    self.stage = "Moving"
+                    self.shots_fired += 1
+            elif self.shoot_style == 3:
+                bullet1 = BossLaser(random.randint(self.rect.x,self.rect.right-24),self.rect.centery,0,8,1,(255,255,0),9,w=48,h=48)
+                boss_lasers.append(bullet1)
+
+                self.giant_beam_count += 1
+
+                if self.giant_beam_count < self.max_giant_beam_count:
+                    self.laser_cooldown = 30
+                else:
+                    self.laser_cooldown = self.max_laser_cooldwon
+                    self.giant_beam_count = 0
+                    self.stage = "Moving"
+                    self.shots_fired += 1
+
+        
+        elif self.laser_cooldown > 0:
+            self.laser_cooldown -= 1
+
+
+        
+
+        self.speed = 2.4
+
+
+
+    
+        
+
+class BossLaser(pygame.rect.Rect):
+    def __init__(self,x,y,xv,yv,damage,color,speed,w=6,h=6):
+        self.x = x
+        self.y = y
+        self.xv = xv
+        self.yv = yv
+        self.w = w
+        self.h = h
+        self.damage = damage
+        self.color = color
+        self.speed = speed
+        self.float_x = x
+        self.float_y = y
+    def update(self):
+        global boss_lasers,ship
+        self.float_x += self.xv
+        self.float_y += self.yv
+
+        self.x = int(self.float_x)
+        self.y = int(self.float_y)
+
+        if (self.top < 0 or       
+        self.bottom > HEIGHT or     
+        self.left > 1280 or  
+        self.right < 0):       
+        
+            boss_lasers.remove(self)
+
+        if self.colliderect(ship.rect):
+            boss_lasers.remove(self)
+            ship.hp -= self.damage
+
+    
+    def draw(self):
+        laser = pygame.rect.Rect(self.x,self.y,self.w,self.h)
+        pygame.draw.rect(screen,self.color,laser)
+
+        
+     
+boss_lasers = []
 enemy_lasers = []
 keys = pygame.key.get_pressed()
 files = pygame.sprite.Group()
@@ -633,11 +840,12 @@ typer_speed = 10
 
 
 
-
+ship_image = pygame.image.load("ship.png").convert_alpha()
+ship_image = pygame.transform.scale(ship_image,(27,33))
 
 
 async def main():
-    global keys,current_enemy,full_title,current_typed,typed_frame,type_letter,typer_speed,menu_buttons,back_button,game_state,mouse_pressed,mouse_pos,heal_1,heal_possible,server,enemy_lasers,particles,dash_possible,add_pierce_possible,ship,pierce_1,files_destroyed,bugsnum,cards_were_shuffled,card_options,card_was_chosen,symbols,current_level,keys,running,files,pro_ships,lasers,level_list,level,startx,starty,rowindex,colindex,spacer,bugs
+    global ship_image,boss_lasers,keys,current_enemy,full_title,current_typed,typed_frame,type_letter,typer_speed,menu_buttons,back_button,game_state,mouse_pressed,mouse_pos,heal_1,heal_possible,server,enemy_lasers,particles,dash_possible,add_pierce_possible,ship,pierce_1,files_destroyed,bugsnum,cards_were_shuffled,card_options,card_was_chosen,symbols,current_level,keys,running,files,pro_ships,lasers,level_list,level,startx,starty,rowindex,colindex,spacer,bugs
 
     while running:
         clock.tick(FPS)
@@ -758,9 +966,7 @@ async def main():
             back_button.draw(screen, ui_font, mouse_pos)
         elif game_state == 1:
             for i in range(lives_left):
-                image = pygame.image.load("ship.png").convert_alpha()
-                image = pygame.transform.scale(image,(27,33))
-                screen.blit(image,(i*30,5))
+                screen.blit(ship_image,(i*30,5))
             if (not card_options.__contains__(pierce_1)) and ship.damage > 1 and ship.cooldown < 15 and add_pierce_possible:
                 card_options.append(pierce_1)
                 add_pierce_possible = False
@@ -776,10 +982,12 @@ async def main():
             mouse_pos = pygame.mouse.get_pos()
             pro_ships.draw(screen)
             bugs.draw(screen)
-            files.draw(screen)
+            if not current_level == 20:
+                files.draw(screen)
             if not files_destroyed:
                 for file in files:
-                    file.update()
+                    if current_level != 20:
+                        file.update()
                 for laser in lasers:
                     laser.draw()
                     laser.update()
@@ -800,7 +1008,9 @@ async def main():
                 for enlaser in enemy_lasers:
                     enlaser.draw()
                     enlaser.update()
+                
                 symbols.draw(screen)
+
                 if bugsnum == 0 :
                     bugs.empty()
                     lasers.clear()
@@ -852,23 +1062,27 @@ async def main():
                                 elif exception == "t":
                                     bug = Bug(startx + rowindex * spacer,starty - colindex,24,24,"typeerror.png",random.randint(1,7),random.randint(1,7),0.4,y_speed = random.uniform(0.5,1.5))
                                 elif exception == "BOSS":
-                                    bug = RecursionBoss(WIDTH//2 - 150,10,240,120,"recursionboss.png",1,100)
+                                    bug = RecursionBoss(WIDTH//2 - 150,50,240,120,"recursionboss.png",1,100)
                                     bosses.add(bug)
                                 
                                 bugs.add(bug)
                                 rowindex += 1
                             colindex -= spacer
                             rowindex = 0
-                    elif current_level > len(level_list):
-                        win  = title_font.render(f"YOU WIN (for now)",True , (0,255,0))
+                    elif current_level >= len(level_list):
+                        win  = title_font.render(f"YOU WIN \n(for now)",True , (0,255,0))
                         screen.blit(win,(WIDTH//2 - 300,HEIGHT//2  - 100))
                     else:
                         pass  
 
             bosses.draw(screen)
             bosses.update()
+            for laser in boss_lasers:
+                laser.draw()
+                laser.update()
             for boss in bosses:
                 boss.check_for_collisions()
+                boss.shoot()
             for particle in particles[:]:
                 particle[0][0] += particle[1][0] # Adding the x velocity to the x
                 particle[0][1] += particle[1][1] # Adding the y velocity to the y
