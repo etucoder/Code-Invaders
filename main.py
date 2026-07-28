@@ -449,6 +449,7 @@ class RecursionBoss(pygame.sprite.Sprite):
         self.y = y
         self.w = w
         self.h = h
+        self.hp = 200
         self.image_path = image_path
         self.image = pygame.transform.scale(pygame.image.load(self.image_path).convert_alpha(),(w,h))
         self.rect = self.image.get_rect(topleft = (x,y))
