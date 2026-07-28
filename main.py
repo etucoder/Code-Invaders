@@ -500,7 +500,7 @@ level11 = [["m","e","e","e","e","e","e","m"],["x",'m',"x",'i',"x",'i',"x",'m'],[
 level12 = [["x","x","x"],["m","m","m"],["x","x","x"],["x","x","x"],["x","x","x"],["x","x","x"],["x","x","x"],]
 level13 = [['x','x','x','x','x'],['x','x','x','x','x'],['p','p','p','p','p']]
 level14 = [['p','p','p','p','p'],['e','e','e','e','e'],['e','e','e','e','e'],[""],[""],["i","i","i","i","i"]]
-level15 = [["x","x","x","x","x","x","x","x","x","x","x","x","x","x","x"],["x","x","x","x","x","x","x","x","x","x","x","x","x","x","x"],["x","x","x","x","x","x","x","x","x","x","x","x","x","x","x"]]
+level15 = [["x","x","x","x","x","x","x","x"],["x","x","x","x","x","x","x","x"],["x","x","x","x","x","x","x","x"],["x","x","x","x","x","x","x","x"]]
 level16 = [['b','b','b','b','b','b','b'],['i','i','i','i','i','i','i']]
 level17 = [["","m","m","m",""],["b","b","b","b","b"],["b","b","b","b","b"]]
 level_list = [level1,level2,level3,level4,level5,level6,level7,level8,level9,level10,level11,level12,level13,level14,level15,level16,level17]
@@ -554,6 +554,11 @@ typed_frame = 0
 type_letter = 0
 typer_speed = 10
 
+
+
+
+
+
 async def main():
     global keys,current_enemy,full_title,current_typed,typed_frame,type_letter,typer_speed,menu_buttons,back_button,game_state,mouse_pressed,mouse_pos,heal_1,heal_possible,server,enemy_lasers,particles,dash_possible,add_pierce_possible,ship,pierce_1,files_destroyed,bugsnum,cards_were_shuffled,card_options,card_was_chosen,symbols,current_level,keys,running,files,pro_ships,lasers,level_list,level,startx,starty,rowindex,colindex,spacer,bugs
 
@@ -589,9 +594,9 @@ async def main():
                         if btn.check_clicks(mouse_pos,mouse_pressed):
                             print("Oh Yeah!")
                             game_state = btn.target_state
-                # elif game_state in [1,2,3]:
-                #     if back_button.check_clicks(mouse_pos,mouse_pressed):
-                #         game_state = back_button.target_state
+                elif game_state == 2 or game_state == 3:
+                     if back_button.check_clicks(mouse_pos,mouse_pressed):
+                        game_state = back_button.target_state
 
         screen.fill(screen_color)
         keys = pygame.key.get_pressed()
@@ -621,7 +626,7 @@ async def main():
                 "Controls : Spacebar, Q, or E to fire lasers",
                 "Controls : Press Right Shift to Dash (Once Unlocked)",
                 "Goal : Protect your code files at the bottom from the endless waves of bugs (like in real programming...)!\n If they reach 0 HP , the game is over!",
-                "Upgrades : After you clear a wave of bugs, you get to choose one of 2-3 upgrade cards to upgrade your stats.",
+                "Upgrades : After you clear a wave of bugs, you get to choose one of 2-3 upgrade cards to upgrade your stats.\n Press 1 to pick card 1, press 2 to pick card 2, and 3 to pick card 3",
                 "Upgrades : Some upgrades can only be unlocked after using others (ex. Pierce need ATK+ and Cooldown+)",
                 "Waves : There are 16 Waves (So Far). Beat all of them to finally finish your program :)",
                 "IRL : If you like the game , play the real version... by learning Python! (Or just play the game again...)"
@@ -631,7 +636,8 @@ async def main():
                 txt = small_font.render(line,True,(240,240,240))
                 screen.blit(txt,(100,200 + i * 45))
             back_button.draw(screen, ui_font, mouse_pos)
-            
+            if back_button.check_clicks(mouse_pos,mouse_pressed):
+                game_state = back_button.target_state
 
         elif game_state == 3:
             error_log_title = subtitle_font.render("SYSTEM ERROR LOG \n(Enemy Index)",True,(0,255,100))
@@ -664,6 +670,8 @@ async def main():
             screen.blit(text,text.get_rect(center = (WIDTH//2 , 400)))
             screen.blit(image,(WIDTH//2 - (image.width //2),200))
             screen.blit(continue_text,continue_text.get_rect(center = (WIDTH//2 , 350)))
+            if back_button.check_clicks(mouse_pos,mouse_pressed):
+                game_state = back_button.target_state
             # if keys[pygame.K_RIGHT]:
             #     current_enemy += 0.25
             #     if current_enemy > 5:
@@ -716,6 +724,9 @@ async def main():
                     enlaser.update()
                 symbols.draw(screen)
                 if bugsnum == 0 :
+                    bugs.empty()
+                    lasers.clear()
+                    enemy_lasers.clear()
                     if card_was_chosen == True and previous_bugsnum > 0:
                         card_was_chosen = False
                         cards_were_shuffled = False
@@ -766,7 +777,7 @@ async def main():
                             colindex -= spacer
                             rowindex = 0
                     elif current_level >= len(level_list):
-                        win  = font.render(f"YOU WIN (for now)",True , (0,255,0))
+                        win  = title_font.render(f"YOU WIN (for now)",True , (0,255,0))
                         screen.blit(win,(WIDTH//2 - 300,HEIGHT//2  - 100))
                     else:
                         pass  
@@ -790,8 +801,8 @@ async def main():
 
 
             if files_destroyed or lives_left <= 0:
-                win  = font.render(f"YOU LOSE...",True , (255,0,0))
-                screen.blit(win,(WIDTH//2 - 300,HEIGHT//2  - 100))
+                win  = title_font.render(f"YOU LOSE...",True , (255,0,0))
+                screen.blit(win,win.get_rect(center = (WIDTH//2 , 200)))
                 current_level = 0
                 ship = Ship(100,100,27,33,"ship.png",1,1)
         pygame.display.flip()
