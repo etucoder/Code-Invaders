@@ -14,7 +14,11 @@ Option 1 : Open the Itch.io page, and click the 'play' button
  ---> After every level, get 2-3 choices of upgrade cards to pick from to increase your stats
 
 # Other Mechanics
- ---> Coming soon : Skill tree to show what card unlocks what!
+ Coming soon : Skill tree to show what card unlocks what!
+ Coming soon : New weapons to pick after beating boss fight
+ Coming soon : Permanant upgrades for your whole run, not just until you die
+ Coming soon : Restart button!
+ 
 
 # Stategies
 Focus on rows, not columns.
@@ -22,6 +26,6 @@ If a file has low health, protect it
 If a file is about to take a final hit before it dies, and you have 3 lives, jump in front of it to block the hit, preventing the game from ending
 
 # Hours Spent
-12
+21 Hours, 21 Minutes
 
 

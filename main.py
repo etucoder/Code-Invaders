@@ -54,6 +54,7 @@ class MenuButton():
 
 
 ##### Game Stuff #####
+########### SHIPPY ##################
 class Ship(pygame.sprite.Sprite):
     def __init__(self,x,y,w,h,image_path,damage,hp = 10,speed = 6,knockback = 0,pierce = 0):
         super().__init__()
@@ -61,20 +62,24 @@ class Ship(pygame.sprite.Sprite):
         self.y = y
         self.w = w
         self.h = h
+        self.weapon_type = "Shotgun"
         self.image_path = image_path
         self.pierce = pierce
         self.image = pygame.transform.scale(pygame.image.load(self.image_path).convert_alpha(),(w,h))
         self.rect = self.image.get_rect(topleft = (x,y))
-        self.damage = 30
+        self.damage = damage
         self.hp = hp
         self.speed = speed
-        self.cooldown = 12
+        if self.weapon_type != "Shotgun":
+            self.cooldown = 15
+        else:
+            self.cooldown = 45
         self.max_cooldown = self.cooldown
         self.max_hp = hp
         self.knockback = knockback
-        self.can_dash = False
+        self.can_dash = True
         self.is_dashing = False
-        self.dash_damage = 0
+        self.dash_damage = 3
         self.dash_cooldown = 200
         red_rect = pygame.rect.Rect(self.rect.centerx,self.rect.centery + 25,5,100)
         green_rect = pygame.rect.Rect(self.rect.centerx,self.rect.centery + 25,5,(100/self.max_hp) * self.hp)
@@ -96,6 +101,8 @@ class Ship(pygame.sprite.Sprite):
                 if bug.rect.colliderect(dash_beam):
                     bug.hp -= self.dash_damage
             self.rect.y = 0
+        elif keys[pygame.K_RSHIFT] and self.dash_cooldown <= 150:
+            self.rect.y = 500
         
             
             self.is_dashing = False
@@ -122,12 +129,35 @@ class Ship(pygame.sprite.Sprite):
     def shoot(self):
         global lasers
         if (keys[pygame.K_SPACE] or keys[pygame.K_e] or keys[pygame.K_q]) and self.cooldown <= 0:
-            laser = Laser(self.rect.centerx,self.rect.top,5,5,damage=self.damage,knockback=self.knockback,pierce=self.pierce)
-            lasers.append(laser)
-            self.cooldown = self.max_cooldown
-        elif self.cooldown > 0 :
-            self.cooldown -= 1
+            if self.weapon_type == "Regular":
+                laser = Laser(self.rect.centerx,self.rect.top,5,5,damage=self.damage,knockback=self.knockback,pierce=self.pierce)
+                lasers.append(laser)
+                self.cooldown = self.max_cooldown
+            elif self.weapon_type == "Double":
+                laser = Laser(self.rect.x+3,self.rect.y+10,5,5,damage=self.damage,knockback=self.knockback,pierce=self.pierce)
+                laser1 = Laser(self.rect.x+18,self.rect.y+10,5,5,damage=self.damage,knockback=self.knockback,pierce=self.pierce)
+                lasers.append(laser)
+                lasers.append(laser1)
+                self.cooldown = self.max_cooldown
 
+            elif self.weapon_type == "Shotgun":
+                coord_pairs = [(-3.00,-5.20),(-1.55,-5.80),(0.00,-6.00),(1.55,-5.80),(3.00,-5.20)]
+                for vx,vy in coord_pairs:
+                    bullet = BossLaser(self.rect.centerx,self.rect.centery,vx ,vy,1,(0,255,0),speed=6)
+                    lasers.append(bullet)
+
+                self.cooldown = self.max_cooldown
+
+            
+        elif self.cooldown > 0 :
+            
+            self.cooldown -= 1
+items = ["exception.png",
+                                                "indentationerror.png",
+                                                "indexerror.png",
+                                                "memoryerror.png",
+                                                "importerror.png",
+                                                "brokenpipe.png","typeerror.png"]
 class Bug(pygame.sprite.Sprite):
     def __init__(self,x,y,w,h,image_path,damage,hp ,speed,y_speed = 0.5 ):
         super().__init__()
@@ -135,7 +165,7 @@ class Bug(pygame.sprite.Sprite):
         self.y = y
         self.w = w
         self.h = h
-        self.image_path = image_path
+        self.image_path = items[image_path]
         self.damage = damage
         self.hp = hp
         self.max_hp = hp
@@ -241,7 +271,7 @@ class Bug(pygame.sprite.Sprite):
             self.rect = self.image.get_rect(topleft = (self.rect.x,self.rect.y))
         if self.image_path == "importerror.png":
             if self.creation_cooldown <= 0:
-                child_bug = Bug(self.rect.x, self.rect.bottom,24,24,"exception.png",1,1,1)
+                child_bug = Bug(self.rect.x, self.rect.bottom,24,24,0,1,1,1)
                 bugs.add(child_bug)
                 self.creation_cooldown = self.max_creation_cooldown
             else:
@@ -283,9 +313,23 @@ class MemoryError(Bug):
     def __init__(self, x, y, w, h, image_path, damage, hp, speed, y_speed=0.5):
         super().__init__(x, y, w, h, image_path, damage, hp, speed, y_speed)
 
+class Mine(pygame.rect.Rect):
+    def __init__(self,x,y,w,h,damage,image_path,xv,yv,speed):
+        super().__init__(x,y,w,h)
+        self.x = x
+        self.float_x = float(x)
+        self.y = y
+        self.float_y = float(y)
+        self.w = w
+        self.h = h
+        self.color = (0,165,255)
+        self.explosion_radius = 5
+        self.damage = damage
 
+
+        
 class Laser(pygame.rect.Rect):
-    def __init__(self,x,y,w,h,color=(255,0,255),speed = 9,damage = 1,knockback = 0,pierce = 0):
+    def __init__(self,x,y,w,h,color=(255,0,255),speed = 9,damage = 1,knockback = 0,pierce = 0,vx = 0 ,vy = 0):
         super().__init__(x,y,w,h)
         self.x = x
         self.y = y
@@ -296,11 +340,14 @@ class Laser(pygame.rect.Rect):
         self.damage = damage
         self.knockback = knockback
         self.pierce = pierce
+        self.xv = vx
+        self.yv = vy
+        self.flo
     def draw(self):
         laser = pygame.rect.Rect(self.x,self.y,self.w,self.h)
         pygame.draw.rect(screen,self.color,laser)
     def update(self):
-        global enemy_lasers,ship
+        global enemy_lasers,ship,lasers
         self.y -= self.speed
         for enlaser in enemy_lasers:
             if self.colliderect(enlaser):
@@ -309,8 +356,13 @@ class Laser(pygame.rect.Rect):
                     enemy_lasers.remove(enlaser)
                 except:
                     pass
-        
 
+        if self.top <= 0 :
+            lasers.remove(self)
+            print("Removed.")
+            coord_pairs = [(-4.24,4.24),(-3.00,5.20),(-1.55,5.80),(0.00,6.00),(1.55,5.80),(3.00,5.20),(4.24,4.24)]
+
+        
 class FileTower(pygame.sprite.Sprite):
     def __init__(self, x,y,w,h,image_path,hp):
         super().__init__()
@@ -485,6 +537,7 @@ class RecursionBoss(pygame.sprite.Sprite):
         self.max_giant_beam_count = 3
         self.shots_fired = 0
     def update(self):
+        global bugs
         if self.stage == "Moving":
             self.shoot_style = random.choice((1,2,3))
             if self.direction == "None":
@@ -503,6 +556,7 @@ class RecursionBoss(pygame.sprite.Sprite):
             self.rect.y = int(self.float_y) 
         if self.hp <= 0:
             self.kill()
+            bugs.empty()
             for i in range(90):
                 particles.append([[self.rect.centerx, self.rect.centery] , [random.randint(-10,10),random.randint(-10,10)] , random.randint(4,20), (0,255,0)])
             for i in range(90):
@@ -514,8 +568,8 @@ class RecursionBoss(pygame.sprite.Sprite):
                 particles.append([[self.rect.centerx, self.rect.centery] , [random.randint(-10,10),random.randint(-10,10)] , random.randint(4,20), (128,0,128)])
 
 
-        red_rect = pygame.rect.Rect(self.rect.centerx  - self.w // 2,self.rect.top - 25,150,5)
-        green_rect = pygame.rect.Rect(self.rect.centerx  - self.w // 2,self.rect.top - 25,(150/self.max_hp) * self.hp,5)
+        red_rect = pygame.rect.Rect(self.rect.centerx  - self.w // 2 + 50,self.rect.top - 25,150,5)
+        green_rect = pygame.rect.Rect(self.rect.centerx  - self.w // 2 + 50,self.rect.top - 25,(150/self.max_hp) * self.hp,5)
         pygame.draw.rect(screen,(255,0,0),red_rect)
         pygame.draw.rect(screen,(0,255,0),green_rect)
 
@@ -559,6 +613,8 @@ class RecursionBoss(pygame.sprite.Sprite):
     def shoot(self):
         coord_pairs = [(-4.24,4.24),(-3.00,5.20),(-1.55,5.80),(0.00,6.00),(1.55,5.80),(3.00,5.20),(4.24,4.24)]
         self.speed = 0
+        if self.hp <= 200:
+            self.max_cooldown = 62.5
         if self.laser_cooldown <= 0:
             
             self.stage = "Shooting"
@@ -584,23 +640,23 @@ class RecursionBoss(pygame.sprite.Sprite):
                                                     "brokenpipe.png","typeerror.png"))
                                     
                                     if the_choice == "exception.png":
-                                        bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,"exception.png",1,1,1)
+                                        bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,0,1,1,1)
                                                                         
                                     elif the_choice == "indentationerror.png":
-                                            bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,"indentationerror.png",1.5,3,0.8)
+                                            bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,1,1.5,3,0.8)
 
                                     elif the_choice == "indexerror.png":
-                                        bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,"indexerror.png",1,1,1,y_speed = 1.2)
+                                        bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,2,1,1,1,y_speed = 1.2)
                                     elif the_choice == "memoryerror.png":
-                                        bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,"memoryerror.png",3,10,0.4,y_speed = 0.2)
+                                        bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,3,3,10,0.4,y_speed = 0.2)
                                     elif the_choice == "importerror.png":
-                                        bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,"importerror.png",3,15,0.25,y_speed = 0.2)
+                                        bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,4,3,15,0.25,y_speed = 0.2)
 
                                     elif the_choice == "brokenpipe.png":
-                                        bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,"brokenpipe.png",3,1,0.4,y_speed = 0.5)
+                                        bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,5,3,1,0.4,y_speed = 0.5)
 
                                     elif the_choice == "typeerror.png":
-                                        bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,"typeerror.png",random.randint(1,7),random.randint(1,7),0.4,y_speed = random.uniform(0.5,1.5))
+                                        bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,6,random.randint(1,7),random.randint(1,7),0.4,y_speed = random.uniform(0.5,1.5))
                                     bugs.add(bug)
 
                 else:
@@ -630,23 +686,23 @@ class RecursionBoss(pygame.sprite.Sprite):
                                                 "brokenpipe.png","typeerror.png"))
                                 
                                 if the_choice == "exception.png":
-                                    bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,"exception.png",1,1,1)
+                                    bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,0,1,1,1)
                                                                     
                                 elif the_choice == "indentationerror.png":
-                                        bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,"indentationerror.png",1.5,3,0.8)
+                                        bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,1,1.5,3,0.8)
 
                                 elif the_choice == "indexerror.png":
-                                    bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,"indexerror.png",1,1,1,y_speed = 1.2)
+                                    bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,2,1,1,1,y_speed = 1.2)
                                 elif the_choice == "memoryerror.png":
-                                    bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,"memoryerror.png",3,10,0.4,y_speed = 0.2)
+                                    bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,3,3,10,0.4,y_speed = 0.2)
                                 elif the_choice == "importerror.png":
-                                    bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,"importerror.png",3,15,0.25,y_speed = 0.2)
+                                    bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,4,3,15,0.25,y_speed = 0.2)
 
                                 elif the_choice == "brokenpipe.png":
-                                    bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,"brokenpipe.png",3,1,0.4,y_speed = 0.5)
+                                    bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,5,3,1,0.4,y_speed = 0.5)
 
                                 elif the_choice == "typeerror.png":
-                                    bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,"typeerror.png",random.randint(1,7),random.randint(1,7),0.4,y_speed = random.uniform(0.5,1.5))
+                                    bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,6,random.randint(1,7),random.randint(1,7),0.4,y_speed = random.uniform(0.5,1.5))
                                 bugs.add(bug)
                     
                 else:
@@ -655,7 +711,7 @@ class RecursionBoss(pygame.sprite.Sprite):
                     self.stage = "Moving"
                     self.shots_fired += 1
             elif self.shoot_style == 3:
-                bullet1 = BossLaser(random.randint(self.rect.x,self.rect.right-24),self.rect.centery,0,8,1,(255,255,0),9,w=48,h=48)
+                bullet1 = BossLaser(random.randint(self.rect.x,self.rect.right-24),self.rect.centery,0,8,10,(255,255,0),9,w=48,h=48)
                 boss_lasers.append(bullet1)
 
                 self.giant_beam_count += 1
@@ -684,6 +740,7 @@ class RecursionBoss(pygame.sprite.Sprite):
 
 class BossLaser(pygame.rect.Rect):
     def __init__(self,x,y,xv,yv,damage,color,speed,w=6,h=6):
+        super().__init__(x,y,w,h)
         self.x = x
         self.y = y
         self.xv = xv
@@ -695,8 +752,10 @@ class BossLaser(pygame.rect.Rect):
         self.speed = speed
         self.float_x = x
         self.float_y = y
+        self.knockback = 0
+        self.pierce = 0 
     def update(self):
-        global boss_lasers,ship
+        global boss_lasers,ship,lasers
         self.float_x += self.xv
         self.float_y += self.yv
 
@@ -708,18 +767,33 @@ class BossLaser(pygame.rect.Rect):
         self.left > 1280 or  
         self.right < 0):       
         
-            boss_lasers.remove(self)
+            try:
+                boss_lasers.remove(self)
+                ship.hp -= self.damage
+            except:
+                try:
+                    lasers.remove(self)
+                except:
+                    pass
 
-        if self.colliderect(ship.rect):
-            boss_lasers.remove(self)
-            ship.hp -= self.damage
+        if self.colliderect(ship.rect) and self.color == (255,0,0):
+            try:
+                boss_lasers.remove(self)
+                ship.hp -= self.damage
+            except:
+                try:
+                    lasers.remove(self)
+                except:
+                    pass
 
     
     def draw(self):
         laser = pygame.rect.Rect(self.x,self.y,self.w,self.h)
         pygame.draw.rect(screen,self.color,laser)
 
-        
+pro_ships = pygame.sprite.Group()
+
+ship = Ship(100,100,27,33,"ship.png",1,10)       
      
 boss_lasers = []
 enemy_lasers = []
@@ -736,13 +810,17 @@ error_log = FileTower(WIDTH//2 + 300 , HEIGHT - 130,100,120,"error_log.png",5)
 readme = FileTower(WIDTH//2 - 480 , HEIGHT - 130,80,120,"readme.png",5)
 gitignore = FileTower(WIDTH//2 + 410 , HEIGHT - 130,80,120,"gitignore.png",5)
 cards = []
-cooldown_1 = UpgradeCard(0,HEIGHT//2 - 180,200,300,"Square","Cooldown",-0.5,0)
+cooldown_1 = UpgradeCard(0,HEIGHT//2 - 180,200,300,"Square","Cooldown",-((ship.max_cooldown / 15) * 0.5) ,0)
+
 atk_1 = UpgradeCard(0,HEIGHT//2 - 180,200,300,"Square","Ship Atk",+0.5,1)
 ship_speed_1 = UpgradeCard(0,HEIGHT//2 - 180,200,300,"Triangle","Ship Speed",+1,2,upgrade_name="Ship")
 tower_hp_1 = UpgradeCard(0,HEIGHT//2 - 180,200,300,"Circle","Tower Health",+2.5,2,upgrade_name="File Towers")
 pierce_1 = UpgradeCard(0,HEIGHT//2 - 180,200,300,"Pentagon","Pierce",+1,2,upgrade_name="Laser")
 dash_1 = UpgradeCard(0,HEIGHT//2 - 180,200,300,"Triangle","Dash",+3,2,upgrade_name="Ship")
 heal_1 = UpgradeCard(0,HEIGHT//2 - 180,200,300,"Circle","Heal",+0.00083,2,upgrade_name="File Tower")
+double_1 = UpgradeCard(0,HEIGHT//2 - 180,200,300,"Hexagon","Weapon",+1,2,upgrade_name="Unlock the Double Gun")
+double_1 = UpgradeCard(0,HEIGHT//2 - 180,200,300,"Hexagon","Weapon",+1,2,upgrade_name="Unlock the  ShotGun")
+double_1 = UpgradeCard(0,HEIGHT//2 - 180,200,300,"Hexagon","Weapon",+1,2,upgrade_name="Unlock the Double Gun")
 card_options = [cooldown_1,atk_1,ship_speed_1,tower_hp_1]
 files_destroyed = False
 files.add(readme)
@@ -754,9 +832,7 @@ files.add(client)
 files.add(image_folder)
 files.add(error_log)
 files.add(gitignore)
-pro_ships = pygame.sprite.Group()
 
-ship = Ship(100,100,27,33,"ship.png",1,10)
 ship.rect.x = WIDTH // 2 - (ship.w//2)
 ship.rect.y = 400
 pro_ships.add(ship)
@@ -766,7 +842,7 @@ mouse_pos = ()
 mouse_pressed = False
 
 ####################################################################333333
-current_level = 19
+current_level = 0
 level1 = [["e","e","e","e","e"],["e","e","e","e","e"],["e","e","e","e","e"],["e","e","e","e","e"]]
 level2 = [["e","e","e","e","e","e","e"],["e","e","e","e","e","e","e"],["e","e","e","e","e","e","e"],["e","e","e","e","e","e","e"]]
 level3 = [["i","i","i","i","i","i"],["e","e","e","e","e","e",],["i","i","i","i","i","i"],["e","e","e","e","e","e",]]
@@ -787,6 +863,8 @@ level17 = [["","m","m","m",""],["b","b","b","b","b"],["b","b","b","b","b"]]
 level18 = [["b","b","b","b","b"],["b","b","b","b","b"],["b","b","b","b","b"],["b","b","b","b","b"]]
 level19 = [["b","b","b","b","b"],["b","b","b","b","b"],["t","t","t","t","t"]]
 level20 = [["BOSS"]]
+
+level21 = [["t","t","t","t","t"],["t","t","t","t","t"],["t","t","t","t","t"]]
 level_list = [level1,level2,level3,level4,level5,level6,level7,level8,level9,level10,level11,level12,level13,level14,level15,level16,level17,level18,level19,level20]
 level = level_list[current_level-1]
 ###########################################################################################################33
@@ -845,8 +923,9 @@ ship_image = pygame.transform.scale(ship_image,(27,33))
 
 
 async def main():
-    global ship_image,boss_lasers,keys,current_enemy,full_title,current_typed,typed_frame,type_letter,typer_speed,menu_buttons,back_button,game_state,mouse_pressed,mouse_pos,heal_1,heal_possible,server,enemy_lasers,particles,dash_possible,add_pierce_possible,ship,pierce_1,files_destroyed,bugsnum,cards_were_shuffled,card_options,card_was_chosen,symbols,current_level,keys,running,files,pro_ships,lasers,level_list,level,startx,starty,rowindex,colindex,spacer,bugs
-
+    global lives_left,ship_image,boss_lasers,keys,current_enemy,full_title,current_typed,typed_frame,type_letter,typer_speed,menu_buttons,back_button,game_state,mouse_pressed,mouse_pos,heal_1,heal_possible,server,enemy_lasers,particles,dash_possible,add_pierce_possible,ship,pierce_1,files_destroyed,bugsnum,cards_were_shuffled,card_options,card_was_chosen,symbols,current_level,keys,running,files,pro_ships,lasers,level_list,level,startx,starty,rowindex,colindex,spacer,bugs
+    if current_level == 20:
+        lives_left = 3
     while running:
         clock.tick(FPS)
         mouse_pos = pygame.mouse.get_pos()
@@ -873,11 +952,9 @@ async def main():
 
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button:
                 if game_state == 0:
-                    print("Yipee!")
                     mouse_pressed = pygame.mouse.get_pressed()
                     for btn in menu_buttons:
                         if btn.check_clicks(mouse_pos,mouse_pressed):
-                            print("Oh Yeah!")
                             game_state = btn.target_state
                 elif game_state == 2 or game_state == 3:
                      if back_button.check_clicks(mouse_pos,mouse_pressed):
@@ -885,7 +962,6 @@ async def main():
 
         screen.fill(screen_color)
         keys = pygame.key.get_pressed()
-        print(mouse_pos,mouse_pressed[0])
         if game_state == 0:
             if type_letter < len(full_title):
                 typed_frame += 1
@@ -991,6 +1067,13 @@ async def main():
                 for laser in lasers:
                     laser.draw()
                     laser.update()
+                    print(ship.rect.y - laser.y)
+                    if laser.y < ship.rect.y - 150:
+                        try:
+                            lasers.remove(laser)
+                            print("Wow")
+                        except:
+                            pass
                 for ship in pro_ships:
                     ship.move()
                     ship.shoot()
@@ -1020,12 +1103,15 @@ async def main():
                         cards_were_shuffled = False
                     if not cards_were_shuffled:
                         card_options_current = card_options[:]
-                        card1= random.choice(card_options_current)
-                        card_options_current.remove(card1)
-                        card2= random.choice(card_options_current)
-                        card_options_current.remove(card2)
-                        card3= random.choice(card_options_current)
-                        card_options_current.remove(card3)
+                        if not current_level == 20:
+                            card1= random.choice(card_options_current)
+                            card_options_current.remove(card1)
+                            card2= random.choice(card_options_current)
+                            card_options_current.remove(card2)
+                            card3= random.choice(card_options_current)
+                            card_options_current.remove(card3)
+                        else:
+                            pass
                         card1.lineupnum = 0
                         card2.lineupnum = 1
                         card3.lineupnum = 2
@@ -1044,23 +1130,23 @@ async def main():
                         for row in level:
                             for exception in row:
                                 if exception == "e":
-                                    bug = Bug(startx + rowindex * spacer,starty - colindex,24,24,"exception.png",1,1,1)
+                                    bug = Bug(startx + rowindex * spacer,starty - colindex,24,24,0,1,1,1)
                                 
                                 elif exception == "i":
-                                    bug = Bug(startx + rowindex * spacer,starty - colindex,24,24,"indentationerror.png",1.5,3,0.8)
+                                    bug = Bug(startx + rowindex * spacer,starty - colindex,24,24,1,1.5,3,0.8)
 
                                 elif exception == "x":
-                                    bug = Bug(startx + rowindex * spacer,starty - colindex,24,24,"indexerror.png",1,1,1,y_speed = 1.2)
+                                    bug = Bug(startx + rowindex * spacer,starty - colindex,24,24,2,1,1,1,y_speed = 1.2)
                                 elif exception == "m":
-                                    bug = Bug(startx + rowindex * spacer,starty - colindex,24,24,"memoryerror.png",3,10,0.4,y_speed = 0.2)
+                                    bug = Bug(startx + rowindex * spacer,starty - colindex,24,24,3,3,10,0.4,y_speed = 0.2)
                                 elif exception == "p":
-                                    bug = Bug(startx + rowindex * spacer,starty - colindex,24,24,"importerror.png",3,15,0.25,y_speed = 0.2)
+                                    bug = Bug(startx + rowindex * spacer,starty - colindex,24,24,4,3,15,0.25,y_speed = 0.2)
 
                                 elif exception == "b":
-                                    bug = Bug(startx + rowindex * spacer,starty - colindex,24,24,"brokenpipe.png",3,1,0.4,y_speed = 0.5)
+                                    bug = Bug(startx + rowindex * spacer,starty - colindex,24,24,5,3,1,0.4,y_speed = 0.5)
 
                                 elif exception == "t":
-                                    bug = Bug(startx + rowindex * spacer,starty - colindex,24,24,"typeerror.png",random.randint(1,7),random.randint(1,7),0.4,y_speed = random.uniform(0.5,1.5))
+                                    bug = Bug(startx + rowindex * spacer,starty - colindex,24,24,6,random.randint(1,7),random.randint(1,7),0.4,y_speed = random.uniform(0.5,1.5))
                                 elif exception == "BOSS":
                                     bug = RecursionBoss(WIDTH//2 - 150,50,240,120,"recursionboss.png",1,100)
                                     bosses.add(bug)
