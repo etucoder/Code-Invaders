@@ -62,7 +62,7 @@ class Ship(pygame.sprite.Sprite):
         self.y = y
         self.w = w
         self.h = h
-        self.weapon_type = "Regular"
+        self.weapon_type = "Mine"
         self.image_path = image_path
         self.pierce = pierce
         self.image = pygame.transform.scale(pygame.image.load(self.image_path).convert_alpha(),(w,h))
@@ -83,19 +83,35 @@ class Ship(pygame.sprite.Sprite):
         self.is_dashing = False
         self.dash_damage = 3
         self.dash_cooldown = 200
+        self.invert_duration = 0
         red_rect = pygame.rect.Rect(self.rect.centerx,self.rect.centery + 25,5,100)
         green_rect = pygame.rect.Rect(self.rect.centerx,self.rect.centery + 25,5,(100/self.max_hp) * self.hp)
     def move(self):
         global keys,bugs
-        if keys[pygame.K_UP] or keys[pygame.K_w]:
-            self.rect.y -= self.speed
-        elif keys[pygame.K_DOWN] or keys[pygame.K_s]:
-            self.rect.y += self.speed
-        elif keys[pygame.K_LEFT] or keys[pygame.K_a]:
-            self.rect.x -= self.speed
-        elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
-            self.rect.x += self.speed
-        elif keys[pygame.K_RSHIFT] and self.can_dash and self.dash_cooldown <= 0:
+        if self.invert_duration <= 0:
+            if keys[pygame.K_UP] or keys[pygame.K_w]:
+                self.rect.y -= self.speed
+            elif keys[pygame.K_DOWN] or keys[pygame.K_s]:
+                self.rect.y += self.speed
+            elif keys[pygame.K_LEFT] or keys[pygame.K_a]:
+                self.rect.x -= self.speed
+            elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+                self.rect.x += self.speed
+
+
+        else:
+            if keys[pygame.K_UP] or keys[pygame.K_w]:
+                self.rect.y += self.speed
+            elif keys[pygame.K_DOWN] or keys[pygame.K_s]:
+                self.rect.y -= self.speed
+            elif keys[pygame.K_LEFT] or keys[pygame.K_a]:
+                self.rect.x += self.speed
+            elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+                self.rect.x -= self.speed
+            self.invert_duration -= 1
+
+
+        if keys[pygame.K_RSHIFT] and self.can_dash and self.dash_cooldown <= 0:
             self.is_dashing = True
             self.dash_cooldown = 200
             dash_beam = pygame.Rect(self.rect.x,0,self.w,self.rect.y)
@@ -122,6 +138,12 @@ class Ship(pygame.sprite.Sprite):
         if self.rect.y >= HEIGHT - self.h:
             self.rect.y = HEIGHT - self.h
     def update(self):
+        if self.weapon_type != "Shotgun" and self.weapon_type != "Mine" :
+            self.max_cooldown = 12
+        elif self.weapon_type == "Shotgun":
+            self.max_cooldown = 45
+        elif self.weapon_type == "Mine":
+            self.max_cooldown = 40
         global lives_left
         if self.hp <= 0:
             lives_left -= 1
@@ -145,7 +167,7 @@ class Ship(pygame.sprite.Sprite):
             elif self.weapon_type == "Shotgun":
                 coord_pairs = [(-3.00,-5.20),(-1.55,-5.80),(0.00,-6.00),(1.55,-5.80),(3.00,-5.20)]
                 for vx,vy in coord_pairs:
-                    bullet = BossLaser(self.rect.centerx,self.rect.centery,vx ,vy,1,(0,255,0),speed=6)
+                    bullet = BossLaser(self.rect.centerx,self.rect.centery,vx ,vy,self.damage * 1.5,(0,255,0),speed=6)
                     lasers.append(bullet)
 
                 self.cooldown = self.max_cooldown
@@ -159,7 +181,7 @@ items = ["exception.png",
                                                 "indexerror.png",
                                                 "memoryerror.png",
                                                 "importerror.png",
-                                                "brokenpipe.png","typeerror.png"]
+                                                "brokenpipe.png","typeerror.png","packetbug.png","nullpointererror.png"]
 class Bug(pygame.sprite.Sprite):
     def __init__(self,x,y,w,h,image_path,damage,hp ,speed,y_speed = 0.5 ):
         super().__init__()
@@ -176,13 +198,21 @@ class Bug(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(topleft = (x,y))
         self.movetox = 0
         self.movetoy = 0
-        self.float_y = self.y
+        self.float_y = float(self.y)
+        self.float_x = float(self.x)
         self.y_speed = y_speed
         self.og_y_speed = y_speed
         self.creation_cooldown = 100
         self.max_creation_cooldown = self.creation_cooldown
         self.cooldown = 75
         self.max_cooldown = 75
+        self.null_cooldown = 200
+        self.max_null_cooldown = self.null_cooldown
+        self.xv = 0
+        self.yv = 0
+        if self.image_path == "packetbug.png":
+            self.orbit_angle = random.uniform(0,2*math.pi)
+            self.target_radius = random.uniform(140,180)
     def move(self,axis = "n",amount = 0):
         if axis == "x":
             self.movetox = amount
@@ -205,7 +235,7 @@ class Bug(pygame.sprite.Sprite):
         self.rect.y = int(self.float_y)
 
     def check_for_collisions(self):
-        global bugs,enemy_lasers,current_level
+        global bugs,enemy_lasers,current_level,ship
         memory_error_alive = any(bug.image_path == "memoryerror.png" for bug in bugs)
         if memory_error_alive == True:
             self.image.set_alpha(100)
@@ -262,7 +292,7 @@ class Bug(pygame.sprite.Sprite):
                 else:
                     self.hp -= ship.dash_damage
         for file in files:
-            if current_level != 20:
+            if current_level != 20 and self.image_path != "packetbug.png":
                 if self.rect.colliderect(file.rect):
                     self.hp = 0
                     file.hp -= self.damage
@@ -286,11 +316,63 @@ class Bug(pygame.sprite.Sprite):
         elif self.image_path == "brokenpipe.png" and self.cooldown > 0:
             self.cooldown -= 1
 
+        
+
+        if self.image_path == "packetbug.png":
+    
+            if self.target_radius > 10:
+                self.target_radius -= 0.36
+            target_x = ship.rect.centerx + math.cos(self.orbit_angle) * self.target_radius
+            target_y = ship.rect.centery + math.sin(self.orbit_angle) * self.target_radius
+
+           
+            dx = target_x - self.float_x
+            dy = target_y - self.float_y
+            distance = math.hypot(dx, dy)
+
+        
+            move_x = 0.0
+            move_y = 0.0
+            tracking_speed = 2 
+
+            if distance > 2:
+                move_x = (dx / distance) * tracking_speed
+                move_y = (dy / distance) * tracking_speed
+            else:
+       
+                self.orbit_angle += 0.02 
+
+            for other_bug in bugs:
+                if other_bug != self and other_bug.image_path == "packetbug.png":
+                    sep_dx = self.rect.centerx - other_bug.rect.centerx
+                    sep_dy = self.rect.centery - other_bug.rect.centery
+                    sep_dist = math.hypot(sep_dx, sep_dy)
+                    
+                    if 0 < sep_dist < 24:
+                        push_force = (24 - sep_dist) * 0.25
+                        move_x += (sep_dx / sep_dist) * push_force
+                        move_y += (sep_dy / sep_dist) * push_force
 
 
+            self.float_x += move_x
+            self.float_y += move_y
+            self.rect.x = int(self.float_x)
+            self.rect.y = int(self.float_y)
 
-        if self.rect.bottom >= HEIGHT:
-            self.kill()
+
+            if self.rect.colliderect(ship.rect):
+                ship.hp -= 2
+                self.kill()
+          
+        if self.image_path == "nullpointererror.png":
+            if self.null_cooldown <= 0:
+                null_bullet = NullLaser(self.rect.centerx,self.rect.centery,12,12,speed = 6)
+                null_lasers.append(null_bullet)
+                self.null_cooldown = self.max_null_cooldown
+            else:
+                self.null_cooldown -= 1
+
+            
 class EnemyLaser(pygame.rect.Rect):
     def __init__(self,x,y,w,h,color = (0,0,255),speed = 9, damage = 1, knockback = 0,pierce = 0):
         self.x = x
@@ -311,6 +393,33 @@ class EnemyLaser(pygame.rect.Rect):
         if self.colliderect(ship.rect):
             enemy_lasers.remove(self)
             ship.hp -= self.damage
+
+############## Null lasers
+class NullLaser(pygame.rect.Rect):
+    def __init__(self,x,y,w,h,color = (128,0,128),speed = 3, damage = 3, knockback = 0 ,pierce = 0 ):
+        super().__init__(x,y,w,h)
+        self.x = x
+        self.y = y
+        self.w = w
+        self.h = h
+        self.color = color 
+        self.speed = speed
+        self.damage = damage 
+        self.knockback = 0
+        self.pierce = 0
+        self.invert_duration = 600
+    def draw(self):
+        global screen
+        laser = pygame.rect.Rect(self.x,self.y,self.w,self.h)
+        pygame.draw.rect(screen,self.color,laser)
+    def update(self):
+        global null_lasers
+        self.y += self.speed
+        if self.colliderect(ship.rect):
+            null_lasers.remove(self)
+            ship.invert_duration += 300
+
+
 class MemoryError(Bug):
     def __init__(self, x, y, w, h, image_path, damage, hp, speed, y_speed=0.5):
         super().__init__(x, y, w, h, image_path, damage, hp, speed, y_speed)
@@ -869,7 +978,7 @@ class BossLaser(pygame.rect.Rect):
 pro_ships = pygame.sprite.Group()
 
 ship = Ship(100,100,27,33,"ship.png",1,10)       
-    
+null_lasers = []
 boss_lasers = []
 enemy_lasers = []
 keys = pygame.key.get_pressed()
@@ -919,7 +1028,7 @@ mouse_pos = ()
 mouse_pressed = False
 
 ########################ALL LEVELS######################333333
-current_level = 19
+current_level = 25
 level1 = [["e","e","e","e","e"],["e","e","e","e","e"],["e","e","e","e","e"],["e","e","e","e","e"]]
 level2 = [["e","e","e","e","e","e","e"],["e","e","e","e","e","e","e"],["e","e","e","e","e","e","e"],["e","e","e","e","e","e","e"]]
 level3 = [["i","i","i","i","i","i"],["e","e","e","e","e","e",],["i","i","i","i","i","i"],["e","e","e","e","e","e",]]
@@ -940,9 +1049,27 @@ level17 = [["","m","m","m",""],["b","b","b","b","b"],["b","b","b","b","b"]]
 level18 = [["b","b","b","b","b"],["b","b","b","b","b"],["b","b","b","b","b"],["b","b","b","b","b"]]
 level19 = [["b","b","b","b","b"],["b","b","b","b","b"],["t","t","t","t","t"]]
 level20 = [["BOSS"]]
+"""
+Key so I can create levels easily
+e = Regular
+i = indentationError (small tank)
+x = indexError (fast rusher)
+m = MemoryError (tank & protector)
+p = ImportError (Tank & Spawner)
+b = BrokenPipeError (Fragile Shooter)
+t = TypeError (RNG enemy)
+s = Swarm (A bunch of small , tracking , ship-damaging bugs)
+n = NullPointerError (Highly Tanky enemy that flips controls)
+"""
 
-level21 = [["t","t","t","t","t"],["t","t","t","t","t"],["t","t","t","t","t"]]
-level_list = [level1,level2,level3,level4,level5,level6,level7,level8,level9,level10,level11,level12,level13,level14,level15,level16,level17,level18,level19,level20,level21]
+level21 = [["x","b","x","b","x"],["t","t","t","t","t"],["t","t","t","t","t"],["t","t","t","t","t"]]
+level22 = [["b","b","x","b","b"],["t","x","x","x","t"],["t","t","t","t","t"],["p","p","p","p","p"]]
+level23 = [["s","s","s"],["s","s","s"],["s","s","s"]]
+level24 = [["b","b","b","b","b"],["p","s","p"],["p","s","p"]]
+level25 = [["b","b","b","b","b"],["p","p","p","p","p"],["x","x","s","x","x"]]
+level26 = [["n","n","n","n","n"],["n","n","n","n","n"],["x","x","x","x","x"],["b","b","b","b","b"]]
+level27 = [["n","n","n","n","n","n","n"],["t","t","t","t","t","t","t"]]
+level_list = [level1,level2,level3,level4,level5,level6,level7,level8,level9,level10,level11,level12,level13,level14,level15,level16,level17,level18,level19,level20,level21,level22,level23,level24,level25,level26]
 level = level_list[current_level-1]
 ###########################################################################################################33
 
@@ -1001,7 +1128,7 @@ ship_image = pygame.transform.scale(ship_image,(27,33))
 
 async def main():
     ################# GLOBAL VARIABLES :0 #######################################
-    global shotgun_1,double_1,mines_1,lives_left,ship_image,boss_lasers,keys,current_enemy,full_title,current_typed,typed_frame,type_letter,typer_speed,menu_buttons,back_button,game_state,mouse_pressed,mouse_pos,heal_1,heal_possible,server,enemy_lasers,particles,dash_possible,add_pierce_possible,ship,pierce_1,files_destroyed,bugsnum,cards_were_shuffled,card_options,card_was_chosen,symbols,current_level,keys,running,files,pro_ships,lasers,level_list,level,startx,starty,rowindex,colindex,spacer,bugs
+    global null_lasers,shotgun_1,double_1,mines_1,lives_left,ship_image,boss_lasers,keys,current_enemy,full_title,current_typed,typed_frame,type_letter,typer_speed,menu_buttons,back_button,game_state,mouse_pressed,mouse_pos,heal_1,heal_possible,server,enemy_lasers,particles,dash_possible,add_pierce_possible,ship,pierce_1,files_destroyed,bugsnum,cards_were_shuffled,card_options,card_was_chosen,symbols,current_level,keys,running,files,pro_ships,lasers,level_list,level,startx,starty,rowindex,colindex,spacer,bugs
     if current_level == 20:
         lives_left = 3
     while running:
@@ -1143,11 +1270,14 @@ async def main():
             if mouse_state[0] and ship.weapon_type == "Mine":
                     if ship.cooldown <= 0 and card_was_chosen:
                         print("Steve")
-                        mine = Mine(ship.rect.x,ship.rect.y,8,8,6,0,0,6,mouse_pos[0],mouse_pos[1])
+                        mine = Mine(ship.rect.x,ship.rect.y,8,8,6,0,0,ship.damage * 2,mouse_pos[0],mouse_pos[1])
                         mines.add(mine)
                         ship.cooldown = ship.max_cooldown
                     
             if not files_destroyed:
+                for null_laser in null_lasers:
+                    null_laser.draw()
+                    null_laser.update()
                 mines.draw(screen)
                 mines.update()
                 for file in files:
@@ -1239,11 +1369,20 @@ async def main():
 
                                 elif exception == "t":
                                     bug = Bug(startx + rowindex * spacer,starty - colindex,24,24,6,random.randint(1,7),random.randint(1,7),0.4,y_speed = random.uniform(0.5,1.5))
+                                elif exception == "n":
+                                    bug = Bug(startx + rowindex * spacer,starty - colindex,24,24,8,0,24,0.5)
                                 elif exception == "BOSS":
                                     bug = RecursionBoss(WIDTH//2 - 150,50,240,120,"recursionboss.png",1,100)
                                     bosses.add(bug)
-                                
+
                                 bugs.add(bug)
+                                if exception == "s":
+                                    for i in range(3):
+                                        for j in range(3):
+                                            bug = Bug((startx + rowindex * spacer ) + i * 10,(starty - colindex) + j * 10 ,9,9,7,1,1,0.4,y_speed = 0)
+                                            bugs.add(bug)
+
+                                
                                 rowindex += 1
                             colindex -= spacer
                             rowindex = 0
