@@ -27,5 +27,6 @@ If a file is about to take a final hit before it dies, and you have 3 lives, jum
 
 # Hours Spent
 21 Hours, 21 Minutes
+1253 Lines of Code
 
 

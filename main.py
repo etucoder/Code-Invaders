@@ -62,18 +62,20 @@ class Ship(pygame.sprite.Sprite):
         self.y = y
         self.w = w
         self.h = h
-        self.weapon_type = "Shotgun"
+        self.weapon_type = "Regular"
         self.image_path = image_path
         self.pierce = pierce
         self.image = pygame.transform.scale(pygame.image.load(self.image_path).convert_alpha(),(w,h))
         self.rect = self.image.get_rect(topleft = (x,y))
-        self.damage = damage
+        self.damage = 40
         self.hp = hp
         self.speed = speed
-        if self.weapon_type != "Shotgun":
-            self.cooldown = 15
-        else:
+        if self.weapon_type != "Shotgun" and self.weapon_type != "Mine" :
+            self.cooldown = 12
+        elif self.weapon_type == "Shotgun":
             self.cooldown = 45
+        elif self.weapon_type == "Mine":
+            self.cooldown = 60
         self.max_cooldown = self.cooldown
         self.max_hp = hp
         self.knockback = knockback
@@ -127,7 +129,7 @@ class Ship(pygame.sprite.Sprite):
             self.rect.x = WIDTH // 2 - (self.w//2)
             self.rect.y = 400
     def shoot(self):
-        global lasers
+        global lasers,card_was_chosen
         if (keys[pygame.K_SPACE] or keys[pygame.K_e] or keys[pygame.K_q]) and self.cooldown <= 0:
             if self.weapon_type == "Regular":
                 laser = Laser(self.rect.centerx,self.rect.top,5,5,damage=self.damage,knockback=self.knockback,pierce=self.pierce)
@@ -149,7 +151,7 @@ class Ship(pygame.sprite.Sprite):
                 self.cooldown = self.max_cooldown
 
             
-        elif self.cooldown > 0 :
+        elif self.cooldown > 0 and card_was_chosen == True:
             
             self.cooldown -= 1
 items = ["exception.png",
@@ -313,18 +315,62 @@ class MemoryError(Bug):
     def __init__(self, x, y, w, h, image_path, damage, hp, speed, y_speed=0.5):
         super().__init__(x, y, w, h, image_path, damage, hp, speed, y_speed)
 
-class Mine(pygame.rect.Rect):
-    def __init__(self,x,y,w,h,damage,image_path,xv,yv,speed):
-        super().__init__(x,y,w,h)
+class Mine(pygame.sprite.Sprite):
+    def __init__(self,x,y,w,h,damage,xv,yv,speed,final_dest_x,final_dest_y):
+        super().__init__()
         self.x = x
         self.float_x = float(x)
         self.y = y
         self.float_y = float(y)
         self.w = w
+        self.image_path = "mine.png"
         self.h = h
+        self.image = pygame.transform.scale(pygame.image.load(self.image_path).convert_alpha(),(w,h))
+        self.rect = self.image.get_rect(topleft = (x,y))
         self.color = (0,165,255)
-        self.explosion_radius = 5
+        self.explosion_radius = 60
         self.damage = damage
+        self.tx = final_dest_x
+        self.ty = final_dest_y
+
+        self.is_stuck = False
+        self.slide_speed = 0.05
+    def update(self):
+        global bugs,bosses
+        if not self.is_stuck:
+            dx = self.tx - self.float_x
+            dy = self.ty - self.float_y
+
+            self.float_x += dx * self.slide_speed
+            self.float_y += dy * self.slide_speed
+
+            self.rect.x = int(self.float_x)
+            self.rect.y = int(self.float_y)
+
+            if math.hypot(self.float_x-self.tx,self.float_y - self.ty) < 1.5:
+                self.rect.centerx = int(self.float_x)
+                self.rect.centery = int(self.float_y)
+                self.is_stuck = True
+
+        if self.is_stuck:
+            for bug in bugs:
+
+                distance = math.hypot(bug.rect.centerx - self.rect.centerx,bug.rect.centery - self.rect.centery)
+                if distance <= 35 or self.rect.colliderect(bug.rect):
+                    self.explode(bugs)
+                    break
+
+    def explode(self,bugs_group):
+        global bosses
+        for bug in bugs_group:
+            dist = math.hypot(bug.rect.centerx - self.rect.centerx,bug.rect.centery - self.rect.centery)
+            if dist <= self.explosion_radius or self.rect.colliderect(bug.rect):
+                bug.hp -= self.damage
+        for i in range(20):
+            particles.append([[self.rect.centerx, self.rect.centery] , [random.randint(-4,4),random.randint(-4,4)] , random.randint(3,8), (255,0,0)])
+        self.kill()
+                
+
 
 
         
@@ -342,7 +388,6 @@ class Laser(pygame.rect.Rect):
         self.pierce = pierce
         self.xv = vx
         self.yv = vy
-        self.flo
     def draw(self):
         laser = pygame.rect.Rect(self.x,self.y,self.w,self.h)
         pygame.draw.rect(screen,self.color,laser)
@@ -442,8 +487,10 @@ class UpgradeCard(pygame.sprite.Sprite):
         elif symbol == "Pentagon":
             symbol = SymbolSprite(self.x, self.y, 50, 50, "greenpentagon.png")
             self.the_color = (0,255,0)
-        
-    
+        elif symbol == "Hexagon":
+            symbol = SymbolSprite(self.x, self.y, 50, 50, "bluehexagon.png")
+            self.the_color = (0,0,255)
+
         symbol.rect.center = (card_rect.centerx, card_rect.top + 60)
         symbols.add(symbol)
 
@@ -465,7 +512,7 @@ class UpgradeCard(pygame.sprite.Sprite):
         screen.blit(stat_text, stat_rect)
         screen.blit(type_text, type_rect)
     def effect(self,pressed_key):
-        
+        ################## ALL CARD UPGRADES ############################
         if (self.lineupnum == 0 and  pressed_key == pygame.K_1) or (self.lineupnum == 1 and  pressed_key == pygame.K_2) or (self.lineupnum == 2 and pressed_key == pygame.K_3):
             if self.upgradeitem == "Cooldown":
                 ship.max_cooldown += self.amounttoadd
@@ -498,6 +545,34 @@ class UpgradeCard(pygame.sprite.Sprite):
                     file.heal += self.amounttoadd
                 card_options.remove(heal_1)
                 return True
+            elif self.upgradeitem == "Double":
+                    ship.weapon_type = "Double"
+                    try:
+                        card_options.remove(shotgun_1)
+                        card_options.remove(mines_1)
+                        card_options.remove(double_1)
+                    except:
+                        pass
+                    return True
+            elif self.upgradeitem == "Shotgun":
+                    ship.weapon_type = "Shotgun"
+                    try:
+                        card_options.remove(shotgun_1)
+                        card_options.remove(mines_1)
+                        card_options.remove(double_1)
+                    except:
+                        pass
+
+                    return True
+            elif self.upgradeitem == "Mines":
+                    ship.weapon_type = "Mine"
+                    try:
+                        card_options.remove(shotgun_1)
+                        card_options.remove(mines_1)
+                        card_options.remove(double_1)
+                    except:
+                        pass
+                    return True
         return False
 
 
@@ -769,7 +844,7 @@ class BossLaser(pygame.rect.Rect):
         
             try:
                 boss_lasers.remove(self)
-                ship.hp -= self.damage
+                
             except:
                 try:
                     lasers.remove(self)
@@ -794,10 +869,11 @@ class BossLaser(pygame.rect.Rect):
 pro_ships = pygame.sprite.Group()
 
 ship = Ship(100,100,27,33,"ship.png",1,10)       
-     
+    
 boss_lasers = []
 enemy_lasers = []
 keys = pygame.key.get_pressed()
+mines = pygame.sprite.Group()
 files = pygame.sprite.Group()
 symbols = pygame.sprite.Group()
 main = FileTower(WIDTH//2 - 40 , HEIGHT - 130,80,120,"main.png",10)
@@ -811,16 +887,17 @@ readme = FileTower(WIDTH//2 - 480 , HEIGHT - 130,80,120,"readme.png",5)
 gitignore = FileTower(WIDTH//2 + 410 , HEIGHT - 130,80,120,"gitignore.png",5)
 cards = []
 cooldown_1 = UpgradeCard(0,HEIGHT//2 - 180,200,300,"Square","Cooldown",-((ship.max_cooldown / 15) * 0.5) ,0)
-
+################ ALL CARDS ####################################
 atk_1 = UpgradeCard(0,HEIGHT//2 - 180,200,300,"Square","Ship Atk",+0.5,1)
 ship_speed_1 = UpgradeCard(0,HEIGHT//2 - 180,200,300,"Triangle","Ship Speed",+1,2,upgrade_name="Ship")
 tower_hp_1 = UpgradeCard(0,HEIGHT//2 - 180,200,300,"Circle","Tower Health",+2.5,2,upgrade_name="File Towers")
 pierce_1 = UpgradeCard(0,HEIGHT//2 - 180,200,300,"Pentagon","Pierce",+1,2,upgrade_name="Laser")
 dash_1 = UpgradeCard(0,HEIGHT//2 - 180,200,300,"Triangle","Dash",+3,2,upgrade_name="Ship")
 heal_1 = UpgradeCard(0,HEIGHT//2 - 180,200,300,"Circle","Heal",+0.00083,2,upgrade_name="File Tower")
-double_1 = UpgradeCard(0,HEIGHT//2 - 180,200,300,"Hexagon","Weapon",+1,2,upgrade_name="Unlock the Double Gun")
-double_1 = UpgradeCard(0,HEIGHT//2 - 180,200,300,"Hexagon","Weapon",+1,2,upgrade_name="Unlock the  ShotGun")
-double_1 = UpgradeCard(0,HEIGHT//2 - 180,200,300,"Hexagon","Weapon",+1,2,upgrade_name="Unlock the Double Gun")
+double_1 = UpgradeCard(0,HEIGHT//2 - 180,200,300,"Hexagon","Double",+1,2,upgrade_name="Weapons")
+shotgun_1 = UpgradeCard(0,HEIGHT//2 - 180,200,300,"Hexagon","Shotgun",+1,2,upgrade_name="Weapons")
+mines_1 = UpgradeCard(0,HEIGHT//2 - 180,200,300,"Hexagon","Mines",+1,2,upgrade_name="Weapons")
+###################################################################
 card_options = [cooldown_1,atk_1,ship_speed_1,tower_hp_1]
 files_destroyed = False
 files.add(readme)
@@ -841,8 +918,8 @@ lasers = []
 mouse_pos = ()
 mouse_pressed = False
 
-####################################################################333333
-current_level = 0
+########################ALL LEVELS######################333333
+current_level = 19
 level1 = [["e","e","e","e","e"],["e","e","e","e","e"],["e","e","e","e","e"],["e","e","e","e","e"]]
 level2 = [["e","e","e","e","e","e","e"],["e","e","e","e","e","e","e"],["e","e","e","e","e","e","e"],["e","e","e","e","e","e","e"]]
 level3 = [["i","i","i","i","i","i"],["e","e","e","e","e","e",],["i","i","i","i","i","i"],["e","e","e","e","e","e",]]
@@ -865,7 +942,7 @@ level19 = [["b","b","b","b","b"],["b","b","b","b","b"],["t","t","t","t","t"]]
 level20 = [["BOSS"]]
 
 level21 = [["t","t","t","t","t"],["t","t","t","t","t"],["t","t","t","t","t"]]
-level_list = [level1,level2,level3,level4,level5,level6,level7,level8,level9,level10,level11,level12,level13,level14,level15,level16,level17,level18,level19,level20]
+level_list = [level1,level2,level3,level4,level5,level6,level7,level8,level9,level10,level11,level12,level13,level14,level15,level16,level17,level18,level19,level20,level21]
 level = level_list[current_level-1]
 ###########################################################################################################33
 
@@ -923,7 +1000,8 @@ ship_image = pygame.transform.scale(ship_image,(27,33))
 
 
 async def main():
-    global lives_left,ship_image,boss_lasers,keys,current_enemy,full_title,current_typed,typed_frame,type_letter,typer_speed,menu_buttons,back_button,game_state,mouse_pressed,mouse_pos,heal_1,heal_possible,server,enemy_lasers,particles,dash_possible,add_pierce_possible,ship,pierce_1,files_destroyed,bugsnum,cards_were_shuffled,card_options,card_was_chosen,symbols,current_level,keys,running,files,pro_ships,lasers,level_list,level,startx,starty,rowindex,colindex,spacer,bugs
+    ################# GLOBAL VARIABLES :0 #######################################
+    global shotgun_1,double_1,mines_1,lives_left,ship_image,boss_lasers,keys,current_enemy,full_title,current_typed,typed_frame,type_letter,typer_speed,menu_buttons,back_button,game_state,mouse_pressed,mouse_pos,heal_1,heal_possible,server,enemy_lasers,particles,dash_possible,add_pierce_possible,ship,pierce_1,files_destroyed,bugsnum,cards_were_shuffled,card_options,card_was_chosen,symbols,current_level,keys,running,files,pro_ships,lasers,level_list,level,startx,starty,rowindex,colindex,spacer,bugs
     if current_level == 20:
         lives_left = 3
     while running:
@@ -949,7 +1027,7 @@ async def main():
                     if card.effect(event.key):
                         print("Upgrade Completed!")
                         card_was_chosen = True
-
+            
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button:
                 if game_state == 0:
                     mouse_pressed = pygame.mouse.get_pressed()
@@ -1060,7 +1138,18 @@ async def main():
             bugs.draw(screen)
             if not current_level == 20:
                 files.draw(screen)
+
+            mouse_state = pygame.mouse.get_pressed()
+            if mouse_state[0] and ship.weapon_type == "Mine":
+                    if ship.cooldown <= 0 and card_was_chosen:
+                        print("Steve")
+                        mine = Mine(ship.rect.x,ship.rect.y,8,8,6,0,0,6,mouse_pos[0],mouse_pos[1])
+                        mines.add(mine)
+                        ship.cooldown = ship.max_cooldown
+                    
             if not files_destroyed:
+                mines.draw(screen)
+                mines.update()
                 for file in files:
                     if current_level != 20:
                         file.update()
@@ -1068,12 +1157,13 @@ async def main():
                     laser.draw()
                     laser.update()
                     print(ship.rect.y - laser.y)
-                    if laser.y < ship.rect.y - 150:
-                        try:
-                            lasers.remove(laser)
-                            print("Wow")
-                        except:
-                            pass
+                    if ship.weapon_type == "Shotgun":
+                        if laser.y < ship.rect.y - 150:
+                            try:
+                                lasers.remove(laser)
+                                print("Wow")
+                            except:
+                                pass
                 for ship in pro_ships:
                     ship.move()
                     ship.shoot()
@@ -1103,7 +1193,7 @@ async def main():
                         cards_were_shuffled = False
                     if not cards_were_shuffled:
                         card_options_current = card_options[:]
-                        if not current_level == 20:
+                        if current_level != 20:
                             card1= random.choice(card_options_current)
                             card_options_current.remove(card1)
                             card2= random.choice(card_options_current)
@@ -1111,7 +1201,9 @@ async def main():
                             card3= random.choice(card_options_current)
                             card_options_current.remove(card3)
                         else:
-                            pass
+                            card1= shotgun_1
+                            card2= double_1
+                            card3= mines_1
                         card1.lineupnum = 0
                         card2.lineupnum = 1
                         card3.lineupnum = 2
