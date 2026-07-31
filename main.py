@@ -19,12 +19,46 @@ screen_color = (0,0,0)
 particles = []
 game_state = 0
 
+shake_intensity  = 0
 #### Menu Stuff #####
 
 textboxes = []
-messages = {"You":"Hello, World!","You" : "Oh, finally got my IDE working... ","You" : "Now I can finally test my new debugging program!"}
+messages = [["C:/Users/You","Hello, World!"], 
+            ["C:/Users/You" , "Oh, finally got my IDE working... "],
+            ["C:/Users/You" , "Now I can finally test my new debugging program!"],
+            ["C:/Users/You","Let me just boot it up and..."],
+            ["C:/Files/Programming/DebuggerSetup.exe", "Use the Arrow Keys/WASD to move the debugging cursor"],
+            ["C:/Files/Programming/DebuggerSetup.exe", "Use the Spacebar/E to shoot down incoming errors."],
+            ["C:/Files/Programming/DebuggerSetup.exe", "Shoot down the errors before they reach your files."],
+            ["C:/Files/Programming/DebuggerSetup.exe", "If an error reaches your file,it will deal\nsome damage to that file."],
+            ["C:/Files/Programming/DebuggerSetup.exe", "If one of your files runs out of health and crashes..."],
+            [r"C:/Files/Programming/DebuggerSetup.exe", r"You lose the program... FOREVER"],
+            ["C:/Files/Programming/DebuggerSetup.exe", "If a error hits your cursor,your\ncursor will take damage."],
+            ["C:/Files/Programming/DebuggerSetup.exe", "If your cursor takes enough damage...\n Well we don' really know what happens..."],
+            ["C:/Files/Programming/DebuggerSetup.exe", "All we know is that it dissappears."],
+            ["C:/Files/Programming/DebuggerSetup.exe", "If all 3 cursors get destroyed\nyou lose the program... FOREVER."],
+            ["C:/Files/Programming/DebuggerSetup.exe", "See the bright orange bar over there?"],
+            ["C:/Files/Programming/DebuggerSetup.exe", "Press / or q to activate it."],
+            ["C:/Files/Programming/DebuggerSetup.exe", "While activated, your cooldown will decrease\ndrastically."],
+            ["C:/Files/Programming/DebuggerSetup.exe", "This allows you to defeat errors much easier."],
+            ["C:/Files/Programming/DebuggerSetup.exe", "However, after use, you have to recharge\nthe bar to use it again."],
+            ["C:/Files/Programming/DebuggerSetup.exe", "You can recharge the bar by destroying errors."],
+            ["C:/Files/Programming/DebuggerSetup.exe", "Use it wisely..."],
+            ["C:/Files/Programming/DebuggerSetup.exe", "Keep..."],
+            ["C:/Files/Programming/DebuggerSetup.exe", "The..."],
+            ["C:/Files/Programming/DebuggerSetup.exe", "Files..."],
+            ["C:/Files/Programming/DebuggerSetup.exe", "Alive..."],
+            ["C:/Files/Programming/DebuggerSetup.exe", "They..."],
+            ["C:/Files/Programming/DebuggerSetup.exe", "Control..."],
+            ["C:/Files/Programming/DebuggerSetup.exe", "The..."],
+            ["C:/Files/Programming/DebuggerSetup.exe", "Installation Ended. You may know close this window."],
+            [],
+            [],
+            [""]
+            ]
+
 class Textbox():
-    def __init__(self,x,y,w,h,text_to_write,text_speed,speaker,speaker_color,text_color = (0,255,0)):
+    def __init__(self,x,y,w,h,text_to_write,text_speed,speaker,speaker_color,text_color):
         global messages
         self.x = x
         self.y = y
@@ -42,8 +76,8 @@ class Textbox():
         self.timer = 0
         self.box_rect = pygame.Rect(self.x,self.y,self.w,self.h)
         self.font = ui_font
-
-    def update(self):
+        self.text_index = 0
+    def update(self,mouse_pos,update = False):
         global keys
         if not self.is_finished:
             self.timer += 1
@@ -54,12 +88,21 @@ class Textbox():
                     self.char_index += 1
                 else:
                     self.is_finished = True
+        else:
+            if update and self.box_rect.collidepoint(mouse_pos):
+                print("Clicked!")
+                if self.text_index < 29 :
+                    self.char_index = 0
+                    self.text_index += 1
+                    self.current_text = ""
+                    self.text_to_write = self.messages[self.text_index][1]
+                    self.is_finished = False
 
     def draw(self,surface = screen):
         pygame.draw.rect(surface, (10,15,20),self.box_rect)
         pygame.draw.rect(surface, (0,255,100),self.box_rect,3)
 
-        speaker_surface = self.font.render(f"[{self.speaker}] : ", True,self.speaker_color)
+        speaker_surface = self.font.render(f"[{self.messages[self.text_index][0]}] : ", True,self.speaker_color)
         surface.blit(speaker_surface,(self.box_rect.x + 20,self.box_rect.y + 15))
         
         text_surface = self.font.render(self.current_text,True,self.text_color)
@@ -1675,7 +1718,7 @@ level = level_list[current_level-1]
 
 
 
-text_test = Textbox(575,330,400,100,"Hello, World!",2,"No one",(255,0,0),(0,70,60))
+text_test = Textbox(575,330,400,100,"Hello, World!",1,"No one",(0,255,0),(60,255,60))
 
 
 
@@ -1722,15 +1765,17 @@ typer_speed = 10
 
 ship_image = pygame.image.load("ship.png").convert_alpha()
 ship_image = pygame.transform.scale(ship_image,(27,33))
-
+talking = False
 overdrive_charge = 100
 cur_frame = 0
 async def main():
     ################# GLOBAL VARIABLES :0 #######################################
-    global textboxes,coverbricks,global_trail_surf,shockwaves,enemy_missiles,cur_frame,overdrive_charge,null_lasers,shotgun_1,double_1,mines_1,lives_left,ship_image,boss_lasers,keys,current_enemy,full_title,current_typed,typed_frame,type_letter,typer_speed,menu_buttons,back_button,game_state,mouse_pressed,mouse_pos,heal_1,heal_possible,server,enemy_lasers,particles,dash_possible,add_pierce_possible,ship,pierce_1,files_destroyed,bugsnum,cards_were_shuffled,card_options,card_was_chosen,symbols,current_level,keys,running,files,pro_ships,lasers,level_list,level,startx,starty,rowindex,colindex,spacer,bugs
+    global talking,mouse_pressed,textboxes,coverbricks,global_trail_surf,shockwaves,enemy_missiles,cur_frame,overdrive_charge,null_lasers,shotgun_1,double_1,mines_1,lives_left,ship_image,boss_lasers,keys,current_enemy,full_title,current_typed,typed_frame,type_letter,typer_speed,menu_buttons,back_button,game_state,mouse_pressed,mouse_pos,heal_1,heal_possible,server,enemy_lasers,particles,dash_possible,add_pierce_possible,ship,pierce_1,files_destroyed,bugsnum,cards_were_shuffled,card_options,card_was_chosen,symbols,current_level,keys,running,files,pro_ships,lasers,level_list,level,startx,starty,rowindex,colindex,spacer,bugs
+    
     if current_level == 20:
         lives_left = 3
     while running:
+        mouseclicked = False
         clock.tick(FPS)
         mouse_pos = pygame.mouse.get_pos()
         mouse_pressed = pygame.mouse.get_pressed()
@@ -1762,7 +1807,7 @@ async def main():
                 elif game_state == 2 or game_state == 3:
                      if back_button.check_clicks(mouse_pos,mouse_pressed):
                         game_state = back_button.target_state
-
+                mouseclicked = True
         screen.fill(screen_color)
         keys = pygame.key.get_pressed()
         if game_state == 0:
@@ -1912,144 +1957,144 @@ async def main():
                         mines.add(mine)
                         ship.cooldown = ship.max_cooldown  
                         
-                    
-            if not files_destroyed:
-                for coverbrick in coverbricks:
-                    coverbrick.draw()
-                    coverbrick.update()
-                for null_laser in null_lasers:
-                    null_laser.draw()
-                    null_laser.update()
-                mines.draw(screen)
-                mines.update()
-                for enms in enemy_missiles:
-                    enms.update()
-                for file in files:
-                    if current_level != 20 and current_level != 40:
-                        file.update()
-                for laser in lasers:
-                    laser.draw()
-                    laser.update()
-        
-                    if ship.weapon_type == "Shotgun":
-                        if laser.y < ship.rect.y - 150:
-                            try:
-                                lasers.remove(laser)
-                            except:
-                                pass
-                for ship in pro_ships:
-                    if card_was_chosen:
-                        ship.move()
-                       
-                        ship.shoot()
-                        ship.update()
-                previous_bugsnum = bugsnum
-                if card_was_chosen == True:
-                    bugsnum = 0
-                for bug in bugs:
-                    if bug.image_path != "recursionboss.png":
-                        bug.move()
-                        bug.check_for_collisions()
-                    bugsnum += 1
-                for card in cards:
-                    card.draw()
-                for enlaser in enemy_lasers:
-                    enlaser.draw()
-                    enlaser.update()
-                
-                symbols.draw(screen)
-
-                if bugsnum == 0 and bosses.__len__() == 0 :
-                    bugs.empty()
-                    lasers.clear()
-                    enemy_lasers.clear()
-                    if card_was_chosen == True and previous_bugsnum > 0:
-                        card_was_chosen = False
-                        cards_were_shuffled = False
-                    if not cards_were_shuffled:
-                        card_options_current = card_options[:]
-                        if current_level != 20:
-                            card1= random.choice(card_options_current)
-                            card_options_current.remove(card1)
-                            card2= random.choice(card_options_current)
-                            card_options_current.remove(card2)
-                            card3= random.choice(card_options_current)
-                            card_options_current.remove(card3)
-                        else:
-                            card1= shotgun_1
-                            card2= double_1
-                            card3= mines_1
-                        card1.lineupnum = 0
-                        card2.lineupnum = 1
-                        card3.lineupnum = 2
-                        cards.append(card1)
-                        cards.append(card2)
-                        cards.append(card3)
-                        cards_were_shuffled = True
+            if not talking:      
+                if not files_destroyed:
+                    for coverbrick in coverbricks:
+                        coverbrick.draw()
+                        coverbrick.update()
+                    for null_laser in null_lasers:
+                        null_laser.draw()
+                        null_laser.update()
+                    mines.draw(screen)
+                    mines.update()
+                    for enms in enemy_missiles:
+                        enms.update()
+                    for file in files:
+                        if current_level != 20 and current_level != 40:
+                            file.update()
+                    for laser in lasers:
+                        laser.draw()
+                        laser.update()
+            
+                        if ship.weapon_type == "Shotgun":
+                            if laser.y < ship.rect.y - 150:
+                                try:
+                                    lasers.remove(laser)
+                                except:
+                                    pass
+                    for ship in pro_ships:
+                        if card_was_chosen:
+                            ship.move()
+                        
+                            ship.shoot()
+                            ship.update()
+                    previous_bugsnum = bugsnum
                     if card_was_chosen == True:
-                        cards.clear()
-                        symbols.empty()
-                    if card_was_chosen == True and current_level < len(level_list):
-                        current_level += 1
-                        level = level_list[current_level-1]
-                        startx = (WIDTH // 2) - ((len(level[0]) / 2) * spacer)
-                        colindex = 0
-                        for row in level:
-                            for exception in row:
-                                if exception == "e":
-                                    bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,0,1,1,1)
-                                
-                                elif exception == "i":
-                                    bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,1,1.5,3,0.8)
+                        bugsnum = 0
+                    for bug in bugs:
+                        if bug.image_path != "recursionboss.png":
+                            bug.move()
+                            bug.check_for_collisions()
+                        bugsnum += 1
+                    for card in cards:
+                        card.draw()
+                    for enlaser in enemy_lasers:
+                        enlaser.draw()
+                        enlaser.update()
+                    
+                    symbols.draw(screen)
 
-                                elif exception == "x":
-                                    bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,2,1,1,1,y_speed = 1.2)
-                                elif exception == "m":
-                                    bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,3,3,7,0.4,y_speed = 0.2)
-                                elif exception == "p":
-                                    bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,4,3,15,0.25,y_speed = 0.2)
+                    if bugsnum == 0 and bosses.__len__() == 0 :
+                        bugs.empty()
+                        lasers.clear()
+                        enemy_lasers.clear()
+                        if card_was_chosen == True and previous_bugsnum > 0:
+                            card_was_chosen = False
+                            cards_were_shuffled = False
+                        if not cards_were_shuffled:
+                            card_options_current = card_options[:]
+                            if current_level != 20:
+                                card1= random.choice(card_options_current)
+                                card_options_current.remove(card1)
+                                card2= random.choice(card_options_current)
+                                card_options_current.remove(card2)
+                                card3= random.choice(card_options_current)
+                                card_options_current.remove(card3)
+                            else:
+                                card1= shotgun_1
+                                card2= double_1
+                                card3= mines_1
+                            card1.lineupnum = 0
+                            card2.lineupnum = 1
+                            card3.lineupnum = 2
+                            cards.append(card1)
+                            cards.append(card2)
+                            cards.append(card3)
+                            cards_were_shuffled = True
+                        if card_was_chosen == True:
+                            cards.clear()
+                            symbols.empty()
+                        if card_was_chosen == True and current_level < len(level_list):
+                            current_level += 1
+                            level = level_list[current_level-1]
+                            startx = (WIDTH // 2) - ((len(level[0]) / 2) * spacer)
+                            colindex = 0
+                            for row in level:
+                                for exception in row:
+                                    if exception == "e":
+                                        bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,0,1,1,1)
+                                    
+                                    elif exception == "i":
+                                        bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,1,1.5,3,0.8)
 
-                                elif exception == "b":
-                                    bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,5,3,1,0.4,y_speed = 0.5)
+                                    elif exception == "x":
+                                        bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,2,1,1,1,y_speed = 1.2)
+                                    elif exception == "m":
+                                        bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,3,3,7,0.4,y_speed = 0.2)
+                                    elif exception == "p":
+                                        bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,4,3,15,0.25,y_speed = 0.2)
 
-                                elif exception == "t":
-                                    bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,6,random.randint(1,7),random.randint(1,7),0.4,y_speed = random.uniform(0.5,1.5))
-                                elif exception == "n":
-                                    bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,8,0,24,0.5)
-                                elif exception == "BOSS":
-                                    bug = RecursionBoss(WIDTH//2 - 150,50,240,120,"recursionboss.png",1,100)
-                                    bosses.add(bug)
-                                elif exception == "d":
-                                    bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,9,1.5,12,0.5,0.35)
-                                elif exception == "dg":
-                                    bug = Bug(startx  + rowindex * spacer,starty - colindex,48,48,10,1.5,48,0.5,0.05)
-                                    spacer += 1
+                                    elif exception == "b":
+                                        bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,5,3,1,0.4,y_speed = 0.5)
+
+                                    elif exception == "t":
+                                        bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,6,random.randint(1,7),random.randint(1,7),0.4,y_speed = random.uniform(0.5,1.5))
+                                    elif exception == "n":
+                                        bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,8,0,24,0.5)
+                                    elif exception == "BOSS":
+                                        bug = RecursionBoss(WIDTH//2 - 150,50,240,120,"recursionboss.png",1,100)
+                                        bosses.add(bug)
+                                    elif exception == "d":
+                                        bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,9,1.5,12,0.5,0.35)
+                                    elif exception == "dg":
+                                        bug = Bug(startx  + rowindex * spacer,starty - colindex,48,48,10,1.5,48,0.5,0.05)
+                                        spacer += 1
+                                        rowindex += 1
+                                    elif exception == "q":
+                                        bug = Bug(startx + rowindex * spacer , starty - colindex,24,24,11,2,10,0.5,y_speed = 0.25)
+                                    elif exception == "r":
+                                        bug = Bug(startx + rowindex * spacer, starty - colindex,24,24,12,1.5,5,1.75,1.5)
+                                    elif exception == "l":
+                                        bug = Bug(startx + rowindex * spacer, starty - colindex,24,24,13,3,5,1.75,0.3)
+                                    if exception != "s" and exception != "BSOD":
+                                        bugs.add(bug)
+                                    if exception == "s":
+                                        for i in range(3):
+                                            for j in range(3):
+                                                bug = Bug((startx  + rowindex * spacer ) + i * 10,(starty - colindex) + j * 10 ,9,9,7,1,1,0.4,y_speed = 0)
+                                                bugs.add(bug)
+                                    elif exception == "BSOD":
+                                        boss = BlueScreenOfDeath(0,50,200,100,"bluescreenofdeath.png")
+                                        bosses.add(boss)
+                                    
                                     rowindex += 1
-                                elif exception == "q":
-                                    bug = Bug(startx + rowindex * spacer , starty - colindex,24,24,11,2,10,0.5,y_speed = 0.25)
-                                elif exception == "r":
-                                    bug = Bug(startx + rowindex * spacer, starty - colindex,24,24,12,1.5,5,1.75,1.5)
-                                elif exception == "l":
-                                    bug = Bug(startx + rowindex * spacer, starty - colindex,24,24,13,3,5,1.75,0.3)
-                                if exception != "s" and exception != "BSOD":
-                                    bugs.add(bug)
-                                if exception == "s":
-                                    for i in range(3):
-                                        for j in range(3):
-                                            bug = Bug((startx  + rowindex * spacer ) + i * 10,(starty - colindex) + j * 10 ,9,9,7,1,1,0.4,y_speed = 0)
-                                            bugs.add(bug)
-                                elif exception == "BSOD":
-                                    boss = BlueScreenOfDeath(0,50,200,100,"bluescreenofdeath.png")
-                                    bosses.add(boss)
-                                
-                                rowindex += 1
-                            colindex -= spacer
-                            rowindex = 0
-                    elif current_level >= len(level_list) and bosses.__len__() == 0:
-                        win  = title_font.render(f"YOU WIN \n(for now)",True , (0,255,0))
-                        screen.blit(win,(WIDTH//2 - 300,HEIGHT//2  - 100))
-                    else:
-                        pass  
+                                colindex -= spacer
+                                rowindex = 0
+                        elif current_level >= len(level_list) and bosses.__len__() == 0:
+                            win  = title_font.render(f"YOU WIN \n(for now)",True , (0,255,0))
+                            screen.blit(win,(WIDTH//2 - 300,HEIGHT//2  - 100))
+                        else:
+                            pass  
 
             bosses.draw(screen)
             bosses.update()
@@ -2079,9 +2124,18 @@ async def main():
             for shockwave in shockwaves:
                 shockwave.draw()
                 shockwave.update()
+            
             for textbox in textboxes:
-                textbox.draw(screen)
-                textbox.update()
+                if textbox.text_index < 29:
+                    textbox.draw()
+                    if mouseclicked:
+                        textbox.update(mouse_pos,True)
+                    else:
+                        textbox.update(mouse_pos,False)
+                    talking = True
+                else:
+                    talking = False
+               
                 
             screen.blit(global_trail_surf,(0,0))
             global_trail_surf.fill((0,0,0,0))
