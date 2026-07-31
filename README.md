@@ -18,7 +18,18 @@ Option 1 : Open the Itch.io page, and click the 'play' button
  Coming soon : New weapons to pick after beating boss fight
  Coming soon : Permanant upgrades for your whole run, not just until you die
  Coming soon : Restart button!
- 
+
+# Content
+14 Varieties of Enemies
+2 Stages
+40 Levels (Lv. 40 in progress)
+1.5 Bosses
+4 Different Weapons
+30+ Hours Invested
+Support plz!
+Pay-what-you-want on itch.io!
+Will spend 150+ hours on this game...
+Free 3d printer!
 
 # Stategies
 Focus on rows, not columns.
