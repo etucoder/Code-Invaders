@@ -15,14 +15,102 @@ FPS =  60
 screen = pygame.display.set_mode((WIDTH,HEIGHT))
 running = True
 clock = pygame.time.Clock()
-screen_color = (0,0,0)
+game_canvas_color = (0,0,0)
 particles = []
 game_state = 0
-
-shake_intensity  = 0
+explosion_sound = pygame.mixer.Sound("explosion.wav")
+small_explosion_sound = pygame.mixer.Sound("small_explosion1.wav")
+small_explosion_sound.set_volume(0.07)
+click_sound = pygame.mixer.Sound("shortclick.wav")
+laser_sound = pygame.mixer.Sound("laser.wav")
+laser_sound.set_volume(0.15)
+# click_sound.set_volume(0.15)
+shake_intensity  =0
+game_canvas = pygame.Surface((WIDTH + 40,HEIGHT + 40),pygame.SRCALPHA)
 #### Menu Stuff #####
 
+data_coins = 0 
+shop_showing = False
+shop_items = []
+
+class ShopItem:
+    def __init__(self,name,cost,description,effect_type,x,y):
+        self.name = name
+        self.cost = cost
+        self.description = description
+        self.effect_type = effect_type
+        self.x = x
+        self.y = y
+        self.rect = pygame.Rect(x, y, 260,130)
+        self.purchased = False
+    def draw(self,surface):
+        box_color = (15,25,35) if not self.purchased else (5, 10, 15)
+        border_color = (0,255,100) if not self.purchased else (100,100,100)
+
+        pygame.draw.rect(game_canvas,box_color,self.rect)
+        pygame.draw.rect(game_canvas, border_color, self.rect,2)
+
+        name_surface = ui_font.render(self.name, True , (255,255,255) if not self.purchased else (100,100,100))
+        cost_color = (255,200,0) if data_coins >= self.cost else (255,50,50)
+        cost_surface = ui_font.render(f"Cost: {self.cost} CR", True, cost_color if not self.purchased else (100,100,100))
+        description_surface = ui_font.render(self.description, True,(0,180,255) if not self.purchased else(100,100,100))
+
+    def buy(self):
+        global data_coins
+        if not self.purchased and data_coins >= self.cost:
+            data_coins -= self.cost
+            self.purchased = True
+
+            if self.effect_type == "Heal-Files":
+                if self.name == "Quick-Fix": # Spray the code with pesticide and call it debugging.
+                    for file in files:
+                        file.hp += min(0.1 * file.max_hp,file.max_hp - file.hp)
+                elif self.name == "Bug-Patch": # Tape and paint the bugs until no one knows they're there...
+                    for file in files:
+                        file.hp += min(0.33 * file.max_hp,file.max_hp - file.hp)
+                elif self.name == "Security-Update":  # Change passcode from 1234 to 12345. We're leading in cybersecurity.
+                    for file in files:
+                        file.hp += min(0.66 * file.max_hp,file.max_hp - file.hp)
+                elif self.name == "Full-Refactoring": # Oh, the library became insecure AFTER I wrote 10,000 lines of code. What a coincidence!
+                    for file in files:
+                        file.hp += file.max_hp - file.hp
+            elif self.effect_type == "Cooldown-Decrease":
+                if self.name == "Office Processer":   # No! You can't open 2 tabs at once!
+                    ship.max_cooldown = 0.9 * ship.max_max_cooldown
+
+                if self.name == "Gaming Processer": # They don't need to fire their weapons to win. They just need to wear a skin with more than one color to crash my laptop...
+                    ship.max_cooldown = 0.75 * ship.max_max_cooldown
+
+                if self.name == "Dev Processer": # Finally, I can run Vs Code and ChatGPT at the same time!
+                    ship.max_cooldown = 0.6  * ship.max_max_cooldown
+
+                if self.name == "Server Processer": # Time to set my render distance to max and fill the whole world with TNT
+                    ship.max_cooldown = 0.5 * ship.max_max_cooldown
+
+            elif self.effect_type == "Ship-Speed":
+                if self.name == "Office Mouse": # At this point , the mouse is more dust then technology. Better off using telepathy to control the cursor...
+                    ship.speed = 1.1 * ship.original_speed
+                if self.name == "RGB Mouse": # More LEDs that buttons. "But it GLOWS..." So does uranium I don't use it for programming (Most of the time)
+                    ship.speed = 1.25 * ship.original_speed
+                if self.name == "High-End Gaming Mouse" : # Great tracking , it makes you better at gaming. Instead of dying 20 times for every 1 person I kill, I die 19...
+                    ship.speed = 1.5 * ship.original_speed
+                if self.name == "Industrial-Grade Mouse": # Developed after someone misclicked one to many times. Power consumption reduced from 50 cities to 45
+                    ship.speed = 2.0 * ship.original_speed
+
+            elif self.effect_type == "Damage":
+                if self.name == "DDR2 Stick": # It may hold more data my being used as a bat than actual RAM
+                    ship.max_hp = 1.5 * ship.max_max_hp
+                if self.name == "Aluminum-Coated DDR3": # Oh, it didn't come with any heat sheilding but aluminum foil fixed that...
+                    pass
+
+
+
+
+
+
+
 textboxes = []
+
 messages = [["C:/Users/You","Hello, World!"], 
             ["C:/Users/You" , "Oh, finally got my IDE working... "],
             ["C:/Users/You" , "Now I can finally test my new debugging program!"],
@@ -52,8 +140,8 @@ messages = [["C:/Users/You","Hello, World!"],
             ["C:/Files/Programming/DebuggerSetup.exe", "Control..."],
             ["C:/Files/Programming/DebuggerSetup.exe", "The..."],
             ["C:/Files/Programming/DebuggerSetup.exe", "Installation Ended. You may know close this window."],
-            [],
-            [],
+            ["?","?"],
+            ["??","??"],
             [""]
             ]
 
@@ -88,17 +176,17 @@ class Textbox():
                     self.char_index += 1
                 else:
                     self.is_finished = True
-        else:
+        if True:
             if update and self.box_rect.collidepoint(mouse_pos):
                 print("Clicked!")
-                if self.text_index < 29 :
+                if self.text_index <= 29 :
                     self.char_index = 0
                     self.text_index += 1
                     self.current_text = ""
                     self.text_to_write = self.messages[self.text_index][1]
                     self.is_finished = False
 
-    def draw(self,surface = screen):
+    def draw(self,surface = game_canvas):
         pygame.draw.rect(surface, (10,15,20),self.box_rect)
         pygame.draw.rect(surface, (0,255,100),self.box_rect,3)
 
@@ -120,19 +208,19 @@ class MenuButton():
         self.rect.center = (center_x,center_y)
         self.idle_color = color
         self.hover_color = (0,180,255)
-    def draw(self,screen,font,mousepos):
+    def draw(self,game_canvas,font,mousepos):
         the_color = (0,0,0)
         if self.rect.collidepoint(mousepos):
             the_color = self.hover_color
         else:
             the_color = self.idle_color
 
-        pygame.draw.rect(screen,the_color,self.rect,border_radius=8)
-        pygame.draw.rect(screen,(255,255,255),self.rect,width=2,border_radius=8)
+        pygame.draw.rect(game_canvas,the_color,self.rect,border_radius=8)
+        pygame.draw.rect(game_canvas,(255,255,255),self.rect,width=2,border_radius=8)
 
         text_surface = font.render(self.text,True,(255,255,255))
         text_rect = text_surface.get_rect(center = self.rect.center)
-        screen.blit(text_surface,text_rect)
+        game_canvas.blit(text_surface,text_rect)
 
     def check_clicks(self,mouse_pos , mouse_pressed ):
         if self.rect.collidepoint(mouse_pos) and mouse_pressed[0]:
@@ -149,7 +237,7 @@ class Ship(pygame.sprite.Sprite):
         self.y = y
         self.w = w
         self.h = h
-        self.weapon_type = "Double"
+        self.weapon_type = "Regular"
         self.image_path = image_path
         self.pierce = pierce
         self.image = pygame.transform.scale(pygame.image.load(self.image_path).convert_alpha(),(w,h))
@@ -164,6 +252,8 @@ class Ship(pygame.sprite.Sprite):
             self.cooldown = 45
         elif self.weapon_type == "Mine":
             self.cooldown = 60
+        elif self.weapon_type == "Missile":
+            self.cooldown = 100
         self.max_cooldown = self.cooldown
         self.max_max_cooldown = self.max_cooldown
         self.max_hp = hp
@@ -271,6 +361,7 @@ class Ship(pygame.sprite.Sprite):
                 laser = Laser(self.rect.centerx,self.rect.top,5,5,damage=self.damage,knockback=self.knockback,pierce=self.pierce)
                 lasers.append(laser)
                 self.cooldown = self.max_cooldown
+                laser_sound.play()
       
             elif self.weapon_type == "Double":
                 laser = Laser(self.rect.x+3,self.rect.y+10,5,5,damage=self.damage,knockback=self.knockback,pierce=self.pierce)
@@ -278,6 +369,8 @@ class Ship(pygame.sprite.Sprite):
                 lasers.append(laser)
                 lasers.append(laser1)
                 self.cooldown = self.max_cooldown
+                for i in range(2):
+                    laser_sound.play()
 
             elif self.weapon_type == "Shotgun":
             
@@ -286,7 +379,7 @@ class Ship(pygame.sprite.Sprite):
                 for vx,vy in coord_pairs:
                     bullet = Laser(self.rect.centerx,self.rect.centery,5 ,5,(0,255,0),9,self.damage * 1.5,vx = vx,vy = vy)
                     lasers.append(bullet)
-                
+                click_sound.play()
                 self.cooldown = self.max_cooldown
             
         elif self.cooldown > 0 and card_was_chosen == True:
@@ -374,7 +467,7 @@ class Bug(pygame.sprite.Sprite):
         self.rect.y = int(self.float_y)
 
     def check_for_collisions(self):
-        global bugs,enemy_lasers,current_level,ship,overdrive_charge,lasers,mines,cur_frame
+        global bugs,enemy_lasers,current_level,ship,overdrive_charge,lasers,mines,cur_frame,shake_intensity
         memory_error_alive = any(bug.image_path == "memoryerror.png" for bug in bugs)
         if memory_error_alive == True:
             
@@ -414,6 +507,7 @@ class Bug(pygame.sprite.Sprite):
                 self.y_speed = 0.5 * self.og_y_speed
         if self.hp <= 0:
             self.kill()
+            small_explosion_sound.play()
             if overdrive_charge < 100 and ship.overdrive_duration <= 0:
                 if self.image_path != "packetbug.png": 
                     overdrive_charge += 1
@@ -442,12 +536,14 @@ class Bug(pygame.sprite.Sprite):
             else:
                 for i in range(2):
                     particles.append([[self.rect.centerx, self.rect.centery] , [random.randint(-3,3),random.randint(-3,3)] , random.randint(4,8), color])
+        
         for ship in pro_ships:
             if self.rect.colliderect(ship.rect):
+                shake_intensity = 30
                 if ship.is_dashing == False:
-                    print("wsdadsdasdasda")
                     self.kill()
                     ship.hp -= self.damage
+                    
                     print(self.damage)
                 else:
                     self.hp -= ship.dash_damage
@@ -456,6 +552,7 @@ class Bug(pygame.sprite.Sprite):
                 if self.rect.colliderect(file.rect):
                     self.hp = 0
                     file.hp -= self.damage
+                    shake_intensity = 35
         global spacer
         if self.hp <= self.max_hp * 0.5 and self.image_path == "indentationerror.png":
             self.image_path = "indentationerrorlow.png"
@@ -627,7 +724,7 @@ class EnemyLaser(pygame.rect.Rect):
         self.yv = yv
     def draw(self):
         laser = pygame.rect.Rect(self.x,self.y,self.w,self.h)
-        pygame.draw.rect(screen,self.color,laser)
+        pygame.draw.rect(game_canvas,self.color,laser)
     def update(self):
         global enemy_lasers,enemy_missiles
         if self.yv == 0 and self.xv == 0:
@@ -657,9 +754,9 @@ class NullLaser(pygame.rect.Rect):
         self.xv = xv
         self.yv = yv
     def draw(self):
-        global screen
+        global game_canvas
         laser = pygame.rect.Rect(self.x,self.y,self.w,self.h)
-        pygame.draw.rect(screen,self.color,laser)
+        pygame.draw.rect(game_canvas,self.color,laser)
     def update(self):
         global null_lasers
         if self.xv == 0 and self.yv == 0:
@@ -750,7 +847,9 @@ class Mine(pygame.sprite.Sprite):
     
 
     def explode(self):
-        global bugs,bosses,pro_ships
+        global bugs,bosses,pro_ships,shake_intensity,explosion_sound
+        shake_intensity = 15
+        explosion_sound.play()
         if not self.state == "Reversed":
             for bug in bugs:
                 dist = math.hypot(bug.rect.centerx - self.rect.centerx,bug.rect.centery - self.rect.centery)
@@ -800,7 +899,7 @@ class Laser(pygame.rect.Rect):
     def draw(self):
   
         laser = pygame.rect.Rect(self.x,self.y,self.w,self.h)
-        pygame.draw.rect(screen,self.color,laser)
+        pygame.draw.rect(game_canvas,self.color,laser)
     def update(self):
         global enemy_lasers,ship,lasers
         if self.xv == 0 and self.yv == 0:
@@ -855,8 +954,8 @@ class FileTower(pygame.sprite.Sprite):
             files_destroyed = True
         red_rect = pygame.rect.Rect(self.rect.x + 10,self.rect.top - 25,50,5)
         green_rect = pygame.rect.Rect(self.rect.x + 10,self.rect.top - 25,(50/self.max_hp) * self.hp,5)
-        pygame.draw.rect(screen,(255,0,0),red_rect)
-        pygame.draw.rect(screen,(0,255,0),green_rect)
+        pygame.draw.rect(game_canvas,(255,0,0),red_rect)
+        pygame.draw.rect(game_canvas,(0,255,0),green_rect)
         for laser in enemy_lasers:
             if self.rect.colliderect(laser):
                 self.hp -= laser.damage
@@ -896,7 +995,7 @@ class UpgradeCard(pygame.sprite.Sprite):
         card_rect = pygame.Rect(self.x, self.y, self.w, self.h)
         
 
-        pygame.draw.rect(screen, (142, 142, 142), card_rect)
+        pygame.draw.rect(game_canvas, (142, 142, 142), card_rect)
 
 
         symbol = self.typeofcard
@@ -933,9 +1032,9 @@ class UpgradeCard(pygame.sprite.Sprite):
         type_rect.center = (card_rect.centerx, card_rect.bottom - 100) 
 
     
-        screen.blit(description, text_rect)
-        screen.blit(stat_text, stat_rect)
-        screen.blit(type_text, type_rect)
+        game_canvas.blit(description, text_rect)
+        game_canvas.blit(stat_text, stat_rect)
+        game_canvas.blit(type_text, type_rect)
     def effect(self,pressed_key):
         ################## ALL CARD UPGRADES ############################
         if (self.lineupnum == 0 and  pressed_key == pygame.K_1) or (self.lineupnum == 1 and  pressed_key == pygame.K_2) or (self.lineupnum == 2 and pressed_key == pygame.K_3):
@@ -1012,13 +1111,13 @@ class RecursionBoss(pygame.sprite.Sprite):
         self.y = y
         self.w = w
         self.h = h
-        self.hp = 400
+        self.hp = 800
         self.image_path = image_path
         self.image = pygame.transform.scale(pygame.image.load(self.image_path).convert_alpha(),(w,h))
         self.rect = self.image.get_rect(topleft = (x,y))
         self.damage = damage
 
-        self.max_hp = 400
+        self.max_hp = 800
         self.create_child_cooldown = 300
         self.max_create_chile_cooldown = self.create_child_cooldown
         self.laser_cooldown = 125
@@ -1073,8 +1172,8 @@ class RecursionBoss(pygame.sprite.Sprite):
 
         red_rect = pygame.rect.Rect(self.rect.centerx  - self.w // 2 + 50,self.rect.top - 25,150,5)
         green_rect = pygame.rect.Rect(self.rect.centerx  - self.w // 2 + 50,self.rect.top - 25,(150/self.max_hp) * self.hp,5)
-        pygame.draw.rect(screen,(255,0,0),red_rect)
-        pygame.draw.rect(screen,(0,255,0),green_rect)
+        pygame.draw.rect(game_canvas,(255,0,0),red_rect)
+        pygame.draw.rect(game_canvas,(0,255,0),green_rect)
 
 
     def check_for_collisions(self):
@@ -1279,7 +1378,7 @@ class BossLaser(pygame.rect.Rect):
                 except:
                     pass
 
-        if self.colliderect(ship.rect) and self.color == (255,0,0):
+        if self.colliderect(ship.rect) and (self.color == (255,0,0) or self.color == (255,255,0) or self.color == (0,255,0)):
             try:
                 boss_lasers.remove(self)
                 ship.hp -= self.damage
@@ -1292,10 +1391,42 @@ class BossLaser(pygame.rect.Rect):
     
     def draw(self):
         laser = pygame.rect.Rect(self.x,self.y,self.w,self.h)
-        pygame.draw.rect(screen,self.color,laser)
+        pygame.draw.rect(game_canvas,self.color,laser)
 
 
+stars = pygame.sprite.Group()
+class Star(pygame.sprite.Sprite):
+    def __init__(self,x,y,w,h):
+        super().__init__()
+        self.x = x
+        self.y = y
+        self.w = w
+        self.h = h
+        size = random.randint(10,30)
+        self.images = [pygame.transform.scale(pygame.image.load("star.png").convert_alpha(),(size,size)),pygame.transform.scale(pygame.image.load("otherstar.png").convert_alpha(),(size,size)),pygame.transform.scale(pygame.image.load("otherotherstar.png").convert_alpha(),(size,size))]
+        self.image = self.images[random.randint(0,len(self.images)-1)]
+        self.rect = self.image.get_rect(topleft = (x,y))
+        self.draw_self = True
+        self.blink_cooldown = random.randint(10,50)
+        self.blink_time = random.randint(5,12)
+        self.max_blink_cooldown = self.blink_cooldown
+        self.max_blink_time = self.blink_time
+    def update(self):
+        if self.blink_cooldown > 0:
+            self.draw_self = True
+            self.blink_cooldown -= 1
 
+        elif self.blink_cooldown <= 0:
+            self.draw_self = False
+            self.blink_time - self.max_blink_time
+
+        if self.blink_time > 0 and self.blink_cooldown <= 0:
+            self.blink_time -= 1
+            self.draw_self = False
+        elif self.blink_time <= 0 and self.draw_self == True:
+            self.blink_cooldown = self.max_blink_cooldown
+star = Star(100,100,30,30)
+stars.add(star)
 class Shockwave:
     def __init__(self,x,y,max_radius = 120,dmg = 2):
         self.x = int(x)
@@ -1326,13 +1457,13 @@ class Shockwave:
                 shockwaves.remove(self)
 
     def draw(self):
-        global screen
+        global game_canvas
         if self.alpha > 0:
             temp_surf = pygame.Surface((self.radius * 2 + 10,self.radius * 2 + 10),pygame.SRCALPHA)
 
             ring_color = (0,0,255,self.alpha)
             pygame.draw.circle(temp_surf,ring_color,(self.radius + 5,self.radius + 5),self.radius,12)
-            screen.blit(temp_surf,(self.x - self.radius - 5,self.y - self.radius - 5))
+            game_canvas.blit(temp_surf,(self.x - self.radius - 5,self.y - self.radius - 5))
             
 
 
@@ -1362,7 +1493,7 @@ class FreezeMissile(pygame.rect.Rect):
         self.current_angle = 0 
 
     def update(self):
-        global ship,screen,pro_ships,lasers,global_trail_surf
+        global ship,game_canvas,pro_ships,lasers,global_trail_surf
         dx = ship.rect.centerx - self.centerx
         dy = ship.rect.centery - self.centery
         target_angle= math.atan2(dy,dx)
@@ -1404,7 +1535,7 @@ class FreezeMissile(pygame.rect.Rect):
 
         
         missile = pygame.rect.Rect(self.x,self.y,self.w,self.h)
-        pygame.draw.rect(screen,self.color,missile)
+        pygame.draw.rect(game_canvas,self.color,missile)
         
         for freeze_mis in enemy_missiles:
                 if freeze_mis != self:
@@ -1436,7 +1567,7 @@ class FreezeMissile(pygame.rect.Rect):
                 enemy_missiles.remove(self)
 
 
-class BlueScreenOfDeath(pygame.sprite.Sprite):
+class Bluegame_canvasOfDeath(pygame.sprite.Sprite):
     def __init__(self,x,y,w,h,image_path):
         super().__init__()
         self.x = x
@@ -1558,8 +1689,8 @@ class BlueScreenOfDeath(pygame.sprite.Sprite):
             self.stage = 2
         red_rect = pygame.rect.Rect(self.rect.centerx  - self.w // 2 + 50,self.rect.top - 40,150,5)
         green_rect = pygame.rect.Rect(self.rect.centerx  - self.w // 2 + 50,self.rect.top - 40,(150/self.max_hp) * self.hp,5)
-        pygame.draw.rect(screen,(255,0,0),red_rect)
-        pygame.draw.rect(screen,(0,255,0),green_rect)
+        pygame.draw.rect(game_canvas,(255,0,0),red_rect)
+        pygame.draw.rect(game_canvas,(0,255,0),green_rect)
 
 class CoverBrick(pygame.rect.Rect):
     def __init__(self,x,y,w,h,hp,color,xshift ,yshift):
@@ -1575,9 +1706,9 @@ class CoverBrick(pygame.rect.Rect):
         self.yshift = yshift
         self.startx = startx
     def draw(self):
-        global screen,bosses
+        global game_canvas,bosses
         brick = pygame.rect.Rect(self.x,self.y,self.w,self.h)
-        pygame.draw.rect(screen,self.color,brick)
+        pygame.draw.rect(game_canvas,self.color,brick)
         
     def update(self):
         global lasers,ship,bosses
@@ -1656,7 +1787,7 @@ mouse_pos = ()
 mouse_pressed = False
 
 ########################ALL LEVELS######################333333
-current_level = 0
+current_level = 19
 level1 = [["e","e","e","e","e"],["e","e","e","e","e"],["e","e","e","e","e"],["e","e","e","e","e"]]
 level2 = [["e","e","e","e","e","e","e"],["e","e","e","e","e","e","e"],["e","e","e","e","e","e","e"],["e","e","e","e","e","e","e"]]
 level3 = [["i","i","i","i","i","i"],["e","e","e","e","e","e",],["i","i","i","i","i","i"],["e","e","e","e","e","e",]]
@@ -1714,9 +1845,9 @@ level_list = [level1,level2,level3,level4,level5,level6,level7,level8,level9,lev
 level = level_list[current_level-1]
 ###########################################################################################################33
 
-
-
-
+for i in range(15):
+    star = Star(random.randint(40,WIDTH-40),random.randint(60,HEIGHT - 60),1,1)
+    stars.add(star)
 
 text_test = Textbox(575,330,400,100,"Hello, World!",1,"No one",(0,255,0),(60,255,60))
 
@@ -1768,9 +1899,11 @@ ship_image = pygame.transform.scale(ship_image,(27,33))
 talking = False
 overdrive_charge = 100
 cur_frame = 0
+flip_to = 0
+transparency = 128
 async def main():
     ################# GLOBAL VARIABLES :0 #######################################
-    global talking,mouse_pressed,textboxes,coverbricks,global_trail_surf,shockwaves,enemy_missiles,cur_frame,overdrive_charge,null_lasers,shotgun_1,double_1,mines_1,lives_left,ship_image,boss_lasers,keys,current_enemy,full_title,current_typed,typed_frame,type_letter,typer_speed,menu_buttons,back_button,game_state,mouse_pressed,mouse_pos,heal_1,heal_possible,server,enemy_lasers,particles,dash_possible,add_pierce_possible,ship,pierce_1,files_destroyed,bugsnum,cards_were_shuffled,card_options,card_was_chosen,symbols,current_level,keys,running,files,pro_ships,lasers,level_list,level,startx,starty,rowindex,colindex,spacer,bugs
+    global stars,flip_to,transparency,shake_intensity,talking,mouse_pressed,textboxes,coverbricks,global_trail_surf,shockwaves,enemy_missiles,cur_frame,overdrive_charge,null_lasers,shotgun_1,double_1,mines_1,lives_left,ship_image,boss_lasers,keys,current_enemy,full_title,current_typed,typed_frame,type_letter,typer_speed,menu_buttons,back_button,game_state,mouse_pressed,mouse_pos,heal_1,heal_possible,server,enemy_lasers,particles,dash_possible,add_pierce_possible,ship,pierce_1,files_destroyed,bugsnum,cards_were_shuffled,card_options,card_was_chosen,symbols,current_level,keys,running,files,pro_ships,lasers,level_list,level,startx,starty,rowindex,colindex,spacer,bugs
     
     if current_level == 20:
         lives_left = 3
@@ -1808,7 +1941,7 @@ async def main():
                      if back_button.check_clicks(mouse_pos,mouse_pressed):
                         game_state = back_button.target_state
                 mouseclicked = True
-        screen.fill(screen_color)
+        game_canvas.fill(game_canvas_color)
         keys = pygame.key.get_pressed()
         if game_state == 0:
             if type_letter < len(full_title):
@@ -1820,15 +1953,15 @@ async def main():
                     typed_frame = 0
 
             title_surface = title_font.render(current_typed,True,(0,255,80))
-            screen.blit(title_surface,title_surface.get_rect(center = (WIDTH // 2 ,180)))
+            game_canvas.blit(title_surface,title_surface.get_rect(center = (WIDTH // 2 ,180)))
             for btn in menu_buttons:
-                btn.draw(screen,ui_font,mouse_pos)
+                btn.draw(game_canvas,ui_font,mouse_pos)
 
         elif game_state == 2:
             tutorial_title = subtitle_font.render("README.md (How to play)",True,(0,180,255))
-            screen.blit(tutorial_title,tutorial_title.get_rect(center = (WIDTH//2, 100)))
-            pygame.draw.rect(screen, (20, 20, 25), (70, 160, 900, 420), border_radius=24)
-            pygame.draw.rect(screen, (0, 255, 0), (70, 160, 900, 420), width=8, border_radius=12)
+            game_canvas.blit(tutorial_title,tutorial_title.get_rect(center = (WIDTH//2, 100)))
+            pygame.draw.rect(game_canvas, (20, 20, 25), (70, 160, 900, 420), border_radius=24)
+            pygame.draw.rect(game_canvas, (0, 255, 0), (70, 160, 900, 420), width=8, border_radius=12)
 
             tutorial_text = [
                 "Controls : WASD or Arrow Keys to Control Ship Movement",
@@ -1843,14 +1976,14 @@ async def main():
 
             for i, line in enumerate(tutorial_text):
                 txt = small_font.render(line,True,(240,240,240))
-                screen.blit(txt,(100,200 + i * 45))
-            back_button.draw(screen, ui_font, mouse_pos)
+                game_canvas.blit(txt,(100,200 + i * 45))
+            back_button.draw(game_canvas, ui_font, mouse_pos)
             if back_button.check_clicks(mouse_pos,mouse_pressed):
                 game_state = back_button.target_state
 
         elif game_state == 3:
             error_log_title = subtitle_font.render("SYSTEM ERROR LOG \n(Enemy Index)",True,(0,255,100))
-            screen.blit(error_log_title,error_log_title.get_rect(center = (WIDTH//2 , 60)))
+            game_canvas.blit(error_log_title,error_log_title.get_rect(center = (WIDTH//2 , 60)))
             continue_text = ui_font.render("Use Left and Right Arrows to scroll through enemies.",True,(0,255,100))
             error_list = [ 
 
@@ -1876,9 +2009,9 @@ async def main():
             text = ui_font.render(error_list[int(current_enemy)],True,(255,255,255))
             image = pygame.image.load(image_list[int(current_enemy)]).convert_alpha()
             image = pygame.transform.scale(image,(96,96))
-            screen.blit(text,text.get_rect(center = (WIDTH//2 , 400)))
-            screen.blit(image,(WIDTH//2 - (image.width //2),200))
-            screen.blit(continue_text,continue_text.get_rect(center = (WIDTH//2 , 350)))
+            game_canvas.blit(text,text.get_rect(center = (WIDTH//2 , 400)))
+            game_canvas.blit(image,(WIDTH//2 - (image.width //2),200))
+            game_canvas.blit(continue_text,continue_text.get_rect(center = (WIDTH//2 , 350)))
             if back_button.check_clicks(mouse_pos,mouse_pressed):
                 game_state = back_button.target_state
             # if keys[pygame.K_RIGHT]:
@@ -1887,13 +2020,16 @@ async def main():
             #         current_enemy = 0
             # elif keys[pygame.K_LEFT]:
             #     current_enemy -= 0.25
-            back_button.draw(screen, ui_font, mouse_pos)
+            back_button.draw(game_canvas, ui_font, mouse_pos)
         elif game_state == 1:
+            game_canvas.fill(game_canvas_color)
             cur_frame += 1
             if cur_frame > 20:
                 cur_frame = 0
+
+            
             for i in range(lives_left):
-                screen.blit(ship_image,(i*30,5))
+                game_canvas.blit(ship_image,(i*30+25,25))
             if (not card_options.__contains__(pierce_1)) and ship.damage > 1 and ship.cooldown < 15 and add_pierce_possible:
                 card_options.append(pierce_1)
                 add_pierce_possible = False
@@ -1907,48 +2043,75 @@ async def main():
                 heal_possible = False
             keys = pygame.key.get_pressed()
             mouse_pos = pygame.mouse.get_pos()
-            pro_ships.draw(screen)
-            bugs.draw(screen)
+            pro_ships.draw(game_canvas)
+            bugs.draw(game_canvas)
+            transparent_surface = pygame.Surface((WIDTH + 40, HEIGHT + 40),pygame.SRCALPHA)
+            if ship.hp <= 3:
+                flip_speed = 3
+                if transparency >= 128:
+                    flip_to = 0
+                if transparency <= 0:
+                    flip_to = 128
 
+                if flip_to == 128:
+                    if flip_to + transparency >= 128:
+                        transparency += flip_speed
+                    else:
+                        transparency = 128
+                    
+                if flip_to == 0:
+                    if flip_speed <= transparency:
+                        transparency -= flip_speed
+                    else:
+                        transparency = 0
+             
+                pygame.draw.rect(transparent_surface, (255, 40, 40,transparency), (20, 20, 20,HEIGHT))
+                pygame.draw.rect(transparent_surface, (255, 40, 40,transparency), (WIDTH, 20, 20,HEIGHT))
+                pygame.draw.rect(transparent_surface, (255, 40, 40,transparency), (20, 20,WIDTH,20))
+                pygame.draw.rect(transparent_surface, (255, 40, 40,transparency), (20, HEIGHT,WIDTH,20))
+
+            game_canvas.blit(transparent_surface,(0,0))
+
+            add_to_x = 0
             ############## OVERDRIVE CHARGE BAR ######################
-            overdrive_background = pygame.rect.Rect(180,401,150,10)
-            overdrive_bar = pygame.rect.Rect(180,401,overdrive_charge * 1.5,10)
+            overdrive_background = pygame.rect.Rect(186+add_to_x,401,150,10)
+            overdrive_bar = pygame.rect.Rect(186+add_to_x,401,overdrive_charge * 1.5,10)
             if overdrive_charge >= 100 and cur_frame >= 5 and cur_frame <= 7 :
-                    pygame.draw.rect(screen, (255, 255, 255), (180 - 2, 401 - 2, 150 + 4, 10 + 4), width=8)
-            pygame.draw.rect(screen,(0,0,255),overdrive_background)
-            pygame.draw.rect(screen,(255,165,0),overdrive_bar)
+                    pygame.draw.rect(game_canvas, (255, 255, 255), (186+add_to_x - 2, 401 - 2, 150 + 4, 10 + 4), width=8)
+            pygame.draw.rect(game_canvas,(0,0,255),overdrive_background)
+            pygame.draw.rect(game_canvas,(255,165,0),overdrive_bar)
             tutorial_title = ui_font.render(f"Overdrive bar : {round(overdrive_charge,2)}% ",True,(0,180,255))
-            screen.blit(tutorial_title,tutorial_title.get_rect(center = (100, 405)))
+            game_canvas.blit(tutorial_title,tutorial_title.get_rect(center = (106+add_to_x, 405)))
             #########################################################
             #################### SHIP HEALTH BAR #########################
-            ship_health_background = pygame.rect.Rect(170,370,150,10)
-            ship_health = pygame.rect.Rect(170,370,ship.hp * 15,10)
-            pygame.draw.rect(screen,(255,0,0),ship_health_background)
-            pygame.draw.rect(screen,(0,255,0),ship_health)
+            ship_health_background = pygame.rect.Rect(183+add_to_x,370,150,10)
+            ship_health = pygame.rect.Rect(183+add_to_x,370,ship.hp * 15,10)
+            pygame.draw.rect(game_canvas,(255,0,0),ship_health_background)
+            pygame.draw.rect(game_canvas,(0,255,0),ship_health)
             tutorial_title = ui_font.render(f"Ship Health: {round(ship.hp,1)} / 10",True,(0,180,255))
-            screen.blit(tutorial_title,tutorial_title.get_rect(center = (90, 374)))
+            game_canvas.blit(tutorial_title,tutorial_title.get_rect(center = (103+add_to_x, 374)))
             ###################### Cooldown Bar ##########################
-            ship_health_background = pygame.rect.Rect(200,340,ship.max_cooldown,10)
-            ship_health = pygame.rect.Rect(200,340,ship.cooldown,10)
+            ship_health_background = pygame.rect.Rect(200+add_to_x,340,ship.max_cooldown,10)
+            ship_health = pygame.rect.Rect(200+add_to_x,340,ship.cooldown,10)
             if ship.cooldown <= 0 and cur_frame >= 5 and cur_frame <= 10 :
-                pygame.draw.rect(screen, (255, 255, 255), (200 - 2, 340 - 2, ship.max_cooldown + 4, 10 + 4), width=4)
-            pygame.draw.rect(screen,(197,180,227),ship_health_background)
-            pygame.draw.rect(screen,(128,0,128),ship_health)
+                pygame.draw.rect(game_canvas, (255, 255, 255), (200 - 2, 340 - 2, ship.max_cooldown + 4, 10 + 4), width=4)
+            pygame.draw.rect(game_canvas,(197,180,227),ship_health_background)
+            pygame.draw.rect(game_canvas,(128,0,128),ship_health)
             tutorial_title = ui_font.render(f"Weapon Cooldown: {round(ship.cooldown,1)} / {round(ship.max_cooldown)}",True,(0,180,255))
-            screen.blit(tutorial_title,tutorial_title.get_rect(center = (110, 343)))
+            game_canvas.blit(tutorial_title,tutorial_title.get_rect(center = (110+add_to_x, 343)))
             ############################################################
             ####################### INVERT BAR ##################
-            ship_invert_background = pygame.rect.Rect(220,310,ship.invert_duration + 15,10)
-            pygame.draw.rect(screen,(0,0,255),ship_invert_background)
+            ship_invert_background = pygame.rect.Rect(242+add_to_x,310,ship.invert_duration + 15,10)
+            pygame.draw.rect(game_canvas,(0,0,255),ship_invert_background)
             tutorial_title = ui_font.render(f"Controls Inverted for : {round(ship.invert_duration,0)} / {round(ship.max_cooldown)}",True,(0,180,255))
             if overdrive_charge >= 100:
                 overdrive_charge = 100
                 if keys[pygame.K_q] or keys[pygame.K_SLASH]:
                     ship.overdrive_duration = ship.max_overdrive_duration
-            screen.blit(tutorial_title,tutorial_title.get_rect(center = (110, 314)))
+            game_canvas.blit(tutorial_title,tutorial_title.get_rect(center = (132+add_to_x, 314)))
 
             if not current_level == 20:
-                files.draw(screen)
+                files.draw(game_canvas)
 
             mouse_state = pygame.mouse.get_pressed()
             if mouse_state[0] and ship.weapon_type == "Mine":
@@ -1965,7 +2128,7 @@ async def main():
                     for null_laser in null_lasers:
                         null_laser.draw()
                         null_laser.update()
-                    mines.draw(screen)
+                    mines.draw(game_canvas)
                     mines.update()
                     for enms in enemy_missiles:
                         enms.update()
@@ -1988,6 +2151,10 @@ async def main():
                         
                             ship.shoot()
                             ship.update()
+                    stars.draw(game_canvas)
+                    for star in stars:
+                        
+                        star.update()
                     previous_bugsnum = bugsnum
                     if card_was_chosen == True:
                         bugsnum = 0
@@ -2002,7 +2169,7 @@ async def main():
                         enlaser.draw()
                         enlaser.update()
                     
-                    symbols.draw(screen)
+                    symbols.draw(game_canvas)
 
                     if bugsnum == 0 and bosses.__len__() == 0 :
                         bugs.empty()
@@ -2084,7 +2251,7 @@ async def main():
                                                 bug = Bug((startx  + rowindex * spacer ) + i * 10,(starty - colindex) + j * 10 ,9,9,7,1,1,0.4,y_speed = 0)
                                                 bugs.add(bug)
                                     elif exception == "BSOD":
-                                        boss = BlueScreenOfDeath(0,50,200,100,"bluescreenofdeath.png")
+                                        boss = Bluegame_canvasOfDeath(0,50,200,100,"bluegame_canvasofdeath.png")
                                         bosses.add(boss)
                                     
                                     rowindex += 1
@@ -2092,11 +2259,11 @@ async def main():
                                 rowindex = 0
                         elif current_level >= len(level_list) and bosses.__len__() == 0:
                             win  = title_font.render(f"YOU WIN \n(for now)",True , (0,255,0))
-                            screen.blit(win,(WIDTH//2 - 300,HEIGHT//2  - 100))
+                            game_canvas.blit(win,(WIDTH//2 - 300,HEIGHT//2  - 100))
                         else:
                             pass  
 
-            bosses.draw(screen)
+            bosses.draw(game_canvas)
             bosses.update()
             for laser in boss_lasers:
                 laser.draw()
@@ -2114,9 +2281,9 @@ async def main():
                 rect_particle = pygame.rect.Rect(particle[0][0],particle[0][1],particle[2],particle[2])
                 try:
                     color = particle[3]
-                    pygame.draw.rect(screen,particle[3],rect_particle)
+                    pygame.draw.rect(game_canvas,particle[3],rect_particle)
                 except:
-                    pygame.draw.rect(screen,(0,200,100),rect_particle)
+                    pygame.draw.rect(game_canvas,(0,200,100),rect_particle)
 
                 if particle[2] <= 0:
                     particles.remove(particle) 
@@ -2126,7 +2293,7 @@ async def main():
                 shockwave.update()
             
             for textbox in textboxes:
-                if textbox.text_index < 29:
+                if textbox.text_index <= 29:
                     textbox.draw()
                     if mouseclicked:
                         textbox.update(mouse_pos,True)
@@ -2137,13 +2304,28 @@ async def main():
                     talking = False
                
                 
-            screen.blit(global_trail_surf,(0,0))
+            game_canvas.blit(global_trail_surf,(0,0))
             global_trail_surf.fill((0,0,0,0))
             if files_destroyed or lives_left <= 0:
                 win  = title_font.render(f"YOU LOSE...",True , (255,0,0))
-                screen.blit(win,win.get_rect(center = (WIDTH//2 , 200)))
+                game_canvas.blit(win,win.get_rect(center = (WIDTH//2 , 200)))
                 current_level = 0
                 ship = Ship(100,100,27,33,"ship.png",1,1)
+
+
+
+
+        if shake_intensity > 0:
+            offset_x = random.randint(-shake_intensity,shake_intensity)
+            offset_y = random.randint(-shake_intensity,shake_intensity)
+
+            shake_intensity -= 1
+
+        else:
+            offset_x,offset_y = 0,0
+
+
+        screen.blit(game_canvas,(-20+offset_x,-20+offset_y))
         pygame.display.flip()
         await asyncio.sleep(0)
 asyncio.run(main())
