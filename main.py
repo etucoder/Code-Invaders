@@ -17,7 +17,7 @@ running = True
 clock = pygame.time.Clock()
 game_canvas_color = (0,0,0)
 particles = []
-game_state = 4
+game_state = 0
 explosion_sound = pygame.mixer.Sound("explosion.wav")
 small_explosion_sound = pygame.mixer.Sound("small_explosion1.wav")
 small_explosion_sound.set_volume(0.07)
@@ -259,7 +259,7 @@ cooldown_surface = [subtitle_font.render("Cooldown", True , (0,0,255)),"Cooldown
 damage_surface = [subtitle_font.render("Damage", True , (255,0,0)),"Damage"]
 speed_surface = [subtitle_font.render("Speed", True , (255,255,0)),"Speed"]
 max_hp_surface= [subtitle_font.render("File Max\n Health", True , (255,165,0)),"File Max\n Health"]
-max_hp_surface= [subtitle_font.render("Overdrive\nDuration", True , (128,0,128)),"Overdrive\nDuration"]
+overdrive_surface= [subtitle_font.render("Overdrive\n Duration", True , (128,0,128)),"Overdrive\nDuration"]
 game_canvas.blit(name_surface[0],(heal_files_1.rect.centerx,heal_files_1.rect.top + 20))
 titles = []
 titles.append(name_surface)
@@ -267,6 +267,8 @@ titles.append(cooldown_surface)
 titles.append(damage_surface)
 titles.append(max_hp_surface)
 titles.append(speed_surface)
+titles.append(overdrive_surface)
+
 cooldown_files_1 = ShopItem("Office Processor",25,"No! You can't open 2 tabs at once!","Cooldown reduced by 10%","Heal-Files",330+scroll_x,100+scroll_y, w = 300,h = 180,image = "officecore.png")
 cooldown_files_2 = ShopItem("Gaming Processor",125,"They don't need to fire their weapons.\nThey just need to wear a skin with more\nthan one color to crash my laptop...","Cooldown reduced by 20%","Heal-Files",330+scroll_x,300+scroll_y, w = 300,h = 180,image = "gamingcore.png")
 cooldown_files_3 = ShopItem("Dev Processor",750, "Finally, I can run Vs Code and ChatGPT\nat the same time!","Cooldown reduced by 35%","Heal-Files",330+scroll_x,500+scroll_y,w = 300,h = 180, image = "devcore.png")
@@ -290,13 +292,13 @@ cooler_files_4 = ShopItem("Pure Metal Dual-Tower",800, "Sure, it cools well, but
 cooler_files_5 = ShopItem("Liquid Nitrogen Cooling Pot",4500, "When you never want to lag again, this is\nthe perfect cooler. Also functions as\nAir Conditioning in the summmer\nmy making the room 10 degrees colder.",r"Overdrive lasts 325% Longer","Heal-Files",1320+scroll_x,900+scroll_y,w = 320,h = 180, image = "liquidnitrogencooler.png")
 cooler_files_6 = ShopItem("Cyrostat Dilution Refrigarator",45000, "I'm sure Google won't mind us putting our\nservers in there next to the quantum\ncomputer.All I know is I can't use the\ncooling racks for my yougurt anymore...",r"Overdrive lasts 500% Longer" ,"Heal-Files",1320+scroll_x,1100+scroll_y,w=320,h = 180,image = "quantumcooler.png")
 
+six = 6
 
-
-case_files_1 = ShopItem("Layered Plastic Bag",3,"Finally found a use for all those plastic\nbags...",r"Lasers do 10% more damage.","Heal-Files",1670+scroll_x,100+scroll_y, w = 320,h = 180,image = "plasticbags.png")
-case_files_2 = ShopItem("Brittle Plastic Shell",10,"Made out of the same plastic as throw-away\nutensils. They have the same strength,but\nat least the utensils can hold food...",r"Cursor is 25% faster","Heal-Files",1670+scroll_x,300+scroll_y, w = 320,h = 180,image = "plasticcase.png")
-case_files_3 = ShopItem("Aluminum Alloy",50, "Comes with a complimentary premium aluminum\n(foil) case worth $100 (In sentimental\nvalue...)'",r"Cursor is 50% Faster","Heal-Files",1670+scroll_x,500+scroll_y,w = 320,h = 180, image = "aluminum.png")
-case_files_4 = ShopItem("Carbon Fiber",400, "The same material NASA uses for rockets.\nThe difference is they go to space and\ntheir launch date is still\nsomehow before ours?",r"Cursor is 100% Faster","Heal-Files",1670+scroll_x,700+scroll_y,w=320,h = 180,image = "carbonfiber.png")
-case_files_5 = ShopItem("Titantium Safe",2000, "Protects the program files from 2008 because\nthey somehow still hold the code together..",r"Cursor is 50% Faster","Heal-Files",1670+scroll_x,900+scroll_y,w = 320,h = 180, image = "safe.png")
+case_files_1 = ShopItem("Layered Plastic Bag",3,"Finally found a use for all those plastic\nbags...",r"Files get +1 max HP","Heal-Files",1670+scroll_x,100+scroll_y, w = 320,h = 180,image = "plasticbags.png")
+case_files_2 = ShopItem("Brittle Plastic Shell",10,"Made out of the same plastic as throw-away\nutensils. They have the same strength,but\nat least the utensils can hold food...",r"Files get +2.5 Max HP","Heal-Files",1670+scroll_x,300+scroll_y, w = 320,h = 180,image = "plasticcase.png")
+case_files_3 = ShopItem("Aluminum Alloy",50, "Comes with a complimentary premium aluminum\n(foil) case worth $100 (In sentimental\nvalue...)'",r"Files get +5 Max HP","Heal-Files",1670+scroll_x,500+scroll_y,w = 320,h = 180, image = "aluminum.png")
+case_files_4 = ShopItem("Carbon Fiber",400, "The same material NASA uses for rockets.\nThe difference is they go to space and\ntheir launch date is still\nsomehow before ours?",r"Files get +10 Max HP","Heal-Files",1670+scroll_x,700+scroll_y,w=320,h = 180,image = "carbonfiber.png")
+case_files_5 = ShopItem("Titantium Safe",2000, "Protects the program files from 2008 because\nthey somehow still hold the code together..",r"Files get +25 Max HP","Heal-Files",1670+scroll_x,900+scroll_y,w = 320,h = 180, image = "safe.png")
 
 shop_items.append(heal_files_1)
 shop_items.append(heal_files_2)
@@ -721,6 +723,9 @@ class Bug(pygame.sprite.Sprite):
                                 lasers.remove(laser)
                             elif self.hp <= 0:
                                 laser.pierce -= 1
+                    if self.hp <= 0:
+                        if self.image_path == "exception.png":
+                            data_coins += 1
 
                 
             elif memory_error_alive == True:
@@ -2176,7 +2181,7 @@ async def main():
                 scroll_x += 4
             elif keys[pygame.K_RIGHT]:
                 scroll_x -= 4
-            global heal_files_1,ram_files_1,cooldown_files_1,speed_files_1,case_files_1
+            global heal_files_1,ram_files_1,cooldown_files_1,speed_files_1,case_files_1,cooler_files_1
             for title in titles:
                 if title[1] == "Heals":
                     game_canvas.blit(title[0],(heal_files_1.rect.centerx - 100,heal_files_1.rect.top - 50))
@@ -2188,6 +2193,8 @@ async def main():
                     game_canvas.blit(title[0],(speed_files_1.rect.centerx - 120,ram_files_1.rect.top - 50))
                 if title[1] == "File Max\n Health":
                     game_canvas.blit(title[0],(case_files_1.rect.centerx - 160,ram_files_1.rect.top - 100))
+                if title[1] == "Overdrive\nDuration":
+                    game_canvas.blit(title[0],(cooler_files_1.rect.centerx - 210,cooler_files_1.rect.top - 100))
             for item in shop_items:
                 item.draw(mouse_pos)
                 item.buy()
@@ -2425,6 +2432,7 @@ async def main():
                         enemy_lasers.clear()
                         if card_was_chosen == True and previous_bugsnum > 0:
                             card_was_chosen = False
+                            game_state = 4
                             cards_were_shuffled = False
                         if not cards_were_shuffled:
                             card_options_current = card_options[:]
