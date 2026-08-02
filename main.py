@@ -17,7 +17,7 @@ running = True
 clock = pygame.time.Clock()
 game_canvas_color = (0,0,0)
 particles = []
-game_state = 0
+game_state = 4
 explosion_sound = pygame.mixer.Sound("explosion.wav")
 small_explosion_sound = pygame.mixer.Sound("small_explosion1.wav")
 small_explosion_sound.set_volume(0.07)
@@ -32,19 +32,38 @@ game_canvas = pygame.Surface((WIDTH + 40,HEIGHT + 40),pygame.SRCALPHA)
 data_coins = 0 
 shop_showing = False
 shop_items = []
+max_overdrive = 100
 
 class ShopItem:
-    def __init__(self,name,cost,description,effect_type,x,y):
+    def __init__(self,name,cost,description,stats,effect_type,x,y,w = 260,h = 130,image = None):
         self.name = name
         self.cost = cost
         self.description = description
         self.effect_type = effect_type
         self.x = x
         self.y = y
-        self.rect = pygame.Rect(x, y, 260,130)
+        self.w = w
+        self.h = h
+        self.rect = pygame.Rect(x, y, w,h)
         self.purchased = False
-    def draw(self,surface):
-        box_color = (15,25,35) if not self.purchased else (5, 10, 15)
+        self.stats = stats
+        self.image = image
+        if self.image != None:
+            self.image = pygame.image.load(self.image).convert_alpha()
+            self.image = pygame.transform.scale(self.image,(72,72))
+            # game_canvas.blit(image,(WIDTH//2 - (image.width //2),200))
+    def draw(self,mouse_pos):
+        nb = (160,32,240)
+        global scroll_y,scroll_y
+        self.rect = pygame.Rect(self.x+ scroll_x, self.y+scroll_y, self.w,self.h)
+        box_color = (15,25,35) if not self.purchased  else (5, 10, 15)
+        if self.purchased == True:
+            box_color = (5,10,15)
+        else:
+            if self.rect.collidepoint(mouse_pos):
+                box_color = nb
+            else:
+                box_color = (15,25,35)
         border_color = (0,255,100) if not self.purchased else (100,100,100)
 
         pygame.draw.rect(game_canvas,box_color,self.rect)
@@ -52,11 +71,18 @@ class ShopItem:
 
         name_surface = ui_font.render(self.name, True , (255,255,255) if not self.purchased else (100,100,100))
         cost_color = (255,200,0) if data_coins >= self.cost else (255,50,50)
-        cost_surface = ui_font.render(f"Cost: {self.cost} CR", True, cost_color if not self.purchased else (100,100,100))
+        cost_surface = ui_font.render(f"Cost: {self.cost} CR", True, (0,255,0) if not self.purchased else (100,100,100))
+        stat_surface = ui_font.render(self.stats, True, cost_color if not self.purchased else (100,100,100))
         description_surface = ui_font.render(self.description, True,(0,180,255) if not self.purchased else(100,100,100))
 
+        game_canvas.blit(name_surface,(self.rect.x + 15,self.rect.y + 15))
+        game_canvas.blit(cost_surface,(self.rect.x + 15, self.rect.y + 45))
+        game_canvas.blit(description_surface,(self.rect.x + 15,self.rect.y + 80))
+        game_canvas.blit(stat_surface,(self.rect.x + 15,self.rect.y + 150))
+        if self.image != None:
+            game_canvas.blit(self.image,(self.rect.right - self.image.width - 5,self.rect.top + self.image.width / 12 + 5))
     def buy(self):
-        global data_coins
+        global data_coins,max_overdrive,files,ship
         if not self.purchased and data_coins >= self.cost:
             data_coins -= self.cost
             self.purchased = True
@@ -79,10 +105,10 @@ class ShopItem:
                     ship.max_cooldown = 0.9 * ship.max_max_cooldown
 
                 if self.name == "Gaming Processer": # They don't need to fire their weapons to win. They just need to wear a skin with more than one color to crash my laptop...
-                    ship.max_cooldown = 0.75 * ship.max_max_cooldown
+                    ship.max_cooldown = 0.8 * ship.max_max_cooldown
 
                 if self.name == "Dev Processer": # Finally, I can run Vs Code and ChatGPT at the same time!
-                    ship.max_cooldown = 0.6  * ship.max_max_cooldown
+                    ship.max_cooldown = 0.65  * ship.max_max_cooldown
 
                 if self.name == "Server Processer": # Time to set my render distance to max and fill the whole world with TNT
                     ship.max_cooldown = 0.5 * ship.max_max_cooldown
@@ -98,16 +124,210 @@ class ShopItem:
                     ship.speed = 2.0 * ship.original_speed
 
             elif self.effect_type == "Damage":
-                if self.name == "DDR2 Stick": # It may hold more data my being used as a bat than actual RAM
-                    ship.max_hp = 1.5 * ship.max_max_hp
-                if self.name == "Aluminum-Coated DDR3": # Oh, it didn't come with any heat sheilding but aluminum foil fixed that...
+                if self.name == "DDR2 Stick": # It may hold more data my being used as a bat than actual RAM. Type any 2 letters to make it crash.
+                    ship.damage = 1.1 * ship.max_damage
+                if self.name == "Aluminum-Coated DDR3": # Oh, it didn't come with any heat shielding but some old aluminum foil fixed that...
+                    ship.damage = 1.25 * ship.max_damage
+                if self.name == "Dual-Channel RGB DDR4": # You may have bought it more for the lights than the RAM, and you can't tell which is higher quality.
+                    ship.damage = 1.5 * ship.max_damage
+                if self.name == "256 GB DDR5": # Costs your whole life savings just so you could load Minecraft a little faster...
+                    ship.damage = 2.0 * ship.max_damage
+
+            elif self.effect_type == "Overdrive-Duration":
+                if self.name == "Ice Pack": # Actually pretty good at cooling but getting up every 15 minutes to replace it just so VSCode keeps runnings is kind of irritating.
+                    max_overdrive = 110
+                if self.name == "Aluminum Block" : # Grabbed this out of a calculator and put a cpu on it to fry an egg at work... You can taste some aluminum if you try enough.
+                    max_overdrive = 125
+                if self.name == "Aluminum Tower" : # A Nice tower with copper pipes running through them. We only bought it because of our server room being so hot it was classified as a "Fire Hazard"
+                    max_overdrive = 150
+                if self.name == "Pure Metal Dual-Tower": # Sure, it cools well, but someone put ONE stack of papers next to the cooling fan and now the whole building somehow has our paper.
+                    max_overdrive = 200
+                if self.name == "Liquid Nitrogen Cooling Pot": # When you never want to lag again, this is the perfect cooler. Also functions as Air Conditioning in the summmer my making the room 10 degrees colder.
+                    max_overdrive = 325
+                if self.name == "Cyrostat Dilution Refrigarator": # I'm sure Google won't mind us putting our servers in there next to the quantum computer. It's so cold that lag somehow makes the computer run faster?? All I know is I can't use the cooling racks for my yougurt anymore...
+                    max_overdrive = 500
+
+            elif self.effect_type == "File Max Hp":
+                if self.name == "Layered Plastic Bags": # Finally found a use for all those plastic bags...
+                    for file in files:
+                        file.max_hp = file.max_max_hp + 1
+                elif self.name == "Brittle Plastic Shell": # Made out of the same plastic as throw-away utensils. They have the same strength, but at least the utensils can hold food...
+                    for file in files:
+                        file.max_hp = file.max_max_hp + 2.5
+                elif self.name == "Aluminum Alloy": # Our friend though he was really smart and spent $50 on aluminum foil and wrapped the laptop in in. I then explained that aluminum does not always come in a foil form...
+                    for file in files:
+                        file.max_hp = file.max_max_hp + 5
+                elif self.name == "Carbon Fiber": # The same material space NASA uses for rockets. The difference is they go to space and their launch date is still somehow before ours?
+                    for file in files:
+                        file.max_hp = file.max_max_hp + 10
+                elif self.name == "Titanium Cage" : # The cage probably costs more than the server.Deleting a code file with a sledgehammer deletes the sledgehammer. All this for the program files from 2008 because they somehow still hold the code together...
+                    for file in files:
+                        file.max_hp = file.max_max_hp + 25
+
+            elif self.effect_type == "File Protection Turret":
+                if self.name == "Foam Guns" : # Cost : 15 Gave a kid a nerf gun a box of ammo and told him to hit anyone who came into the server room. I don't think the CEO was too happy getting showered with foam balls...
+                    # Creates a Foam Gun Turret (In progress) 
                     pass
+                elif self.name == "Automated Foam Missile Launcher" : # Cost : 25 An Ultrasonic, Raspberry Pi 4,Battery, Foam, and Rubber Bands made a highly dangerous and lethal weapon if any ants stepped into the room...
+                    # Creates a Foam Missile Turret (In Progress)
+                    pass
+                elif self.name == "Taser 4000 Pro": # Cost: 50 A Premium Taser bought because we thought more volts = faster charging. Let's just say our laptop didn't share our enthusiasm
+                    # Creates a Taser 400 Pro
+                    pass
+                elif self.name == "Laser Blaster": # Cost: 150 Gives knockback and shock with a side of damage. However, it drains a car battery for every single shot...
+                    # Creates a Laser Blaster
+                    pass
+                elif self.name == "Laser Shotgun": # Cost : 500 The Laser Blaster but better. The power scales exponentially, but I'm not paying the electricity bill...
+                    # Creates a Laser Shotgun
+                    pass
+                elif self.name == "Flamethrower": # Cost : 2000 When you copy the YouTuber and it actually works... Burns anyone and anything near the server, including the server itself...
+                    # Creates a Flamethrower
+                    pass
+                elif self.name == "Rocket Launcher": # Cost : 5000 Wheeeeeeeee BOOOOOOOOOM.... "Now no one will steal our source code!" "You mean the one with more bugs than lines of code?"
+                    # Creates a Rocket Launcher
+                    pass
+                elif self.name == "Uranium Slingshot": # Cost : 12,500 A Robotic Arm Launches a marble-sized uranium ball toward anyone who isn't authorized. Wait , why is the FBI here? I wonder why...
+                    # Creates a Uranium Slingshot
+                    pass
+                elif self.name == "Reactor Core": # Cost : 75,000 One wrong move and I'll vaporize you... And myself and the server and the city probably...
+                    # Creates a Reactor Core
+                    pass
+                elif self.name == "Orbital Strike Cannon": # 250,000 Push of a button and flick of a lever, it's raining TNT , I'll see you never!
+                    # Creates an Orbital Strike Cannon
+                    pass
+                elif self.name == "Antimatter Vaporizer":  # 1,000,000 Removes something from existense. Costs twice the global GDP for each shot.
+                    # Creates an Antimatter Vaporizer
+                    pass
+                elif self.name == "Open-Source": # 2,500,000 Costs Data here but costs nothing in the real world. The best way to secure your project is to give it to people who will use,test,fix,and rebuild it.
+                    # Creates an Open Source Turret
+                    pass
+            elif self.effect_type == "Data Collection":
+                if self.name == "Manual Search": # After 12 Hours of google searches, I finally found my question on stack overflow AND THE ANSWER WAS DELETED!!!
+                    ship.data_per_enemy = 2
+                elif self.name == "Basic Data Grabber": # Can't Call it a Scraper because it only gets the title of the website... Better than nothing I guess...
+                    ship.data_per_enemy = 4
+                elif self.name == "Web Scrapper API": # A low-quality web scrapper for a high-percentage-of-my-income price
+                    ship.data_per_enemy = 8
+                elif self.name == "Raspberry Pi Data Farm": # The Boss bought them for team-building but the only thing they're building is dust. Set up all 40 together and you've got a nice data scraper, providing no one noticed that 40 Raspberry Pi's dissappeared...
+                    ship.data_per_enemy = 16
+                elif self.name == "Data Mining": # Spend your life savings on 12 GPUs and send them to the mines. Change your identity when the electricity bill comes in.
+                    ship.data_per_enemy = 32
+                elif self.name == "Automated Scam Emails": # Its so easy to fool people... WAIT I WON A MILLIONS DOLLARS? Yeah I'll give you 100 bucks and my Bank Account password for "Verification" 
+                    ship.data_per_enemy = 64
+                elif self.name == "Automated Scam Calls": # Yeah, the car warranty I can't afford has expired? Yeah so has this bazooka, but I'm ok with giving it a test! Why'd you leave?
+                    ship.data_per_enemy = 128
+                elif self.name == "Actual Website": # Sign Up or Log in to access the watching paint dry livestream with limited giveaways of waster time for everyone who watches!
+                    ship.data_per_enemy = 256
+                elif self.name == "Minecraft Server": # Note : Don't ask for data AFTER blowing them and their bas up with TNT...
+                    ship.data_per_enemy = 512
+                elif self.name == "Hackclub Slack Scanner": # Data is Data, even if it's about the next minecraft modpack...
+                    ship.data_per_enemy = 1024
+                elif self.name == "Database Company": # Data? I AM THE DATA!!!
+                    ship.data_per_enemy = 2048
+                elif self.name == "Search Engine" : # Why are so many people searching up "Who would win : Taco vs. Grilled Cheese"?
+                    ship.data_per_enemy = 4096
+
+            elif self.effect_type == "Data Coin Mult":
+                if self.name == "Self Organizing": # Label and Ship the data yourself to recieve a quality bonus. 
+                    # What, you want me to make their last 10 searches visible on a public website with 10,000 line of CSS for a QUALITY MULT?
+                    ship.data_mult = 1.5
+                elif self.name == "Group Data Auditing": # Share the work. # Share the profits. # Share the depression.
+                    ship.data_mult = 2
+                elif self.name == "AI Model Training" : # Pays higher until you realize that it somehow mistakes a TV for a water bottle?
+                    ship.data_mult = 3
+                elif self.name == "Manual Group AI Training" : # Your group meetups involve dragging bounding boxes from one side of the screen to the other while eating the free snacks you provided.
+                    ship.data_mult = 5
+                elif self.name == "Data Polishing Offload" : # Pay someone else to write the labels on the data while you play games...
+                    ship.data_mult = 7.5
+                elif self.name == "Auto AI Training" : # An AI Training an AI. After 5 weeks of training, It can tell that a cat and a dog are different but cant say which is which
+                    ship.data_mult = 10
+                elif self.name == "Data Seller" : # Selling your data to companies and telling you we don't from 1982!
+                    ship.data_mult = 25
+                elif self.name == "Bakery" : # High quality cookies  =  High quality data
+                    ship.data_mult = 50
+                elif self.name == "Clone Machine" : # More people, More data... its simple, really.
+                    ship.data_mult = 100
+scroll_x, scroll_y = 0,50
+
+heal_files_1 = ShopItem("Quick Fix",5,"Spray the code with pesticide\nand call it debugging.","Heals all files by 10%","Heal-Files",30+scroll_x,100+scroll_y, w = 280,h = 180)
+heal_files_2 = ShopItem("Bug Patch",10,"Tape and paint the bugs until no\none knows they're there...","Heals all files by 33%","Heal-Files",30+scroll_x,300+scroll_y, w = 280,h = 180)
+heal_files_3 = ShopItem("Security Update",20, "Change passcode from 1234 to 12345.\nWe're leading in cybersecurity.","Heals all files by 66%","Heal-Files",30+scroll_x,500+scroll_y,w = 280,h = 180)
+heal_files_4 = ShopItem("Full Refactor",30, "Oh, the library became insecure\nAFTER I wrote 10,000 lines of code.\nWhat a coincidence!","Heals all files to full health","Heal-Files",30+scroll_x,700+scroll_y,w=280,h = 180)
+
+name_surface = [subtitle_font.render("Heals", True , (0,255,0)),"Heals"]
+cooldown_surface = [subtitle_font.render("Cooldown", True , (0,0,255)),"Cooldown"]
+damage_surface = [subtitle_font.render("Damage", True , (255,0,0)),"Damage"]
+speed_surface = [subtitle_font.render("Speed", True , (255,255,0)),"Speed"]
+max_hp_surface= [subtitle_font.render("File Max\n Health", True , (255,165,0)),"File Max\n Health"]
+max_hp_surface= [subtitle_font.render("Overdrive\nDuration", True , (128,0,128)),"Overdrive\nDuration"]
+game_canvas.blit(name_surface[0],(heal_files_1.rect.centerx,heal_files_1.rect.top + 20))
+titles = []
+titles.append(name_surface)
+titles.append(cooldown_surface)
+titles.append(damage_surface)
+titles.append(max_hp_surface)
+titles.append(speed_surface)
+cooldown_files_1 = ShopItem("Office Processor",25,"No! You can't open 2 tabs at once!","Cooldown reduced by 10%","Heal-Files",330+scroll_x,100+scroll_y, w = 300,h = 180,image = "officecore.png")
+cooldown_files_2 = ShopItem("Gaming Processor",125,"They don't need to fire their weapons.\nThey just need to wear a skin with more\nthan one color to crash my laptop...","Cooldown reduced by 20%","Heal-Files",330+scroll_x,300+scroll_y, w = 300,h = 180,image = "gamingcore.png")
+cooldown_files_3 = ShopItem("Dev Processor",750, "Finally, I can run Vs Code and ChatGPT\nat the same time!","Cooldown reduced by 35%","Heal-Files",330+scroll_x,500+scroll_y,w = 300,h = 180, image = "devcore.png")
+cooldown_files_4 = ShopItem("Server Processor",3000, "Time to set my render distance to max\nand fill the whole world with TNT","Cooldown reduced by 50%","Heal-Files",330+scroll_x,700+scroll_y,w=300,h = 180,image = "servercpu.png")
+
+speed_files_1 = ShopItem("Office Mouse",10,"At this point , the mouse is more dust\nthen technology. Better off using\ntelepathy to control the cursor...",r"Cursor is 10% faster","Heal-Files",660+scroll_x,100+scroll_y, w = 300,h = 180,image = "officemouse.png")
+speed_files_2 = ShopItem("RGB Mouse",30,"More LEDs than mouse parts. 'But it\nGLOWS...' So does uranium I don't use it\nfor programming (Most of the time)",r"Cursor is 25% faster","Heal-Files",660+scroll_x,300+scroll_y, w = 300,h = 180,image = "rgb.png")
+speed_files_3 = ShopItem("High-End Gaming Mouse",150, "Great tracking , it makes you better\nat gaming. Instead of dying 20 times\nfor every 1 person I kill, I die 19...",r"Cursor is 50% Faster","Heal-Files",660+scroll_x,500+scroll_y,w = 300,h = 180, image = "devmouse.png")
+speed_files_4 = ShopItem("Industrial-Grade Mouse",750, "Developed after someone misclicked one\nto many times. Power consumption reduced\nfrom 50 cities to 45",r"Cursor is 100% Faster","Heal-Files",660+scroll_x,700+scroll_y,w=300,h = 180,image = "industrialmouse.png")
+
+ram_files_1 = ShopItem("DDR2 Stick",25,"It may hold more data my being used as \nnotepad than actual RAM. Type any 2\nletters to make it crash.",r"Lasers do 10% more damage","Heal-Files",990+scroll_x,100+scroll_y, w = 300,h = 180,image = "ddr2.png")
+ram_files_2 = ShopItem("Aluminum-Coated DDR3",125,"Oh, it didn't come with any heat\nshielding but some old\naluminum foil fixed that...",r"Lasers do 25% more damage","Heal-Files",990+scroll_x,300+scroll_y, w = 300,h = 180,image = "ddr3.png")
+ram_files_3 = ShopItem("RGB DDR4",750, "You may have bought it more for the\nlights than the RAM, and you can't\ntellwhich is higher quality..",r"Lasers do 50% more damage","Heal-Files",990+scroll_x,500+scroll_y,w = 300,h = 180, image = "ddr4.png")
+ram_files_4 = ShopItem("256GB DDR5",3000, "Costs your whole life savings just so\nyou could load Minecraft a little\nfaster...",r"Lasers do 100% more damage","Heal-Files",990+scroll_x,700+scroll_y,w=300,h = 180,image = "ddr5.png")
+
+
+cooler_files_1 = ShopItem("Ice Pack",5,"Actually pretty good at cooling but\ngetting up every 15 minutes to replace it\njust so VSCode keeps running is kind\nof irritating.",r"Overdrive lasts 10% longer","Heal-Files",1320+scroll_x,100+scroll_y, w = 320,h = 180,image = "icepack.png")
+cooler_files_2 = ShopItem("Aluminum Block",12,"Grabbed this out of a calculator and put a\ncpu on it to fry an egg at work...\nYou can taste some aluminum if you\ntry enough.",r"Overdrive lasts 25% longer","Heal-Files",1320+scroll_x,300+scroll_y, w = 320,h = 180,image = "aluminumblock.png")
+cooler_files_3 = ShopItem("Aluminum Tower",125, "A Nice tower with copper pipes\nrunning through them. We only bought it\nbecause of our server room being so hot\nit was classified as a 'Fire Hazard'",r"Overdrive lasts 50% longer","Heal-Files",1320+scroll_x,500+scroll_y,w = 320,h = 180, image = "coolingtower1.png")
+cooler_files_4 = ShopItem("Pure Metal Dual-Tower",800, "Sure, it cools well, but someone put ONE\nstack of papers next to the cooling fan and\nnow the whole building somehow has our\npaper.",r"Overdrive lasts 100% longer","Heal-Files",1320+scroll_x,700+scroll_y,w=320,h = 180,image = "coolingtower2.png")
+cooler_files_5 = ShopItem("Liquid Nitrogen Cooling Pot",4500, "When you never want to lag again, this is\nthe perfect cooler. Also functions as\nAir Conditioning in the summmer\nmy making the room 10 degrees colder.",r"Overdrive lasts 325% Longer","Heal-Files",1320+scroll_x,900+scroll_y,w = 320,h = 180, image = "liquidnitrogencooler.png")
+cooler_files_6 = ShopItem("Cyrostat Dilution Refrigarator",45000, "I'm sure Google won't mind us putting our\nservers in there next to the quantum\ncomputer.All I know is I can't use the\ncooling racks for my yougurt anymore...",r"Overdrive lasts 500% Longer" ,"Heal-Files",1320+scroll_x,1100+scroll_y,w=320,h = 180,image = "quantumcooler.png")
 
 
 
+case_files_1 = ShopItem("Layered Plastic Bag",3,"Finally found a use for all those plastic\nbags...",r"Lasers do 10% more damage.","Heal-Files",1670+scroll_x,100+scroll_y, w = 320,h = 180,image = "plasticbags.png")
+case_files_2 = ShopItem("Brittle Plastic Shell",10,"Made out of the same plastic as throw-away\nutensils. They have the same strength,but\nat least the utensils can hold food...",r"Cursor is 25% faster","Heal-Files",1670+scroll_x,300+scroll_y, w = 320,h = 180,image = "plasticcase.png")
+case_files_3 = ShopItem("Aluminum Alloy",50, "Comes with a complimentary premium aluminum\n(foil) case worth $100 (In sentimental\nvalue...)'",r"Cursor is 50% Faster","Heal-Files",1670+scroll_x,500+scroll_y,w = 320,h = 180, image = "aluminum.png")
+case_files_4 = ShopItem("Carbon Fiber",400, "The same material NASA uses for rockets.\nThe difference is they go to space and\ntheir launch date is still\nsomehow before ours?",r"Cursor is 100% Faster","Heal-Files",1670+scroll_x,700+scroll_y,w=320,h = 180,image = "carbonfiber.png")
+case_files_5 = ShopItem("Titantium Safe",2000, "Protects the program files from 2008 because\nthey somehow still hold the code together..",r"Cursor is 50% Faster","Heal-Files",1670+scroll_x,900+scroll_y,w = 320,h = 180, image = "safe.png")
 
+shop_items.append(heal_files_1)
+shop_items.append(heal_files_2)
+shop_items.append(heal_files_3)
+shop_items.append(heal_files_4)
+shop_items.append(cooldown_files_1)
+shop_items.append(cooldown_files_2)
+shop_items.append(cooldown_files_3)
+shop_items.append(cooldown_files_4)
+shop_items.append(ram_files_1)
+shop_items.append(ram_files_2)
+shop_items.append(ram_files_3)
+shop_items.append(ram_files_4)
+shop_items.append(cooldown_files_4)
+shop_items.append(speed_files_1)
+shop_items.append(speed_files_2)
+shop_items.append(speed_files_3)
+shop_items.append(speed_files_4)
 
+shop_items.append(cooler_files_1)
+shop_items.append(cooler_files_2)
+shop_items.append(cooler_files_3)
+shop_items.append(cooler_files_4)
+shop_items.append(cooler_files_5)
+shop_items.append(cooler_files_6)
 
+shop_items.append(case_files_1)
+shop_items.append(case_files_2)
+shop_items.append(case_files_3)
+shop_items.append(case_files_4)
+shop_items.append(case_files_5)
 
 textboxes = []
 
@@ -244,6 +464,7 @@ class Ship(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(topleft = (x,y))
         self.damage = 3
         self.original_damage = damage
+        self.max_damage = damage
         self.hp = hp
         self.speed = speed
         if self.weapon_type != "Shotgun" and self.weapon_type != "Mine" :
@@ -321,20 +542,20 @@ class Ship(pygame.sprite.Sprite):
         if self.rect.y >= HEIGHT - self.h:
             self.rect.y = HEIGHT - self.h
     def update(self):
-        # if not self.overdrive_duration > 0 or self.freeze_duration > 0:
-        #     if self.weapon_type != "Shotgun" and self.weapon_type != "Mine" :
-        #         self.max_max_cooldown = 15
-        #     elif self.weapon_type == "Shotgun":
-        #         self.max_max_cooldown = 45
-        #     elif self.weapon_type == "Mine":
-        #         self.max_max_cooldown = 45
+        if not self.overdrive_duration > 0 or self.freeze_duration > 0:
+            if self.weapon_type != "Shotgun" and self.weapon_type != "Mine" :
+                self.max_max_cooldown = 1
+            elif self.weapon_type == "Shotgun":
+                self.max_max_cooldown = 45
+            elif self.weapon_type == "Mine":
+                self.max_max_cooldown = 45
 
-            # if self.weapon_type != "Shotgun" and self.weapon_type != "Mine" :
-            #     self.max_cooldown = self.max_max_cooldown
-            # elif self.weapon_type == "Shotgun":
-            #     self.max_cooldown = self.max_max_cooldown * 2
-            # elif self.weapon_type == "Mine":
-            #     self.max_cooldown = self.max_max_cooldown * 4
+            if self.weapon_type != "Shotgun" and self.weapon_type != "Mine" :
+                self.max_cooldown = self.max_max_cooldown
+            elif self.weapon_type == "Shotgun":
+                self.max_cooldown = self.max_max_cooldown * 2
+            elif self.weapon_type == "Mine":
+                self.max_cooldown = self.max_max_cooldown * 4
         global lives_left
         
         if self.hp <= 0:
@@ -467,7 +688,7 @@ class Bug(pygame.sprite.Sprite):
         self.rect.y = int(self.float_y)
 
     def check_for_collisions(self):
-        global bugs,enemy_lasers,current_level,ship,overdrive_charge,lasers,mines,cur_frame,shake_intensity
+        global bugs,enemy_lasers,current_level,ship,overdrive_charge,lasers,mines,cur_frame,shake_intensity,max_overdrive
         memory_error_alive = any(bug.image_path == "memoryerror.png" for bug in bugs)
         if memory_error_alive == True:
             
@@ -508,9 +729,9 @@ class Bug(pygame.sprite.Sprite):
         if self.hp <= 0:
             self.kill()
             small_explosion_sound.play()
-            if overdrive_charge < 100 and ship.overdrive_duration <= 0:
+            if overdrive_charge < max_overdrive and ship.overdrive_duration <= 0:
                 if self.image_path != "packetbug.png": 
-                    overdrive_charge += 1
+                    overdrive_charge += 100
                 else:
                     overdrive_charge += 0.25
             color = (0,255,0)
@@ -1787,7 +2008,7 @@ mouse_pos = ()
 mouse_pressed = False
 
 ########################ALL LEVELS######################333333
-current_level = 19
+current_level = 6
 level1 = [["e","e","e","e","e"],["e","e","e","e","e"],["e","e","e","e","e"],["e","e","e","e","e"]]
 level2 = [["e","e","e","e","e","e","e"],["e","e","e","e","e","e","e"],["e","e","e","e","e","e","e"],["e","e","e","e","e","e","e"]]
 level3 = [["i","i","i","i","i","i"],["e","e","e","e","e","e",],["i","i","i","i","i","i"],["e","e","e","e","e","e",]]
@@ -1903,7 +2124,7 @@ flip_to = 0
 transparency = 128
 async def main():
     ################# GLOBAL VARIABLES :0 #######################################
-    global stars,flip_to,transparency,shake_intensity,talking,mouse_pressed,textboxes,coverbricks,global_trail_surf,shockwaves,enemy_missiles,cur_frame,overdrive_charge,null_lasers,shotgun_1,double_1,mines_1,lives_left,ship_image,boss_lasers,keys,current_enemy,full_title,current_typed,typed_frame,type_letter,typer_speed,menu_buttons,back_button,game_state,mouse_pressed,mouse_pos,heal_1,heal_possible,server,enemy_lasers,particles,dash_possible,add_pierce_possible,ship,pierce_1,files_destroyed,bugsnum,cards_were_shuffled,card_options,card_was_chosen,symbols,current_level,keys,running,files,pro_ships,lasers,level_list,level,startx,starty,rowindex,colindex,spacer,bugs
+    global titles,scroll_x,scroll_y,shop_items,stars,flip_to,transparency,shake_intensity,talking,mouse_pressed,textboxes,coverbricks,global_trail_surf,shockwaves,enemy_missiles,cur_frame,overdrive_charge,null_lasers,shotgun_1,double_1,mines_1,lives_left,ship_image,boss_lasers,keys,current_enemy,full_title,current_typed,typed_frame,type_letter,typer_speed,menu_buttons,back_button,game_state,mouse_pressed,mouse_pos,heal_1,heal_possible,server,enemy_lasers,particles,dash_possible,add_pierce_possible,ship,pierce_1,files_destroyed,bugsnum,cards_were_shuffled,card_options,card_was_chosen,symbols,current_level,keys,running,files,pro_ships,lasers,level_list,level,startx,starty,rowindex,colindex,spacer,bugs
     
     if current_level == 20:
         lives_left = 3
@@ -1943,6 +2164,33 @@ async def main():
                 mouseclicked = True
         game_canvas.fill(game_canvas_color)
         keys = pygame.key.get_pressed()
+        mouse_pos = pygame.mouse.get_pos()
+        if game_state == 4:
+            if keys[pygame.K_e]:
+                game_state = 1
+            if keys[pygame.K_DOWN]:
+                scroll_y -= 4
+            elif keys[pygame.K_UP]:
+                scroll_y += 4
+            if keys[pygame.K_LEFT]:
+                scroll_x += 4
+            elif keys[pygame.K_RIGHT]:
+                scroll_x -= 4
+            global heal_files_1,ram_files_1,cooldown_files_1,speed_files_1,case_files_1
+            for title in titles:
+                if title[1] == "Heals":
+                    game_canvas.blit(title[0],(heal_files_1.rect.centerx - 100,heal_files_1.rect.top - 50))
+                if title[1] == "Cooldown":
+                    game_canvas.blit(title[0],(cooldown_files_1.rect.centerx - 172,heal_files_1.rect.top - 50))
+                if title[1] == "Damage":
+                    game_canvas.blit(title[0],(ram_files_1.rect.centerx - 120,ram_files_1.rect.top - 50))
+                if title[1] == "Speed":
+                    game_canvas.blit(title[0],(speed_files_1.rect.centerx - 120,ram_files_1.rect.top - 50))
+                if title[1] == "File Max\n Health":
+                    game_canvas.blit(title[0],(case_files_1.rect.centerx - 160,ram_files_1.rect.top - 100))
+            for item in shop_items:
+                item.draw(mouse_pos)
+                item.buy()
         if game_state == 0:
             if type_letter < len(full_title):
                 typed_frame += 1
@@ -2105,7 +2353,7 @@ async def main():
             pygame.draw.rect(game_canvas,(0,0,255),ship_invert_background)
             tutorial_title = ui_font.render(f"Controls Inverted for : {round(ship.invert_duration,0)} / {round(ship.max_cooldown)}",True,(0,180,255))
             if overdrive_charge >= 100:
-                overdrive_charge = 100
+                overdrive_charge = overdrive_charge
                 if keys[pygame.K_q] or keys[pygame.K_SLASH]:
                     ship.overdrive_duration = ship.max_overdrive_duration
             game_canvas.blit(tutorial_title,tutorial_title.get_rect(center = (132+add_to_x, 314)))
