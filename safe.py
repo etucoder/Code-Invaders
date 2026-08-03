@@ -2,18 +2,6 @@ import asyncio # For the itch.io page oh no
 import pygame
 import random
 import math
-import websockets
-import json
-import threading
-websocket_client = None
-player_id = None
-network_connected = False
-
-p1_coords = "400,600"
-p2_coords = "800,600"
-
-SERVER_URL = "ws://localhost:8765"
-llm = "ChatGPT"
 pygame.init()
 pygame.font.init()
 font = pygame.font.SysFont(None,96)
@@ -24,15 +12,12 @@ ui_font = pygame.font.Font("VT323-Regular.ttf", 20)
 small_font = ui_font = pygame.font.Font("VT323-Regular.ttf", 18)
 WIDTH , HEIGHT = 1000 ,600
 FPS =  60                
-bbbb = "fffff"
 screen = pygame.display.set_mode((WIDTH,HEIGHT))
 running = True
 clock = pygame.time.Clock()
 game_canvas_color = (0,0,0)
 particles = []
-nope = "WHEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEooooooooooooooooSjgjgfoodis cool it is qesadadaddaafun fun fun! I love foodjgjgzsdsdfdfdfdddfdfdjgjgjgjIamsohappy for i in range(5): self.kill) else: 'be depressed be happtsddsfsd is fun weeeeeeeeooooooooooo.'"
 game_state = 0
-multiplayer_mode = 0
 explosion_sound = pygame.mixer.Sound("explosion.wav")
 small_explosion_sound = pygame.mixer.Sound("small_explosion1.wav")
 small_explosion_sound.set_volume(0.07)
@@ -48,64 +33,6 @@ data_coins = 0
 shop_showing = False
 shop_items = []
 max_overdrive = 100
-
-async def network_sync_loop(ship_reference):
-    global p1_coords, p2_coords, network_connected, game_state, player_id
-    print(f"ATTEMPTING CONNECTION to : {SERVER_URL}")
-    try:
-        print('try started')
-        async with websockets.connect(SERVER_URL) as ws:
-            handshake_data = await ws.recv()
-            config_receipt = json.loads(handshake_data)
-      
-            player_id = config_receipt["player_id"]
-            print(f"[HANDSHAKE SECURE] Node linked! Assigned Player ID : {player_id}")
-
-            network_connected = True
-            game_state = 1
-
-            while network_connected:
-                # So this basically makes coordinates into JSON... 
-                local_payload = {'x': ship_reference.rect.x, "y":ship_reference.rect.y}
-                # This one sends across websocket
-                await ws.send(json.dumps(local_payload))
-
-                server_response = await ws.recv()
-                global_match_state  = json.loads(server_response)
-
-                p1_coords = global_match_state.get("p1","400,600")
-                p2_coords = global_match_state.get("p2","800,600")
-
-                await asyncio.sleep(0.001)
-
-    except Exception as e:
-        print(f"Connection failed/closed : Error {e}")
-        network_connected = False
-        game_state = 0
-
-
-
-
-def launch_network_thread(ship_instance):
-    print("Launching net thread!")
-    def run_async_loop():
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            loop.run_until_complete(network_sync_loop(ship_instance))
-            print("Speed :0")
-        finally:
-            print("OH NO!")
-            loop.close()
-
-
-    net_thread = threading.Thread(target = run_async_loop,daemon = True)
-    net_thread.start()
-
-
-
-
-
 
 class ShopItem:
     def __init__(self,name,cost,description,stats,effect_type,x,y,w = 260,h = 130,image = None):
@@ -797,7 +724,6 @@ class Bug(pygame.sprite.Sprite):
                             elif self.hp <= 0:
                                 laser.pierce -= 1
                     if self.hp <= 0:
-                        global data_coins
                         if self.image_path == "exception.png":
                             data_coins += 1
 
@@ -2173,10 +2099,9 @@ heal_possible = True
 ############# More start menu stuff ###############
 
 menu_buttons = [
-    MenuButton("Start Programming (Play Game)",WIDTH//2-175,320,320,55,1),
+    MenuButton("Start Programming (Play Game)",WIDTH//2,320,320,55,1),
     MenuButton("Read README.md (Tutorial)", WIDTH // 2 , 410, 320,55, 2),
-    MenuButton("View Error Log (See Enemy Stats)", WIDTH // 2 , 500,320,55,3),
-    MenuButton("Peer Programming (Multiplayer)",WIDTH//2+175,320,320,55,5)
+    MenuButton("View Error Log (See Enemy Stats)", WIDTH // 2 , 500,320,55,3)
 ]
 
 back_button = MenuButton("Return to IDE (Start Menu)" ,WIDTH//2 + 290 , 205,320,55,0)
@@ -2195,7 +2120,6 @@ typer_speed = 10
 
 
 
-
 ship_image = pygame.image.load("ship.png").convert_alpha()
 ship_image = pygame.transform.scale(ship_image,(27,33))
 talking = False
@@ -2206,22 +2130,10 @@ transparency = 128
 async def main():
     ################# GLOBAL VARIABLES :0 #######################################
     global titles,scroll_x,scroll_y,shop_items,stars,flip_to,transparency,shake_intensity,talking,mouse_pressed,textboxes,coverbricks,global_trail_surf,shockwaves,enemy_missiles,cur_frame,overdrive_charge,null_lasers,shotgun_1,double_1,mines_1,lives_left,ship_image,boss_lasers,keys,current_enemy,full_title,current_typed,typed_frame,type_letter,typer_speed,menu_buttons,back_button,game_state,mouse_pressed,mouse_pos,heal_1,heal_possible,server,enemy_lasers,particles,dash_possible,add_pierce_possible,ship,pierce_1,files_destroyed,bugsnum,cards_were_shuffled,card_options,card_was_chosen,symbols,current_level,keys,running,files,pro_ships,lasers,level_list,level,startx,starty,rowindex,colindex,spacer,bugs
-    if game_state == 5:
-        print("Stove")
-        launch_network_thread(ship)
-        print("STEEEEEEEEEEVE")
-    else:
-        print(game_state)
     
     if current_level == 20:
         lives_left = 3
     while running:
-        if game_state == 5:
-            print("Stove")
-            launch_network_thread(ship)
-            print("STEEEEEEEEEEVE")
-        else:
-            print(game_state)
         mouseclicked = False
         clock.tick(FPS)
         mouse_pos = pygame.mouse.get_pos()
