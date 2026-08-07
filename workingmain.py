@@ -110,8 +110,7 @@ async def network_sync_loop(ship_reference):
                             p1_x,p1_y = map(int, global_match_state.get("p1","486,400").split(","))
                             p2_x,p2_y = map(int, global_match_state.get("p2","486,400").split(","))
                             #print("Coords updated!") fesdwasdwaeddawdwasdwdwdadwasdaswsdwsaswdwsawdsadawddwaswawdawdawdwasdwsasddawdawdadwaswdsdaasddassdwasdwasdassdwasdwasdwasdwadwadwasadwasadwsadwdadwadwadwadwaddaadwawdawdateqq2eyuytwdddawsdawdadaswswadawdghjhjhhhadadwadwadwadasaavbnhjuhihkhukdwadadawdadwadadwsddawdawdadwadwadweasdawddwaasdawadwadwadadwadwadsawadwadadwaadwaasadwasddwasdwdwadawddawdawdawddwawdawdawdawddawdawdsdwasdwadsdwasddwdwadsdwasddawsrw3r3dwadawsfsedddwaadwadwasdwasdsdwsdwasdwwaddwaswdwasdwdwadwadwsasddwadwadwadwadwawadwaadwadwadwadwaddwadwadwawr3fsdfsfhfhfthfhftfghthtfghhtfhtfdwaszzscxcszxcscszxccszxcdwadwawdwadddddawdwadwadawdawddwawdaddwawdwadwadwaswswdwdwasdwswawdawdsdwadwadwawdwadwdawddwaddawdde2qwe2qwjhfthfhtffhtffhtfhtfthtffhtfthtfthtfhtfthftfthmnbhtfthfthwawddwawdadwadawddwadwawdawdawddwawddwadwawdawddawdawdswdwawdawdawdawdawdawdadawddawde2qeqdwawdsadwadadadawdadawdwadawdawdwswsadwgyjgydawdsdwasdwadwadwsdwwsdwdawdadadwasdwawdgjgyjgyjgyjgyjdddwawdawdaawdwadawdadawddawdadadawdawddawdawdadawdawdawddadawddffsefsefawddwadwadwawawdadwawdadadadwadwawdawdwdadadawddawdawddwawdwddawaawdadawdawdawddwadwdadadadwdadwdawddawdawdwadawddadadadawdwadawddddwdawdwadawsddswaawsddswaawdsawsddswawfesefseffesdfedfsefsefsefsSQqsQSQsqdwawdawddwaadadwdwadwdwdwafsefsffesdffessefsdwawdawddwawddwadawsddwawdawddwasdwdwadwawdwawddwawdawddwadwaddwadawddwdwaadwaddwdwadawdawdawdfesdfsefdfesfsefsededsfesefesdssswdsasddwdasdwaddddddddddddddddddddddddddddddddddddddddddddddddadawdwdwdwdwawdwaaaaaadwaddwasdwawdaawdawsdwawddwasddawawdwasdwadwdwawdadwdwadwdawddwadwadwawddawsdwasdwadawsadwasdawsddwadwasdwasdasddwawdsdwdwasdwasddwasdwadwadwadwasdwadawdawdawdsdwasdwasdwsaswdwaswdwsaaswddwsaaswddwsadwasdwawsddswaawsddwasdsdwasdwadwadwadwadwsadwsasdwawdawsdwdadwsdddawdwasdwsadwsasdwadsdwsdwadwsaswddwadwsadwaswddwsaaswdadawdasdaadwdwadsdawdawdadfesfdsdfdsadawfdsddfdfdadsasdsadsdawdadwadwadadadawddawddwaadawdaadwadawdaadawdaddawdadgfufhfhfhwaadwafesfsfsfsfesfesfsfsfsffsfesffsfesfssfsfesfssfsfesfdaadadwadadadadadadwaawdaadaadwadadadadwadadadwadawdaadadwaadwaadwadawsdadwadadaddadadadwadadadadadadadawddwdgggdwasdwadadwdadwdadwdadwaddadwadadwrdgdgdgdgdgdgrdsfegdrfdgfrdgdgrfdgrdgdgrfdgrfdgrdgdradwsadwdadwdwasdwsadwsaddwsadwdsasdwsadwsadawsdwdwadadadadadadadadadawsdwsadwadadwsdsadadwsdwdadwsadadadadadaadaadadawdadadwdwadwadadadwsdadwsaaswddwsadwsaddwadwdadwadwdsdadwadadawdawdadwsdwsdwdadwdadwsdwadwsaddwadwadsdwadadwdwddaddadwsddadawsdadwdadwdadwsdwsaddadwadadwsadadwadwadwadadwsdddwadwdadadaadaadwadsddadwadadadadwdadaddadadadwsadwsddwddadadadwdadwsdadadwadadwsfsfswdwadsddadsaddadwsdsddawdadwsadadadwadadwdadwaddadwsdawdsdaadadgdggrdgrfdgrdardrgdrgfgrdgdrgrdggdgdrgdgrgdgrgrdgdgrfggdgdgrgdrggdggdgrgdggdgdgdgdggrdgdgrdgddddgrdggrdgfrdgrfggrdgdggdgdgrfgwdgrdgdgrdgdgggggdgrfgdgrdfgrdgdadadwsadwhegdgdgrffgdasdwdawdsdwaddadwdwsadawdsdaadsdaadadwadagrdwaddwasdsadwadswsdwadwadadwsaadwsasdwadadwsddwadadwdsadwwdawsdwadadwadswadwsadadfgrffsefsrfdgdgrfgrdgrfdfgrdrdawdgdrfgdgrfgdfrfdgdggddgdgdgrfhgrdgdrfdgdgtddgdfdgrgdrgdgrdfgdgdrfgdgdrfwsadwsaadwadadadwwsfdhgrdgwadadddwadwsaddaadwsdawddadwsddadaddadwsdawswswadsdwdadwadawsdwdwsadadwadwsdwdsadsadwadadwadadadawsdwsdadwsdwdwsadadadwsdwadwsdwadswdawsdawsdadaddadwwdadwsadadwaddwadadwsddsadwadadadadawddawsddwsdwaddwadsdadwsdwdwadwsadwsafessfsfedfsfedfsfesdwadwsadwadadwadawdwadswadwadadwadhtfesdfedsfedsfesftgdrggrdgrfdhgtgfhtghftghtgfgdrfgrfdfrgrfdgrfgrfgdgrgrfgdgdghtfgtghfhthfhfhtghtftghgtffhfhfhtgththtfghhftgfhtfhfgtghftghftghghfhhtgtftghtgffgthhtgfhtgfhtgffhtgfghtgfhtgfghtfhthgtfftghgthhhtfhttfhfghthftghgfttfhthfhtfhfhfhfhfhfthghtfhthfhffhtfhfhfhthfhthhtfghtfghfghhfhtfhthtfhtfhtfhgfthhfthhfghtfhthgfghtfghhgfghgffthgfthgfhhtgffgthhtfhtgfgthtgfhgthtfghtgfhhhfhfhhtfgtfghftghhtgffgthhtgfhhtfgdhfjhgfhghjgjghghghjhgddwadkjghgjhgghjhgjjhghjhghjhghjjhghjhgwadsdsdwadwsaadaddwadsaddawsdwsdawdadaddwsdadadawsasdwwsasdwwsaaswdaswdadadwsaswddwsaddwadsdwasdadwsaddawsdawsdwsddadadwdwadsadwadsdwsadwdawddaddaadwadadadawsdddwadadwsdawadwaddwadwsadwsdwsadwsdawddawdsadaddawsdwadawdawadaddadwsdaddawsdawsdadwsddwaadwadswaawsddwadsadwdadadwsddddwadadwssdwadwdwadwsdadwaddawdawadwsdawdwadwadadadwsadadwsdawsddawdasdwdawdaadwadwdadwdadawaadwaadawdadwadwsadadwaaaaaaadawsadwsdajghjawdadwsdadwadadsdawsadwaddawsdwfesdxcvcxcvdxvcxghjghjghjhghjghjgjhggjghjghdfesdfedsfsdfsfedsfsfsfesfsfsefafsefseffedssdeffedssdeffedsfeddrw3erwrewrfssdffsdffsdfsfdsdf3ererewerrw
-                            if 1 == 1:
-                                print(1) # This is working
+                          
                         with net_lock:
                             network_positions["p1_x"] = p1_x
                             network_positions["p1_y"] = p1_y
@@ -129,7 +128,7 @@ async def network_sync_loop(ship_reference):
                             p1_shop = global_match_state.get('p1_in_shop',False)
                             p2_shop = global_match_state.get('p2_in_shop',False)
           
-
+#sekjfhaikjgfewiadskjlfskjdfhsdkjfhsdkjfhsdklfhsdhflsdkjfhsdkfsdkfhsdfkjdskfjsdlkfjsdlkfjsdkfjsdfj
     
                             level_start["p2_lv"] = p2_lv
                             level_start["p2_inshop"] = p2_shop
@@ -2677,7 +2676,7 @@ async def main():
     
                             for laser_data in lasers_to_spawn:
                                 # print(f"X:{laser_data["x"]}, Y:{laser_data["y"]}") AWDASDAWDWADDWASDDWASfsdAWDAWDSADWASDWASDWADWADWASDWADDWSDWASDWADAWDS
-                                remote_laser = Laser(laser_data["x"],laser_data["y"],5,5,damage=laser_data["d"])
+                                remote_laser = Laser(laser_data["x"],laser_data["y"],5,5,damage=laser_data["d"],pierce = laser_data["p"])
                                 lasers.append(remote_laser)
                     
                     except Exception as e:
@@ -2732,6 +2731,7 @@ async def main():
                         lasers.clear()
                         enemy_lasers.clear()
                         all_bugs.clear()
+                        print("Cleared!")
                         if card_was_chosen == True and previous_bugsnum > 0:
                             card_was_chosen = False
                             game_state = 4
@@ -2755,18 +2755,15 @@ async def main():
                             cards.append(card1)
                             cards.append(card2)
                             cards.append(card3)
-                            im_choosing_cards = True
-
+                            im_choosing_cards = True    
+                            print("Cards Loaded!")
                             cards_were_shuffled = True
                         if card_was_chosen == True:
                             cards.clear()
                             symbols.empty()
                             im_choosing_cards = False
 
-                        if player_id == 1:
-                            other_player_choosing_cards = p2_choosing_cards
-                        elif player_id == 2:
-                            other_player_choosing_cards = p1_choosing_cards
+                    
 
                         if card_was_chosen and current_level < len(level_list) and bugsnum <= 0  :
                             current_level += 1
