@@ -7,12 +7,13 @@ import json
 import threading
 import time
 import sys
-#asdasddwsadwswswwswaddwasdwdddawdwawdjkdawdwadsddwswswswswswswdadwsdwawwsdwsaafsefsfedwdsasdwsdssswwswswswdwawdawddwdawssswswswswswdawswlkjlkjkwaadwdwadwawdwadwawdwdawswswswswswwswswwswswswwdwawdwawdwawdwdadwawwwdwawdwdwwaawdwawwwddwawdwawddwdwawdwdwdwawawdwdawddwsadwdadadwwddwawdwdwdawswsdwadwswsdwswsssdwsdwswsdwsaswdwsaswdwdwsaswdsswsdwdwdawaawdwswswsadwswsadwadaadadwswswswswswswdawswswddwawdawdwwddawdawdadwaaawdwawdwawdwawdwdwdawdwawdwdaawddwwawdwdddawdawdwdwawdwadwdwdwdwwdwwsddwadwaadwawadwdwaadwswdwgrdawgrdrgrdrgrdrgdwadwadwgrdrgrgrgdrgdrsfdgasfdwaesddwadwswdwadwawddwawawdawddawdwadwawdwdwawdwawawdwadwawddwawdwawdwawwdawdwawwdawsdawsdwsadadwsawwdwawsdwsasdwsadwsadwsdaddwswswswswwswswswsdwsaswdwdsasdwasdwwdadwaswdwsdadwswsdwaawdwaawdwswsswswsdadswsdadaasdwasddawdadwadwswddadwswwswswswswswsadsdsawsadwswsswdawddawddwawssdwawssdswaawdddswawdsdsddssdsdsawawsdwadwassswswwsddwwadwswswswsadwswswswswswaddwaadwswswswsdwsasdwsdasdwsswsswsdawdswswwdadawswsdwdddawsssdwdawssdwadwsadwswswswswsdawswssdadadadwswswswsswsw
+# fsdfdssddwasdwsawdwsdwadadwsdwadwadadwsaddwsadwdddwasdwddawddwsaddwadsadwadadwsdwadawdsadwdwsadwsawasdwadwsdwadwsdwdwsdwddwsadwsdwdwsdwsadwdwsawsdadwsdwadwsdwdwsadwadawsdwsadaadsadwdwadadssadedffesdwadsadwawdsadwdwasddwadwadwadadadwsadwadwsdsdwaddwaadawdadwdadwaadwadwadadadwadwadwadwsadwaadwadadwsaadwaadadwwadwaddfdwadwadwsadwsdadwdwadadawdddadadwadsadwaadwdadsaddawddwadddawdsadwdwadwddwadwdadwsdadwddawdadddwdaddadadwdafdwadwsdwaddwsadwdwsadwsdwsdwsadawdawadadwadwadadwaddadwsdawddadaddawddadawsadwsadwadsdwadsdwdsaswddwsaasdwsaaswddwsadwsadwsdaddeffedwsaswdwsaswdwadwsasdwawsddswawdadawdsadwsadsadwsfesedfsdesdfedfdfdesfefddssssssdefedsdefedssdeffedsfedsdfesefsfedfedsfedsdfefesefdsfedfesefesefsefsefsefdwadhfhtffthfdeffdffefesfedfedssdefedsdfessefsefdsdfedsfdsfedsdfsfesfedsfdssfedfdsdfdgftdwadwdsasdasdfdssdwsdssdwdsdsffdffdsdferfdfesefsfsefdfdefedsfeddfdfdfdfedfdadadwadawdsdsddssdadwashgftghghhthghthgghtwsgfgffgfdsddwaawdawsawdadadwaadwawsdsdssdgffgfrfgrdfeadadawdadadadadadfdadadadwadwsadsasdwadwsadadwjhgjhdadadwsawsdawadwsasdawdawsadadadwswdawdsdadawsadawadwswsadwssdaddadwsdsadawswswswswadswdasdaghawsdasdasdwasdjkkdwadwdawdaddadwadadwsadswsadwswsdawdasdasdwawdwadwadsdsawdadwssdsawdddadwadwawdadwadwaadwsasdwsasdwdawsdasdwsadwasdwaawdsdwaadwadwsdadwdwawsdsasdwwdwawddwadwasdwadwsdsdawsjggggdwasdwadwagggnijjkjhhfsdadwdwsa jhggigkggkigkkkkkgkkgkdawsdwfsadwsasggggggFSFSgghgfhgfhgfwdhnghjgrw3hgfftyfjjgjd asasdad awshlkjlgjhgadwdwaadhhkjkjkjkjhjksadwsdadwsadadaadwskkudasdawdadwsdadasadwswadwssdwsadwsadwswswsadwsdwadawswsadadadwswsadwsadwswsadwswsdwswddwadwswsdaddadwsdwdwasdwasdwwsadwsawswwswdaadswdadadadwswadwswsswswdawswsswssfdfdadwadwswswsadwadaddwsaaswddwssaaswddadadadadwsswwswsdswsdawswswsdawsaddwdwasdwwsaasdwwdsasdwdwdsaaswdwswswssfdsdfsdfdwawddawdddddddddawdawdawdawdadadadadadadadadawswswsdddawawdawsdwasdsdawdadadawfhdhdgdgdrdffrdgfrfdadwdwawdwawdghgfghgftghtgfhfsdfedsdfededsfdedeftsdsdsgfhtfhfhtfedeshttggghgfhftgtfhtggtggghghghgjygwfesdefsefsdfsjygjgyjygyjygjygyygygygyhghgtgtgtfhtgtghdadawdwahhyghbghtgtgggggggggggffgbbhhghhgghgttrtrtgtgtgdawdadadwswswswswswsswswsdwadadadadawswswswswvbadwswswswswdwadadwswswswswsdawswdwdwdwdwdswswawdswadadadwswsswsswswswswsawdswawawawawawdadadawdaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaawdaawddwsaawsddwsaaswdwsaaswdhdfgthhtgfhtyklkjhgfdsxvbmhkjhkhkjhkjhjjkjhjkjhjjjjjkjhkjhkjhkjhkjhnvvvcvbnnbvcvbnmnbvccvvbbvcvcghgjhgjgggggghjhgjhjhgjhgjhgjhgjhgdfgfdfgfdfgkjlkjlkjkllkjlkjccxxkjhjkjhjkjhgjhgbhjhbjhbjbggggggggghghhhgfdfgfdfgfflljklkjklkjklkllkjlkjlkjklkjklkjlkljlkjkljlljlkjllkjlkjlkjllkjlkjlkjhkmnkjhkjhhkjhkkjhjkjhjhjhjhhjhhjhjhjhjhjhjh,mnmnbvmnbvbuyhjhgjhgjhgtgtgtgtgtgtgtgtgtgtgtgtgtgtgtgtgtg
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy()) # type: ignore
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy()) # type: ignore
-
+remote_level = 0
+remote_shop_state = False
 net_lock = threading.Lock()
 websocket_client = None
 player_id = None
@@ -54,16 +55,18 @@ shop_showing = False
 shop_items = []
 max_overdrive = 100
 network_positions = {'p1_x': 200,'p1_y':600,"p2_x":800,"p2_y":600}
+level_start = {'p1_lv' : 0,'p2_lv' : 0, 'p1_inshop' : False, 'p2_inshop' : False,'p1_bugs_are_dead' : False,'p2_bugs_are_dead' : False,'p1_choosing_cards' : False, 'p2_choosing_cards' :  False}
 outbound_events = []
 incoming_remote_lasers = []
-allow_bug_spawning = True
+p1_choosing_cards = False
+p2_choosing_cards =  False
+im_choosing_cards = False
 active_ws_connection = None
-
+all_bugs_are_dead = False
+other_bugs_are_dead = False
 async def network_sync_loop(ship_reference):
-    global active_ws_connection,p1_coords, p2_coords, network_connected, game_state, player_id,ship,ship2,network_positions,multiplayer_mode,net_lock,pro_ships_2,pro_ships
-    print(f"ATTEMPTING CONNECTION to : {SERVER_URL}")
+    global all_bugs_are_dead,other_bugs_are_dead,active_ws_connection,p1_coords,level_start, p2_coords, network_connected, game_state, player_id,ship,ship2,network_positions,multiplayer_mode,net_lock,pro_ships_2,pro_ships
     try:
-        print('try started')
         async with websockets.connect(SERVER_URL,ping_interval=20,ping_timeout=20) as ws:
 
             active_ws_connection = ws
@@ -75,7 +78,6 @@ async def network_sync_loop(ship_reference):
 
             multiplayer_mode = True
             network_connected = True
-            print(f"[HANDSHAKE SECURE] Node linked! Assigned Player ID : {player_id}")
             if player_id == 1:
                 ship.is_local = True
                 ship2.is_local = False
@@ -84,11 +86,11 @@ async def network_sync_loop(ship_reference):
                 ship.is_local = False
             else:
                 print(player_id)
-                # time.sleep(4)
+    
             network_connected = True
             game_state =   1
             async def receive_handler():
-                global network_positions,lasers,net_lock,incoming_remote_lasers
+                global bugs,network_positions,lasers,net_lock,incoming_remote_lasers,level_start,p1_choosing_cards,p2_choosing_cards
                 try:
                     async for message in ws:
                         global_match_state = json.loads(message)
@@ -96,44 +98,83 @@ async def network_sync_loop(ship_reference):
                             with net_lock:
                                 incoming_remote_lasers.append({
                                     "x" : global_match_state["x"],
-                                    "y" : global_match_state["y"]
+                                    "y" : global_match_state["y"],
+                                    "d" : global_match_state["damage"],
+                                    "p" : global_match_state["pierce"]
                                 })
+                            
                             continue
-                        elif global_match_state.get("type") is not None :
-                            print(global_match_state.get("type"))
-
-               
-                        p1_x,p1_y = map(int,global_match_state.get("p1","486,400").split(","))
-                        p2_x,p2_y = map(int, global_match_state.get("p2","486,400").split(","))
                         
-
+                        # print(global_match_state)
+                        with net_lock:
+                            p1_x,p1_y = map(int, global_match_state.get("p1","486,400").split(","))
+                            p2_x,p2_y = map(int, global_match_state.get("p2","486,400").split(","))
+                            #print("Coords updated!") fesdwasdwaeddawdwasdwdwdadwasdaswsdwsaswdwsawdsadawddwaswawdawdawdwasdwsasddawdawdadwaswdsdaasddassdwasdwasdassdwasdwasdwasdwadwadwasadwasadwsadwdadwadwadwadwaddaadwawdawdateqq2eyuytwdddawsdawdadaswswadawdghjhjhhhadadwadwadwadasaavbnhjuhihkhukdwadadawdadwadadwsddawdawdadwadwadweasdawddwaasdawadwadwadadwadwadsawadwadadwaadwaasadwasddwasdwdwadawddawdawdawddwawdawdawdawddawdawdsdwasdwadsdwasddwdwadsdwasddawsrw3r3dwadawsfsedddwaadwadwasdwasdsdwsdwasdwwaddwaswdwasdwdwadwadwsasddwadwadwadwadwawadwaadwadwadwadwaddwadwadwawr3fsdfsfhfhfthfhftfghthtfghhtfhtfdwaszzscxcszxcscszxccszxcdwadwawdwadddddawdwadwadawdawddwawdaddwawdwadwadwaswswdwdwasdwswawdawdsdwadwadwawdwadwdawddwaddawdde2qwe2qwjhfthfhtffhtffhtfhtfthtffhtfthtfthtfhtfthftfthmnbhtfthfthwawddwawdadwadawddwadwawdawdawddwawddwadwawdawddawdawdswdwawdawdawdawdawdawdadawddawde2qeqdwawdsadwadadadawdadawdwadawdawdwswsadwgyjgydawdsdwasdwadwadwsdwwsdwdawdadadwasdwawdgjgyjgyjgyjgyjdddwawdawdaawdwadawdadawddawdadadawdawddawdawdadawdawdawddadawddffsefsefawddwadwadwawawdadwawdadadadwadwawdawdwdadadawddawdawddwawdwddawaawdadawdawdawddwadwdadadadwdadwdawddawdawdwadawddadadadawdwadawddddwdawdwadawsddswaawsddswaawdsawsddswawfesefseffesdfedfsefsefsefsSQqsQSQsqdwawdawddwaadadwdwadwdwdwafsefsffesdffessefsdwawdawddwawddwadawsddwawdawddwasdwdwadwawdwawddwawdawddwadwaddwadawddwdwaadwaddwdwadawdawdawdfesdfsefdfesfsefsededsfesefesdssswdsasddwdasdwaddddddddddddddddddddddddddddddddddddddddddddddddadawdwdwdwdwawdwaaaaaadwaddwasdwawdaawdawsdwawddwasddawawdwasdwadwdwawdadwdwadwdawddwadwadwawddawsdwasdwadawsadwasdawsddwadwasdwasdasddwawdsdwdwasdwasddwasdwadwadwadwasdwadawdawdawdsdwasdwasdwsaswdwaswdwsaaswddwsaaswddwsadwasdwawsddswaawsddwasdsdwasdwadwadwadwadwsadwsasdwawdawsdwdadwsdddawdwasdwsadwsasdwadsdwsdwadwsaswddwadwsadwaswddwsaaswdadawdasdaadwdwadsdawdawdadfesfdsdfdsadawfdsddfdfdadsasdsadsdawdadwadwadadadawddawddwaadawdaadwadawdaadawdaddawdadgfufhfhfhwaadwafesfsfsfsfesfesfsfsfsffsfesffsfesfssfsfesfssfsfesfdaadadwadadadadadadwaawdaadaadwadadadadwadadadwadawdaadadwaadwaadwadawsdadwadadaddadadadwadadadadadadadawddwdgggdwasdwadadwdadwdadwdadwaddadwadadwrdgdgdgdgdgdgrdsfegdrfdgfrdgdgrfdgrdgdgrfdgrfdgrdgdradwsadwdadwdwasdwsadwsaddwsadwdsasdwsadwsadawsdwdwadadadadadadadadadawsdwsadwadadwsdsadadwsdwdadwsadadadadadaadaadadawdadadwdwadwadadadwsdadwsaaswddwsadwsaddwadwdadwadwdsdadwadadawdawdadwsdwsdwdadwdadwsdwadwsaddwadwadsdwadadwdwddaddadwsddadawsdadwdadwdadwsdwsaddadwadadwsadadwadwadwadadwsdddwadwdadadaadaadwadsddadwadadadadwdadaddadadadwsadwsddwddadadadwdadwsdadadwadadwsfsfswdwadsddadsaddadwsdsddawdadwsadadadwadadwdadwaddadwsdawdsdaadadgdggrdgrfdgrdardrgdrgfgrdgdrgrdggdgdrgdgrgdgrgrdgdgrfggdgdgrgdrggdggdgrgdggdgdgdgdggrdgdgrdgddddgrdggrdgfrdgrfggrdgdggdgdgrfgwdgrdgdgrdgdgggggdgrfgdgrdfgrdgdadadwsadwhegdgdgrffgdasdwdawdsdwaddadwdwsadawdsdaadsdaadadwadagrdwaddwasdsadwadswsdwadwadadwsaadwsasdwadadwsddwadadwdsadwwdawsdwadadwadswadwsadadfgrffsefsrfdgdgrfgrdgrfdfgrdrdawdgdrfgdgrfgdfrfdgdggddgdgdgrfhgrdgdrfdgdgtddgdfdgrgdrgdgrdfgdgdrfgdgdrfwsadwsaadwadadadwwsfdhgrdgwadadddwadwsaddaadwsdawddadwsddadaddadwsdawswswadsdwdadwadawsdwdwsadadwadwsdwdsadsadwadadwadadadawsdwsdadwsdwdwsadadadwsdwadwsdwadswdawsdawsdadaddadwwdadwsadadwaddwadadwsddsadwadadadadawddawsddwsdwaddwadsdadwsdwdwadwsadwsafessfsfedfsfedfsfesdwadwsadwadadwadawdwadswadwadadwadhtfesdfedsfedsfesftgdrggrdgrfdhgtgfhtghftghtgfgdrfgrfdfrgrfdgrfgrfgdgrgrfgdgdghtfgtghfhthfhfhtghtftghgtffhfhfhtgththtfghhftgfhtfhfgtghftghftghghfhhtgtftghtgffgthhtgfhtgfhtgffhtgfghtgfhtgfghtfhthgtfftghgthhhtfhttfhfghthftghgfttfhthfhtfhfhfhfhfhfthghtfhthfhffhtfhfhfhthfhthhtfghtfghfghhfhtfhthtfhtfhtfhgfthhfthhfghtfhthgfghtfghhgfghgffthgfthgfhhtgffgthhtfhtgfgthtgfhgthtfghtgfhhhfhfhhtfgtfghftghhtgffgthhtgfhhtfgdhfjhgfhghjgjghghghjhgddwadkjghgjhgghjhgjjhghjhghjhghjjhghjhgwadsdsdwadwsaadaddwadsaddawsdwsdawdadaddwsdadadawsasdwwsasdwwsaaswdaswdadadwsaswddwsaddwadsdwasdadwsaddawsdawsdwsddadadwdwadsadwadsdwsadwdawddaddaadwadadadawsdddwadadwsdawadwaddwadwsadwsdwsadwsdawddawdsadaddawsdwadawdawadaddadwsdaddawsdawsdadwsddwaadwadswaawsddwadsadwdadadwsddddwadadwssdwadwdwadwsdadwaddawdawadwsdawdwadwadadadwsadadwsdawsddawdasdwdawdaadwadwdadwdadawaadwaadawdadwadwsadadwaaaaaaadawsadwsdajghjawdadwsdadwadadsdawsadwaddawsdwfesdxcvcxcvdxvcxghjghjghjhghjghjgjhggjghjghdfesdfedsfsdfsfedsfsfsfesfsfsefafsefseffedssdeffedssdeffedsfeddrw3erwrewrfssdffsdffsdfsfdsdf3ererewerrw
+                            if 1 == 1:
+                                print(1) # This is working
                         with net_lock:
                             network_positions["p1_x"] = p1_x
                             network_positions["p1_y"] = p1_y
                             network_positions["p2_x"] = p2_x
                             network_positions["p2_y"] = p2_y
 
+                        with net_lock:
+                                # level_start['p1_bugs_are_dead'] = global_match_state.get("all_bugs_dead_p1",False)                                                     
+                                # level_start['p2_bugs_are_dead'] = global_match_state.get("'all_bugs_dead_p2",False)
+                                level_start['p1_bugs_are_dead'] = global_match_state["all_bugs_dead_p1"]
+                                level_start['p2_bugs_are_dead'] = global_match_state["all_bugs_dead_p2"]
+                        with net_lock:
+                            p1_lv = global_match_state.get('p1_level',1)
+                            p2_lv = global_match_state.get('p2_level',1)
+                            p1_shop = global_match_state.get('p1_in_shop',False)
+                            p2_shop = global_match_state.get('p2_in_shop',False)
+          
+
+    
+                            level_start["p2_lv"] = p2_lv
+                            level_start["p2_inshop"] = p2_shop
+                            level_start["p1_lv"] = p1_lv
+                            level_start["p1_inshop"] = p1_shop
+                        with net_lock:
+                            p1_choosing_cards = global_match_state['p1_choosing_cards']
+                            p2_choosing_cards = global_match_state['p2_choosing_cards']
+
+                        with net_lock:
+                            if player_id == 2:
+                                if bugs.__len__() == 0:
+                                    for bug in global_match_state['bugs_list']:
+                                            print(f"STUFF : {bug[0],bug[1],bug[2],bug[3],bug[4],bug[5],bug[6],bug[7],bug[8]}")
+                                            bug_copy = Bug(bug[0],bug[1],bug[2],bug[3],bug[4],bug[5],bug[6],bug[7],bug[8])
+                                            bugs.add(bug_copy)
+                                            print("WEEEEEEEEEEEEEEE OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
                 except Exception as e:
                     print(f"[Receiving Error]: {e}")
 
 
             async def send_handler():
-                global network_connected,outbound_events,net_lock,current_level,game_state
+                global p1_choosing_cards,p2_choosing_cards,im_choosing_cards,network_connected,outbound_events,net_lock,all_bugs_are_dead #aadadasdffehghdadsfsfsshgsfededeedhfedsdwsakjlksdasdasdssadfdwdadwfsfeafsfddwsddsawesdsfeawsfedfadwsdasedfedsfseddfsdfedsedfsedffedsedsfdsdasdfsfesfesdfsfedsdfedsdfdefdasddddddddsssssssfedsadasddaadawsdaddddsasfsdadwsadfghgfhgfdaddaassasaasds
                 while network_connected:
                     events_to_send = []
                     with net_lock:
                         if outbound_events:
                             events_to_send = list(outbound_events)
                             outbound_events.clear()
-
-                    am_i_in_shop = True if game_state == 3 else False
+                    is_in_shop = False
+                    if game_state == 4:
+                        is_in_shop = True
                     if player_id == 1:
-                        local_payload = {'x' : ship.rect.x,'y' : ship.rect.y,'level' : current_level, 'in_shop' : am_i_in_shop}
+                        the_giant_list = []
+                        for bug in bugs:
+                            all_attributes = [bug.rect.x,bug.rect.y,bug.w,bug.h,bug.image_num,bug.damage,bug.hp,bug.speed,bug.y_speed]
+                            the_giant_list.append(all_attributes)
+                        local_payload = {'x' : ship.rect.x,'y' : ship.rect.y, 'level' : current_level,'is_in_shop':is_in_shop,'bugs_dead' : all_bugs_are_dead,'choosing_cards' : im_choosing_cards,'bugs_list' : the_giant_list}
+                        # print(f'{player_id} {all_bugs_are_dead} {other_bugs_are_dead}')
                     elif player_id == 2:
-                        local_payload = {'x' : ship2.rect.x, 'y' : ship2.rect.y, 'level' : current_level, 'in_shop' : am_i_in_shop}
+                        local_payload = {'x' : ship2.rect.x, 'y' : ship2.rect.y, 'level' : current_level,'is_in_shop':is_in_shop,'bugs_dead' : all_bugs_are_dead,'choosing_cards' : im_choosing_cards}
+                        # print(f'{player_id} {all_bugs_are_dead} {other_bugs_are_dead}')
                     else:
-                        print(f"[ID ERROR] : Player got unzoned ID {player_id}")
-
+#KJHKJHKJHKKJHKJHKJHKHKJHKJHKJHghfhgfhgfhgf
+                        pass
                     await ws.send(json.dumps(local_payload))
 
                     for event_packet in events_to_send:
@@ -142,40 +183,6 @@ async def network_sync_loop(ship_reference):
 
             await asyncio.gather(receive_handler(),send_handler())
             
-            # while network_connected:
-            #     # So this basically makes coordinates into JSON... 
-            #     if player_id == 1:
-            #         local_payload = {'x': ship.rect.x, "y": ship.rect.y}
-            #     else:
-            #         local_payload = {'x' : ship2.rect.x,'y' : ship2.rect.y}
-
-            #     # print(f"Sending payload : {local_payload}")
-            #     # This one sends across websocket
-            #     await ws.send(json.dumps(local_payload))
-
-            #     server_response = await ws.recv()
-            #     global_match_state  = json.loads(server_response)
-          
-            #     p1_x, p1_y = map(int,global_match_state.get("p1","200,600").split(","))
-            #     p2_x, p2_y= map(int,global_match_state.get("p2","800,600").split(","))
-            #     # with net_lock:
-            #     #     if player_id == 1:
-            #     #         for remote_ship in pro_ships_2:
-            #     #             remote_ship.rect.x = p2_x
-            #     #             remote_ship.rect.y = p2_y
-            #     #     else:
-            #     #         for remote_ship in pro_ships:
-            #     #             remote_ship.rect.x = p1_x
-            #     #             remote_ship.rect.y = p1_y
-
-            #     with net_lock:
-            #         network_positions['p1_x'] = p1_x
-            #         network_positions['p1_y'] = p1_y
-            #         network_positions['p2_x'] = p2_x
-            #         network_positions['p2_y'] = p2_y
-                
-            #     await asyncio.sleep(0.005)
-            #     multiplayer_mode = Trufesefsfedssdeffedssdefdessedffdessedffdedwsasssedffdsedwsaswdswaawsdsedfffdsesedffdessedfdessedffdessdeffedssdeffdessfedssedfdeffdessedffdeessedeffdessedffedfedssedfsedfdsedfedsdfefdfedsedfedfdsedffesedffedssdeffedsssedfedsedfedsedfsedfe asdadadsdssdfghjkfsedfedsedfedsedflwertyuiyhbfhjkhggjhgtgvgtgvdwawdwdsasawsdwawdawdawdwawdwawdwawdasdsasdssddsdasdasdsdsdsdsasdsasdsasdsasdsasdssadsdsasd
 
     except Exception as e:
         print(f"Connection failed/closed : Error {e}")
@@ -186,19 +193,11 @@ async def network_sync_loop(ship_reference):
 
 
 def launch_network_thread(ship_instance):
-    # print("Launching net thread!")
+
     global network_thread_launched
     if network_thread_launched:
         return
-    # def run_async_loop():
-    #     loop = asyncio.new_event_loop()
-    #     asyncio.set_event_loop(loop)
-    #     try:
-    #         loop.run_until_complete(network_sync_loop(ship_instance))
-    #         # print("Speed :0")
-    #     finally:
-    #     
-    #         loop.close()
+
 
     net_thread = threading.Thread(target = lambda: asyncio.run(network_sync_loop(ship),loop_factory=asyncio.SelectorEventLoop)
                                    ,daemon = True)
@@ -505,7 +504,6 @@ shop_items.append(case_files_2)
 shop_items.append(case_files_3)
 shop_items.append(case_files_4)
 shop_items.append(case_files_5)
-funn = 'Asdiskgjslkjlkjforiu for i ing range(400): print("IAMSTEVE") if steve = True: steve =False if steve = False steve = True'
 textboxes = []
 
 messages = [["C:/Users/You","Hello, World!"], 
@@ -575,7 +573,7 @@ class Textbox():
                     self.is_finished = True
         if True:
             if update and self.box_rect.collidepoint(mouse_pos):
-                # print("Clicked!")
+         
                 if self.text_index <= 29 :
                     self.char_index = 0
                     self.text_index += 1
@@ -754,7 +752,7 @@ class Ship(pygame.sprite.Sprite):
             else :
                 self.max_cooldown = 0.25 * self.max_max_cooldown
     def shoot(self):
-        
+        # dwaddwasdwsdwadwadadwadsadwsswdwsaswadwdwsaswdwsaswdwadwsaaasdadwadwsdadwaswasdwadwddwadsdssdwasaaswddwsaaswddwsaaswdwaaswddwsaaswddwsaaswdawadaddwsaaswddwsaaswddwsaaaswdwaasdwsaaswdwsadwadwawawdwadawdadwaadwadsadwdwawdawdsdddadwawdawdadwsdwadadadwadwdwadwadwwdwawdawdawdawddawdawdwdawdawdwaadwawdawdwawadwdwadwaddadwadadwsdawdadwadwadaadwwaadwadwawadadwaddwaddwadwadwadsadfsafesfsdfdwdwdawsddgadwadadwwaddsadwadwsdwasasdadwdwaadwadwdwaadwadwadwadsdwadsadsdwsaswdwsasdwdwadwadadwdsaswdwsdwadwasdswadsdwasdadwadadwsdwadsdwasddwasddaddwasddawdwddwwadwadwsasdwaawdawsdwadwsdwadwadsadwasdwsasdwsawsaddwadwdadwsdwdwadwdwadwdwasddwaadwadadwdwadawdadaadwsdwasdadwsdwdwadwadsdwadwadsdadwadwsdwawdwadwadsdwadwadsdwaswdwsaadwaaadwaadwadadwadadwdaadwadawdsdadawsdadwadsdadwaadwadsdwdadwadsdwadwasdsasdwadsasddasdwdwadadadwaadwsdadadwadawdaadwadwadadwadwadadwadawsdwaadwsadawsdadaadadwsadawdsdwadwsasdwsdwsdwasdaadwsdawsdssdwadswdadwdadwadawddadwsasdwadwsdwasdwdwsadwdwadwsdwsdwasddawsdswdawsasdswsasdwsasddwadadwsdaddadawadwadsdwadsaaaddwsdwadwaddwadaddadwddadadaddaddadwdadwadwsdawdsasdwadwadawsadwadadwadwsdwsadawsdwadadadawdwaddadawswswswdwadwaadwadwadwsdwaadwdwaddwadawdwawdwadwawwdawdwawdawsdawdwswsdwssdwadadwdwadawdswsdadwsdawsdwadwsdawsdadwwadsdwadsdwadwadadadwdadwsdwadwdadwadwadwswswsdadwadwadadadwswsdawdswsdwsadwsdwsadwssdwsadwsdadwadwadadadwadwadadwasddadwdadwsdwwadwsdawdwdwadawsdwadwadwaadwawdsdwsadwadwasdswawsdswawdwaadwadwadwadwawdawdwddsdwsadwadadsdwadwadwswwddwaddwadwadwswswswsdwsdwadwswdwswaaswddwsaaswdwsaswddwsaaswdawdwsdwadwadwadwadadwswadadwadwadawdsdadwaddwadaadwadwaadadwadadadwadwadwadwadaddadwadwadwdwadadddawddwadwadwswswsdadwadadaadwdadwadwaadwadadwadadwaddadaddwadadwadddwasdwadswawdsdwaddwawdsawdawdwdwsadwsadwsadwadfesfedwadwadsdwadwadwadwadwsadwsadwasdwaddwdwadwadwaadwadwsdwdwadwaddwadwsadsfedfesfedsfesfesfddasddawsddwsasdwsadwsdwadwadwasdawdwdaddadwadwsasdawddawdaddwaddsdwadawdssdwsadwsadwsadadwaddwadawdaddwasdsadwadwaadwaadwaadwawadwaddawdaddawsdadwsdsadwsdsasdawdadawsadswdadwadadawdaadwdwaadawadwsadwsdwaadwsdawddwadadwsadwasddwadwasdwadwadadadwsadsadwadadawsdadwadwadasfsefdfesfsfsefsfsfsfsfddawadsdwsaddawdadwasdsaddwaddwasdwsadwadsadwsdwsaaswdwsdwadwsdwasfessefsefedeffedsfedsfedseddaasdfsfesfesssfededsfsasdfessfedsefdsdfefedsfedsdefeedssdeffedssdfeefdsdeffedssdfeefsedfsdfsfededsdfedsdsfedsfddfesdefedsdfsefdsefsdfdfdsdefedsdfefddsfedn,madwsmnnffdfdfdfdfdfdfdfsfwsasdasdasuyuhhjdasdwfhgfasdaadjhghfdsefdfesdwadadsdasdwdwdfssfsdsfsdsddwfsefadwsadwswsfsdsdfsdssdfsddfdfdfadwadwdasdfrsdfsdsfssfsssdfswdwdwdadwdwasdwfeajhjhjhsdawsddsdsasdddfsdsfesfdefdsdfsdsdffadsasd
         global lasers,card_was_chosen,overdrive_charge,net_lock,outbound_events
 
         if (keys[pygame.K_SPACE] or keys[pygame.K_e]) and self.cooldown <= 0 and self.is_local:
@@ -767,7 +765,9 @@ class Ship(pygame.sprite.Sprite):
                     "type" : "laser_fired",
                     "x" : self.rect.centerx,
                     "y": self.rect.top,
-                    "weapon" : "Regular" 
+                    "weapon" : "Regular",
+                    "damage" : self.damage ,
+                    "pierce" : self.pierce
                 }
                 with net_lock:
                     outbound_events.append(payload)
@@ -795,21 +795,7 @@ class Ship(pygame.sprite.Sprite):
         else:
             pass
         global active_ws_connection
-        if network_connected and active_ws_connection is not None:
-            pass
-                ############## SPAWNS LASERS ##############dasdawwswsswsssswswwsdaddwsaawsdawsad
-                # payload  = {
-                #     "type" : "laser_fired",
-                #     "x" : self.rect.centerx,
-                #     "y": self.rect.top,
-                #     "weapon" : "Regular" 
-                # }
-                # with net_lock:
-                #     outbound_events.append(payload)
-                # asyncio.get_event_loop().create_task(active_ws_connection.send(payload)) asdawasdasd
-        else:
-            print(f"Yeah... No : {network_connected},{active_ws_connection}")
-
+        
 
 
         
@@ -844,6 +830,7 @@ class Bug(pygame.sprite.Sprite):
     def __init__(self,x,y,w,h,image_path,damage,hp ,speed,y_speed = 0.5 ):
         super().__init__()
         self.x = x
+        self.image_num = image_path
         self.y = y
         self.w = w
         self.h = h
@@ -905,7 +892,7 @@ class Bug(pygame.sprite.Sprite):
             self.image.set_alpha(100)
             self.y_speed = 0.5 * self.og_y_speed
             self.max_creation_cooldown = 200
-            # print(f"{self.image_path},{self.y_speed}")
+   
         else:
             self.max_creation_cooldown = 100
         for laser in lasers:
@@ -979,7 +966,7 @@ class Bug(pygame.sprite.Sprite):
                     self.kill()
                     ship.hp -= self.damage
                     
-                    # print(self.damage)
+                 
                 else:
                     self.hp -= ship.dash_damage
         for file in files:
@@ -1492,48 +1479,51 @@ class UpgradeCard(pygame.sprite.Sprite):
             elif self.upgradeitem == "Knockback":
                 ship.knockback += self.amounttoadd
                 return True
-            elif self.upgradeitem == "Pierce":
-                ship.pierce += self.amounttoadd
-                card_options.remove(pierce_1)
-                return True
-            elif self.upgradeitem == "Dash":
-                ship.can_dash = True
-                ship.dash_damage += self.amounttoadd
-                card_options.remove(dash_1)
-                return True
-            elif self.upgradeitem == "Heal":
-                for file in files.sprites():
-                    file.heal += self.amounttoadd
-                card_options.remove(heal_1)
-                return True
-            elif self.upgradeitem == "Double":
-                    ship.weapon_type = "Double"
-                    try:
-                        card_options.remove(shotgun_1)
-                        card_options.remove(mines_1)
-                        card_options.remove(double_1)
-                    except:
-                        pass
+            try:
+                if self.upgradeitem == "Pierce":
+                    ship.pierce += self.amounttoadd
+                    card_options.remove(pierce_1)
                     return True
-            elif self.upgradeitem == "Shotgun":
-                    ship.weapon_type = "Shotgun"
-                    try:
-                        card_options.remove(shotgun_1)
-                        card_options.remove(mines_1)
-                        card_options.remove(double_1)
-                    except:
-                        pass
+                elif self.upgradeitem == "Dash":
+                    ship.can_dash = True
+                    ship.dash_damage += self.amounttoadd
+                    card_options.remove(dash_1)
+                    return True
+                elif self.upgradeitem == "Heal":
+                    for file in files.sprites():
+                        file.heal += self.amounttoadd
+                    card_options.remove(heal_1)
+                    return True
+                elif self.upgradeitem == "Double":
+                        ship.weapon_type = "Double"
+                        try:
+                            card_options.remove(shotgun_1)
+                            card_options.remove(mines_1)
+                            card_options.remove(double_1)
+                        except:
+                            pass
+                        return True
+                elif self.upgradeitem == "Shotgun":
+                        ship.weapon_type = "Shotgun"
+                        try:
+                            card_options.remove(shotgun_1)
+                            card_options.remove(mines_1)
+                            card_options.remove(double_1)
+                        except:
+                            pass
 
-                    return True
-            elif self.upgradeitem == "Mines":
-                    ship.weapon_type = "Mine"
-                    try:
-                        card_options.remove(shotgun_1)
-                        card_options.remove(mines_1)
-                        card_options.remove(double_1)
-                    except:
-                        pass
-                    return True
+                        return True
+                elif self.upgradeitem == "Mines":
+                        ship.weapon_type = "Mine"
+                        try:
+                            card_options.remove(shotgun_1)
+                            card_options.remove(mines_1)
+                            card_options.remove(double_1)
+                        except:
+                            pass
+                        return True
+            except:
+                pass
         return False
 
 
@@ -2224,7 +2214,7 @@ mouse_pos = ()
 mouse_pressed = False
 
 ########################ALL LEVELS######################333333
-current_level = 0
+current_level = 1
 level1 = [["e","e","e","e","e"],["e","e","e","e","e"],["e","e","e","e","e"],["e","e","e","e","e"]]
 level2 = [["e","e","e","e","e","e","e"],["e","e","e","e","e","e","e"],["e","e","e","e","e","e","e"],["e","e","e","e","e","e","e"]]
 level3 = [["i","i","i","i","i","i"],["e","e","e","e","e","e",],["i","i","i","i","i","i"],["e","e","e","e","e","e",]]
@@ -2340,28 +2330,37 @@ overdrive_charge = 100
 cur_frame = 0
 flip_to = 0
 transparency = 128
+other_player_lv = 0
+other_player_in_shop = False
+all_bugs_are_dead = False
+
+
+other_bugs_are_dead = False
+all_bugs = []
 
 async def main():
     ################# GLOBAL VARIABLES :0 #######################################
-    global network_connected,multiplayer_mode,player_id,pro_ships_2,ship2,titles,scroll_x,scroll_y,shop_items,stars,flip_to,transparency,shake_intensity,talking,mouse_pressed,textboxes,coverbricks,global_trail_surf,shockwaves,enemy_missiles,cur_frame,overdrive_charge,null_lasers,shotgun_1,double_1,mines_1,lives_left,ship_image,boss_lasers,keys,current_enemy,full_title,current_typed,typed_frame,type_letter,typer_speed,menu_buttons,back_button,game_state,mouse_pressed,mouse_pos,heal_1,heal_possible,server,enemy_lasers,particles,dash_possible,add_pierce_possible,ship,pierce_1,files_destroyed,bugsnum,cards_were_shuffled,card_options,card_was_chosen,symbols,current_level,keys,running,files,pro_ships,lasers,level_list,level,startx,starty,rowindex,colindex,spacer,bugs
-    # if game_state == 5:
-    #     print("Going into multiplayer...")
-    #     launch_network_thread(ship)
-    #     print("Multiplayer Sucessfully Launched! YATT!")
+    global all_bugs,p1_choosing_cards,p2_choosing_cards,im_choosing_cards, level_start,all_bugs_are_dead,other_bugs_are_dead,remote_shop_state,remote_level,other_player_in_shop,other_player_lv,level_start,network_connected,multiplayer_mode,player_id,pro_ships_2,ship2,titles,scroll_x,scroll_y,shop_items,stars,flip_to,transparency,shake_intensity,talking,mouse_pressed,textboxes,coverbricks,global_trail_surf,shockwaves,enemy_missiles,cur_frame,overdrive_charge,null_lasers,shotgun_1,double_1,mines_1,lives_left,ship_image,boss_lasers,keys,current_enemy,full_title,current_typed,typed_frame,type_letter,typer_speed,menu_buttons,back_button,game_state,mouse_pressed,mouse_pos,heal_1,heal_possible,server,enemy_lasers,particles,dash_possible,add_pierce_possible,ship,pierce_1,files_destroyed,bugsnum,cards_were_shuffled,card_options,card_was_chosen,symbols,current_level,keys,running,files,pro_ships,lasers,level_list,level,startx,starty,rowindex,colindex,spacer,bugs
+
 
     
     if current_level == 20:
         lives_left = 3
     while running:
+        if player_id == 1:
+            other_player_lv = level_start["p2_lv"]
+            other_player_in_shop = level_start["p2_inshop"]
+        elif player_id == 2:
+            other_player_lv = level_start["p1_lv"]
+            other_player_in_shop = level_start["p1_inshop"] 
         if game_state == 5 and multiplayer_mode == False:
-                # print("Going into multiplayer...")
+              
                 multiplayer_mode = True
                 if player_id == 1:
                     launch_network_thread(ship)
                 else:
                     launch_network_thread(ship2)
 
-                # print("Multiplayer Sucessfully Launched!")
 
         mouseclicked = False
         clock.tick(FPS)
@@ -2640,15 +2639,19 @@ async def main():
                         ship2.move()
                         ship2.shoot()
                         ship2.update()
-                        # print("P2 Ship")fsfsefsefsfssffffeffssffsfssesaadadwsassas
-
+                 
+#sdadwddwasdwadwasdaadwasdasdwasddwadwadwsQSAqsQSAqsQSasqSQqsqQSQsSqSSsSQAaddwasddwasddwadwasddwasdwadwasdddwasdwadwaddwaddawadwasddwdwabmbhjmnbgjhghgjjhjkkjhsdasawdasdwaadwasddwasdwadwasddwasdadawdwaadwasddawawdadawkjhsdwasdgjjhgjnkjdadwasdwasdadddwadwasdadwasdwadwasdasdwsdasdwasddwasdwasdwasddwasdwadwasddwasddwaddwadwadwasdwasdwaasdadsddadwsdwasdwwdwadsdwfesdfesdfsfefdwadsdwadwadwasddwasddwasddwasdsasdawdaddwasdasd7dwasdwasdwasdwsaswddwasdwadwasdwasadwasdadwassdsasdawdawdesfesdffesdfdssdffdsdwasdwadwasdwdwasdsadwasddwdwasdddwasdwasdsadwasdwasddadwasdsadwdwasdwsawdsasdwsaswdwsaswdwsaswdwsaswddwsaasdwwdsaaswddwsaasdwasdwdadwdwadwasdwsasswdsadwasdwasdadwasddwasdwasdwasdwadwadwadwasdwasddwasdwasdwadwasdwasdwasdwasdwdwasddwadwasdwsasdwadwasddwdwasdddwasdaddwaddwasdwadwasdwasdwsasdwasadwsaswdadwasdwasddwasddawsdwaswdwsaaswdwsaswdadwasddwasdawdwasdwasdadwasdwasdaddddawdwsasdwdwasdadwcbdasdcvbvcvbdwdwasdwawsdwadwasdwasdwasdwasdwasdawsddwsaaswdwsawdsdwasdwasdwasddadwasdaadwsadwadsdwasdawdsdwasddadwadwasdwasadwasdwasdwasdwasdwsadwasdwasdsaddawadasaddwdwasddawdsdwadwasdwasdwadwasddwasddwasdwasdawsfhftghtfghtfghtfghtfgdwasdasdwsadwasdwasdwadwsdwasdwsaswdwdwsaaswddwsaasdwsaaswddwsaaswddwsawadwasddwadsadwdwasdwdwasddwadwasdwasdwdwasddwasddwasdsdwadwadwasdwsdwasdwadwaadwadwasddawdadwadwaddwadwsdwasdadwasddwasdwasdddwasdwasdwasddadwdwasdawaddwadwasdwasddwwadwasdadwasdwadwadwaddwasddwdadawdddwasdwadwasdwasdwdsadwasddwasddwasdadwasdwdwasdadwasdsddadwadwadwdawdsadadasdsadwasdwasdwasdadwasddwasdsdawdsadwasdadawdsadwadwasdadwasdddwaadwadwdwaddawdwadawdwadwasddwadwadwadaddawdaadwasdwdadwasdwasddadawddawddwsdwasdwaawdwawdwadwaadwasdaadwsdwadwasdsadadwasdwadwsdadwddddawddasdwadwadwsdwasdwadwadadwdwaddwadwadadwadwadadwasdwasdswadwdwaasddaawasddwadwadwadwadadsdadwadwadaadwdwasddwsdwasadwdwasdaadwasdwasddwasddadwddwasdwadwasdwasdwasddwwdsadwsasdwdwsasdwsasdwasddwasddawdsadwasddwasdwdwasdwsasdwsasdwdwasdwsasddadwsdadwadwaawasdwadwasdwaddwadwasdwasdwasddwdwadwasddwasdwasdsdwaswasdwasddwasdwasddwasdwasdwadwasddsdsdwsdwasdwasdwsadwsasdwsaadwsadwasdwadwadwasdsasdsassdssdsdadwdwasddwasdwsadwasdwasdwasdwadwadwadwaadwadwadwddawdsddwadwadwadawdasddawdsadadwsdwaasdasdsasdsadwawdwasddwasdwadwadwadwadwwaadadawdwadwasdwadddwasdadwasdadawswasdsasadwdwasdwaddwadwadwaadwadwadwasdwasdwadwsadwasdwsasdddwasdadadwswasdwasdwadwadwsddwadwsdwadwdwasdwadwdwasdwdwasdwasdwsasdwasdwadwasddwadsddwasdwadwadadwasdwasdwasdwdwasdwdwasddwasdwasdadwdadwasdawsdwase2qedwasdadwasdadwdwadwwadwsdwaadwasdwdwasdwdwasdwadwadwsasasdwadwadwadadwadwasdwdwasdadwsdwasdwadwaadwadwawddwadwadwadwadwadadwadwasdwasdwasdwdwadwsadwasdwasdwdwadsdwddwasdwasdwdwasdwasdd2e2qewsdwsasdwdasddadsdwadwadwdwasdwdwasdwasddwadsdwadsdwsaswdwsaswdwsaaswdwdwsadawdwsdwawddwdfhdwasjdwaddadwadadadwdwaadwadwadwadsdwasddwadwadwadsdwadsdadwasdwadwdwaswdwaswdwaaswddwsaswddwsaaswddwassdadadwadwadwaddwaddwadwaddwasdwadwadwadwadadwasdwsadwsdwadsdwadwdwaadwadsdwadwadwadsdwadadwadwasaadwadadwaiddawdawddawdfsfdwasdsfdssfesfeddawsfdawedsfefdfsdwawdawdadwdsddfdfddfdfdfdfddddsdsfddddfddddddddfsdfdsddfdfdfdfsdsdsdsdggggnnbbnbnmnhmghgfghfghfghhgffghsfffgbnnbnbnbbnbnbnbnbnvbnmnbmnbnmnbnnbnbnmnnmnnnmbnmnmbbnmbnmbnmnnnmnnnbnbn
 
                 if multiplayer_mode and network_connected:
-                    global incoming_remote_lasers
+                    global incoming_remote_lasers,remote_level,remote_shop_state
                     lasers_to_spawn = []
+                    with net_lock:
+                        remote_level = level_start.get('p2_lv',1) if player_id == 1 else level_start.get("p1_lv",1)
+                        remote_shop_state = level_start.get("p2_inshop",False) if player_id == 1 else level_start.get("p1_inshop",False)
+                    
+
                     try:
                         
-                            # print("Remote laser ADDED!") sjejsfjndnsdndnfbbfndfnnnmfndnfnrnfndnfnnrnfnnsndsnmsdmnsdmnsdnmsdfndfnbdfbndfndfndfnbdfbndfndfnsndbfndnsndbfndnsndfbsndfsnsdnfndmsdmfndms,dmfndms,dmfndms,dmfndms,dmfndms,dmfndms,mdmfnmdmdnsfnsdnmsdnmfsd,sfdf,mdmdmjsflaksdjwisjdiwskjaskdlwdsasdwd
                         if player_id == 1:
                             
                             ship2.rect.x = network_positions["p2_x"]
@@ -2656,10 +2659,8 @@ async def main():
 
                             pro_ships.draw(game_canvas)
                             pro_ships_2.draw(game_canvas)
-                            # print("Drawing in p1 condition")
-                            
-                            # for sprite in pro_ships_2:asassd
-                            #     sprite.multi_update()
+             
+                       
                         else:
                             
                             ship.rect.x = network_positions["p1_x"]
@@ -2667,18 +2668,18 @@ async def main():
                             pro_ships_2.draw(game_canvas)
                             pro_ships.draw(game_canvas)
             
-                        # print("Drew the ships!") asdasdfse
+           
                         with net_lock:
                             if incoming_remote_lasers:
                                     lasers_to_spawn = list(incoming_remote_lasers)
                                     incoming_remote_lasers.clear()
-                                    # print("Created Laser List!")
+                          
     
                             for laser_data in lasers_to_spawn:
-                                print(f"X:{laser_data["x"]}, Y:{laser_data["y"]}")
-                                remote_laser = Laser(laser_data["x"],laser_data["y"],5,5,damage=1)
+                                # print(f"X:{laser_data["x"]}, Y:{laser_data["y"]}") AWDASDAWDWADDWASDDWASfsdAWDAWDSADWASDWASDWADWADWASDWADDWSDWASDWADAWDS
+                                remote_laser = Laser(laser_data["x"],laser_data["y"],5,5,damage=laser_data["d"])
                                 lasers.append(remote_laser)
-                        # print("Drew the lasers!")
+                    
                     except Exception as e:
                             print(f"Oh no : {e}")
 
@@ -2692,7 +2693,7 @@ async def main():
                     if card_was_chosen == True:
                         bugsnum = 0
                     for bug in bugs:
-                        if bug.image_path != "recursionboss.plssdasdssdwdswdsdcxsczxihkhcszxczxcsczsczscczxsdfsdfjjhjjhhhhhhjjjsxsfsdfsdsdffddfsdsdfdssdfsdfsdfsdffefdfasdsdfefsdwwesddfdseswdsdsdwsdbhjjhghjhgrtrdxzcsswddfng":
+                        if bug.image_path != "recursionboss.png":
                             bug.move()
                             bug.check_for_collisions()
                         bugsnum += 1
@@ -2708,13 +2709,29 @@ async def main():
 
               
 
+                    if player_id == 1:
+                        
+                        other_bugs_are_dead = level_start['p2_bugs_are_dead']
+                        # all_bugs_are_dead = level_start['p1_bugs_are_dead']
+                    elif player_id == 2:
+                        other_bugs_are_dead = level_start['p1_bugs_are_dead']
+                        # all_bugs_are_dead = level_start['p2_bugs_are_dead']
 
+                    if bugsnum == 0 and bosses.__len__() == 0:
+                        all_bugs_are_dead = True
+                        if player_id == 1:
+                            level_start['p1_bugs_are_dead'] = True
+                           
+                        elif player_id == 2:
+                            level_start['p2_bugs_are_dead'] = True
+                
+                        #print(f' Things happened {player_id},{level_start['p1_bugs_are_dead']}, {level_start["p2_bugs_are_dead"]} ')
 
-
-                    if bugsnum == 0 and bosses.__len__() == 0 :
+                    if bugsnum == 0 and bosses.__len__() == 0:
                         bugs.empty()
                         lasers.clear()
                         enemy_lasers.clear()
+                        all_bugs.clear()
                         if card_was_chosen == True and previous_bugsnum > 0:
                             card_was_chosen = False
                             game_state = 4
@@ -2738,73 +2755,96 @@ async def main():
                             cards.append(card1)
                             cards.append(card2)
                             cards.append(card3)
+                            im_choosing_cards = True
+
                             cards_were_shuffled = True
                         if card_was_chosen == True:
                             cards.clear()
                             symbols.empty()
-                        if card_was_chosen == True and current_level < len(level_list):
-                            # if multiplayer_mode == True dssdsdsfdsdfdsdfdsdfdfddsfffffffdddsdfsfssdfdsdfasddsasdsdsasdsaasdsawsddawddaadsasdadadaadwadaddawsdadadsadsadwadwsdawdawsdwsadswswswswsadadswswwsswswswswswsadwsaswswswddwdwdawdwawssaswdadwswsaswdwagdadwwdasdwdwasdwdsawggggggtyuiiiiiuyiuyyyiyiiuyiuyiuggggghhgjgjgdwsaaswdwsaaswddwsaaswwdwsaaswddwsaasdwwdsaaswddwsaaswadawasawdawsdddwsaadawswswswdadwsswwssadddadwsadwawadadwwawdaadwadwadaswdwsaswdaswddsaswdwasswsasdwsaswsasdasaadwdaasasdas
+                            im_choosing_cards = False
+
+                        if player_id == 1:
+                            other_player_choosing_cards = p2_choosing_cards
+                        elif player_id == 2:
+                            other_player_choosing_cards = p1_choosing_cards
+
+                        if card_was_chosen and current_level < len(level_list) and bugsnum <= 0  :
                             current_level += 1
-                            level = level_list[current_level-1]
-                            startx = (WIDTH // 2) - ((len(level[0]) / 2) * spacer)
-                            colindex = 0
-                            for row in level:
-                                for exception in row:
-                                    if exception == "e":
-                                        bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,0,1,1,1,y_speed=0.05)
-                                    
-                                    elif exception == "i":
-                                        bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,1,1.5,3,0.8)
+                            # all_bugs_are_dead = False
+                            print("THINGY LEVEL UP")
+                        if card_was_chosen == True and current_level < len(level_list) :
+                            # if multiplayer_mode == True dssdsdsfdsdfdsdfdsdfdfddsfffffffdddsdfsfssdfdsdfasddsasdsdsasdsaasdsawsddawddaadsasdadadaadwadaddawsdadadsadsadwadwsdawdawsdwsadswswswswsadadswswwsswswswswswsadwsaswswswddwdwdawdwawssaswdadwswsaswdwagdadwwdasdwdwasdwdsawggggggtyuiiiiiuyiuyyyiyiiuyiuyiuggggghhgjgjgdwsaaswdwsaaswddwsaaswwdwsaaswddwsaasdwwdsaaswddwsaaswadawasawdawsdddwsaadawswswswdadwsswwssadddadwsadwawadadwwawdaadwadwadaswdwsaswdaswddsaswdwasswsasdwsaswsasdasaadwdaasasdas
+                            # current_level += 1
+                            all_bugs_are_dead = False
 
-                                    elif exception == "x":
-                                        bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,2,1,1,1,y_speed = 1.2)
-                                    elif exception == "m":
-                                        bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,3,3,7,0.4,y_speed = 0.2)
-                                    elif exception == "p":
-                                        bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,4,3,15,0.25,y_speed = 0.2)
+                            if player_id == 1:
+                                level_start['p1_bugs_are_dead'] = False
+                            elif player_id == 2:
+                                level_start['p2_bugs_are_dead'] = False
+                            if player_id == 1:
+                                level = level_list[current_level-1]
+                                startx = (WIDTH // 2) - ((len(level[0]) / 2) * spacer)
+                                colindex = 0
 
-                                    elif exception == "b":
-                                        bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,5,3,1,0.4,y_speed = 0.5)
+                                for row in level:
+                                    for exception in row:
+                                        if exception == "e":
+                                            bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,0,1,1,1,y_speed=0.05)
+                                        
+                                        elif exception == "i":
+                                            bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,1,1.5,3,0.8)
 
-                                    elif exception == "t":
-                                        bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,6,random.randint(1,7),random.randint(1,7),0.4,y_speed = random.uniform(0.5,1.5))
-                                    elif exception == "n":
-                                        bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,8,0,24,0.5)
-                                    elif exception == "BOSS":
-                                        bug = RecursionBoss(WIDTH//2 - 150,50,240,120,"recursionboss.png",1,100)
-                                        bosses.add(bug)
-                                    elif exception == "d":
-                                        bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,9,1.5,12,0.5,0.35)
-                                    elif exception == "dg":
-                                        bug = Bug(startx  + rowindex * spacer,starty - colindex,48,48,10,1.5,48,0.5,0.05)
-                                        spacer += 1
+                                        elif exception == "x":
+                                            bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,2,1,1,1,y_speed = 1.2)
+                                        elif exception == "m":
+                                            bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,3,3,7,0.4,y_speed = 0.2)
+                                        elif exception == "p":
+                                            bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,4,3,15,0.25,y_speed = 0.2)
+
+                                        elif exception == "b":
+                                            bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,5,3,1,0.4,y_speed = 0.5)
+
+                                        elif exception == "t":
+                                            bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,6,random.randint(1,7),random.randint(1,7),0.4,y_speed = random.uniform(0.5,1.5))
+                                        elif exception == "n":
+                                            bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,8,0,24,0.5)
+                                        elif exception == "BOSS":
+                                            bug = RecursionBoss(WIDTH//2 - 150,50,240,120,"recursionboss.png",1,100)
+                                            bosses.add(bug)
+                                        elif exception == "d":
+                                            bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,9,1.5,12,0.5,0.35)
+                                        elif exception == "dg":
+                                            bug = Bug(startx  + rowindex * spacer,starty - colindex,48,48,10,1.5,48,0.5,0.05)
+                                            spacer += 1
+                                            rowindex += 1
+                                        elif exception == "q":
+                                            bug = Bug(startx + rowindex * spacer , starty - colindex,24,24,11,2,10,0.5,y_speed = 0.25)
+                                        elif exception == "r":
+                                            bug = Bug(startx + rowindex * spacer, starty - colindex,24,24,12,1.5,5,1.75,1.5)
+                                        elif exception == "l":
+                                            bug = Bug(startx + rowindex * spacer, starty - colindex,24,24,13,3,5,1.75,0.3)
+                                        if exception != "s" and exception != "BSOD":
+                                            bugs.add(bug)
+                                        if exception == "s":
+                                            for i in range(3):
+                                                for j in range(3):
+                                                    bug = Bug((startx  + rowindex * spacer ) + i * 10,(starty - colindex) + j * 10 ,9,9,7,1,1,0.4,y_speed = 0)
+                                                    bugs.add(bug)
+                                        elif exception == "BSOD":
+                                            boss = Bluegame_canvasOfDeath(0,50,200,100,"bluegame_canvasofdeath.png")
+                                            bosses.add(boss)
+                                        
                                         rowindex += 1
-                                    elif exception == "q":
-                                        bug = Bug(startx + rowindex * spacer , starty - colindex,24,24,11,2,10,0.5,y_speed = 0.25)
-                                    elif exception == "r":
-                                        bug = Bug(startx + rowindex * spacer, starty - colindex,24,24,12,1.5,5,1.75,1.5)
-                                    elif exception == "l":
-                                        bug = Bug(startx + rowindex * spacer, starty - colindex,24,24,13,3,5,1.75,0.3)
-                                    if exception != "s" and exception != "BSOD":
-                                        bugs.add(bug)
-                                    if exception == "s":
-                                        for i in range(3):
-                                            for j in range(3):
-                                                bug = Bug((startx  + rowindex * spacer ) + i * 10,(starty - colindex) + j * 10 ,9,9,7,1,1,0.4,y_speed = 0)
-                                                bugs.add(bug)
-                                    elif exception == "BSOD":
-                                        boss = Bluegame_canvasOfDeath(0,50,200,100,"bluegame_canvasofdeath.png")
-                                        bosses.add(boss)
-                                    
-                                    rowindex += 1
-                                colindex -= spacer
-                                rowindex = 0
-                        elif current_level >= len(level_list) and bosses.__len__() == 0:
-                            win  = title_font.render(f"YOU WIN \n(for now)",True , (0,255,0))
-                            game_canvas.blit(win,(WIDTH//2 - 300,HEIGHT//2  - 100))
-                        else:
-                            pass  
-
+                                    colindex -= spacer
+                                    rowindex = 0
+                                for bug in bugs:
+                                    all_bugs.append(bug)
+                            elif current_level >= len(level_list) and bosses.__len__() == 0:
+                                win  = title_font.render(f"YOU WIN \n(for now)",True , (0,255,0))
+                                game_canvas.blit(win,(WIDTH//2 - 300,HEIGHT//2  - 100))
+                            else:
+                                pass  
+                            print(bugs)
             bosses.draw(game_canvas)
             bosses.update()
             for laser in boss_lasers:
@@ -2866,10 +2906,11 @@ async def main():
         else:
             offset_x,offset_y = 0,0
 
-        # print(clock.get_fps())
+ 
         screen.blit(game_canvas,(-20+offset_x,-20+offset_y))
         pygame.display.flip()
         await asyncio.sleep(0.001)
 asyncio.run(main())
 
 
+# adadajhjjhkhdawsgjkjjjjjjjjjjjjjjjklljoihiugkjgkjgjasd

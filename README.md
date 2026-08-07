@@ -18,7 +18,13 @@ Option 1 : Open the Itch.io page, and click the 'play' button
  Coming soon : New weapons to pick after beating boss fight
  Coming soon : Permanant upgrades for your whole run, not just until you die
  Coming soon : Restart button!
-
+# In development
+ Multiplayer mode : 12%
+ In-game shop : 75 %
+# Currently Working On:
+Laser Drawing for multiplayer
+# The itch.io build is:
+Outdated
 # Content
 14 Varieties of Enemies
 2 Stages

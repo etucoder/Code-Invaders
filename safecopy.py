@@ -1,4 +1,4 @@
-import asyncio # For the itch.io page
+import asyncio # For the itch.io page oh no
 import pygame
 import random
 import math
@@ -7,7 +7,7 @@ import json
 import threading
 import time
 import sys
-#asdasddwsadwswswwswaddwasdwdddawdwawdjkdawdwadsddwswswswswswswdadwsdwawwsdwsaafsefsfedwdsasdwsdssswwswswswdwawdawddwdawssswswswswswdawswlkjlkjkwaadwdwadwawdwadwawdwdawswswswswswwswswwswswswwdwawdwawdwawdwdadwawwwdwawdwdwwaawdwawwwddwawdwawddwdwawdwdwdwawawdwdawddwsadwdadadwwddwawdwdwdawswsdwadwswsdwswsssdwsdwswsdwsaswdwsaswdwdwsaswdsswsdwdwdawaawdwswswsadwswsadwadaadadwswswswswswswdawswswddwawdawdwwddawdawdadwaaawdwawdwawdwawdwdwdawdwawdwdaawddwwawdwdddawdawdwdwawdwadwdwdwdwwdwwsddwadwaadwawadwdwaadwswdwgrdawgrdrgrdrgrdrgdwadwadwgrdrgrgrgdrgdrsfdgasfdwaesddwadwswdwadwawddwawawdawddawdwadwawdwdwawdwawawdwadwawddwawdwawdwawwdawdwawwdawsdawsdwsadadwsawwdwawsdwsasdwsadwsadwsdaddwswswswswwswswswsdwsaswdwdsasdwasdwwdadwaswdwsdadwswsdwaawdwaawdwswsswswsdadswsdadaasdwasddawdadwadwswddadwswwswswswswswsadsdsawsadwswsswdawddawddwawssdwawssdswaawdddswawdsdsddssdsdsawawsdwadwassswswwsddwwadwswswswsadwswswswswswaddwaadwswswswsdwsasdwsdasdwsswsswsdawdswswwdadawswsdwdddawsssdwdawssdwadwsadwswswswswsdawswssdadadadwswswswsswsw
+
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy()) # type: ignore
 if sys.platform == "win32":
@@ -56,7 +56,7 @@ max_overdrive = 100
 network_positions = {'p1_x': 200,'p1_y':600,"p2_x":800,"p2_y":600}
 outbound_events = []
 incoming_remote_lasers = []
-allow_bug_spawning = True
+
 active_ws_connection = None
 
 async def network_sync_loop(ship_reference):
@@ -84,7 +84,7 @@ async def network_sync_loop(ship_reference):
                 ship.is_local = False
             else:
                 print(player_id)
-                # time.sleep(4)
+                time.sleep(4)
             network_connected = True
             game_state =   1
             async def receive_handler():
@@ -99,7 +99,7 @@ async def network_sync_loop(ship_reference):
                                     "y" : global_match_state["y"]
                                 })
                             continue
-                        elif global_match_state.get("type") is not None :
+                        else:
                             print(global_match_state.get("type"))
 
                
@@ -118,7 +118,7 @@ async def network_sync_loop(ship_reference):
 
 
             async def send_handler():
-                global network_connected,outbound_events,net_lock,current_level,game_state
+                global network_connected,outbound_events,net_lock
                 while network_connected:
                     events_to_send = []
                     with net_lock:
@@ -126,18 +126,19 @@ async def network_sync_loop(ship_reference):
                             events_to_send = list(outbound_events)
                             outbound_events.clear()
 
-                    am_i_in_shop = True if game_state == 3 else False
+                    for event_packet in events_to_send:
+                            await ws.send(json.dumps(event_packet))
+                            await asyncio.sleep(0.005)
+
                     if player_id == 1:
-                        local_payload = {'x' : ship.rect.x,'y' : ship.rect.y,'level' : current_level, 'in_shop' : am_i_in_shop}
+                        local_payload = {'x' : ship.rect.x,'y' : ship.rect.y}
                     elif player_id == 2:
-                        local_payload = {'x' : ship2.rect.x, 'y' : ship2.rect.y, 'level' : current_level, 'in_shop' : am_i_in_shop}
+                        local_payload = {'x' : ship2.rect.x, 'y' : ship2.rect.y}
                     else:
                         print(f"[ID ERROR] : Player got unzoned ID {player_id}")
 
                     await ws.send(json.dumps(local_payload))
 
-                    for event_packet in events_to_send:
-                            await ws.send(json.dumps(event_packet))
                     await asyncio.sleep(0.016)
 
             await asyncio.gather(receive_handler(),send_handler())
@@ -197,7 +198,7 @@ def launch_network_thread(ship_instance):
     #         loop.run_until_complete(network_sync_loop(ship_instance))
     #         # print("Speed :0")
     #     finally:
-    #     
+    #         # print("OH NO!")
     #         loop.close()
 
     net_thread = threading.Thread(target = lambda: asyncio.run(network_sync_loop(ship),loop_factory=asyncio.SelectorEventLoop)
@@ -755,22 +756,14 @@ class Ship(pygame.sprite.Sprite):
                 self.max_cooldown = 0.25 * self.max_max_cooldown
     def shoot(self):
         
-        global lasers,card_was_chosen,overdrive_charge,net_lock,outbound_events
-
+        global lasers,card_was_chosen,overdrive_charge
         if (keys[pygame.K_SPACE] or keys[pygame.K_e]) and self.cooldown <= 0 and self.is_local:
             if self.weapon_type == "Regular":
                 laser = Laser(self.rect.centerx,self.rect.top,5,5,damage=self.damage,knockback=self.knockback,pierce=self.pierce)
                 lasers.append(laser)
                 self.cooldown = self.max_cooldown
                 laser_sound.play()
-                payload  = {
-                    "type" : "laser_fired",
-                    "x" : self.rect.centerx,
-                    "y": self.rect.top,
-                    "weapon" : "Regular" 
-                }
-                with net_lock:
-                    outbound_events.append(payload)
+      
             elif self.weapon_type == "Double":
                 laser = Laser(self.rect.x+3,self.rect.y+10,5,5,damage=self.damage,knockback=self.knockback,pierce=self.pierce)
                 laser1 = Laser(self.rect.x+18,self.rect.y+10,5,5,damage=self.damage,knockback=self.knockback,pierce=self.pierce)
@@ -796,23 +789,21 @@ class Ship(pygame.sprite.Sprite):
             pass
         global active_ws_connection
         if network_connected and active_ws_connection is not None:
-            pass
-                ############## SPAWNS LASERS ##############dasdawwswsswsssswswwsdaddwsaawsdawsad
-                # payload  = {
-                #     "type" : "laser_fired",
-                #     "x" : self.rect.centerx,
-                #     "y": self.rect.top,
-                #     "weapon" : "Regular" 
-                # }
-                # with net_lock:
-                #     outbound_events.append(payload)
-                # asyncio.get_event_loop().create_task(active_ws_connection.send(payload)) asdawasdasd
+                payload  = json.dumps({
+                    "type" : "laser_fired",
+                    "x" : self.rect.center,
+                    "y": self.rect.top,
+                    "weapon" : "Regular" 
+                })
+
+                asyncio.get_event_loop().create_task(active_ws_connection.send(payload))
         else:
             print(f"Yeah... No : {network_connected},{active_ws_connection}")
 
 
 
         
+
         if self.overdrive_duration > 0:
             self.max_cooldown = 0.25 * (self.max_max_cooldown)
             self.overdrive_duration -= 1
@@ -823,7 +814,6 @@ class Ship(pygame.sprite.Sprite):
     def multi_update(self):
         self.rect.x = self.rect.x
         self.rect.y = self.rect.y
-        
 items = [pygame.transform.scale(pygame.image.load("exception.png").convert_alpha(),(24,24)),
         pygame.transform.scale(pygame.image.load("indentationerror.png").convert_alpha(),(24,24)),
         pygame.transform.scale(pygame.image.load("indexerror.png").convert_alpha(),(24,24)),
@@ -839,7 +829,7 @@ items = [pygame.transform.scale(pygame.image.load("exception.png").convert_alpha
         pygame.transform.scale(pygame.image.load("racecondition.png").convert_alpha(),(24,24)),
         pygame.transform.scale(pygame.image.load("sleepthread.png").convert_alpha(),(24,24))]
 names = ["exception.png","indentationerror.png","indexerror.png","memoryerror.png","importerror.png","brokenpipe.png","typeerror.png","packetbug.png","nullpointererror.png",
-         "deprecatedmethod.png","deprecatedgiant.png","sqlinjectdasasdor.png","racecondition.png","sleepthread.png"]
+         "deprecatedmethod.png","deprecatedgiant.png","sqlinjector.png","racecondition.png","sleepthread.png"]
 class Bug(pygame.sprite.Sprite):
     def __init__(self,x,y,w,h,image_path,damage,hp ,speed,y_speed = 0.5 ):
         super().__init__()
@@ -2647,42 +2637,39 @@ async def main():
                     global incoming_remote_lasers
                     lasers_to_spawn = []
                     try:
-                        
-                            # print("Remote laser ADDED!") sjejsfjndnsdndnfbbfndfnnnmfndnfnrnfndnfnnrnfnnsndsnmsdmnsdmnsdnmsdfndfnbdfbndfndfndfnbdfbndfndfnsndbfndnsndbfndnsndfbsndfsnsdnfndmsdmfndms,dmfndms,dmfndms,dmfndms,dmfndms,dmfndms,mdmfnmdmdnsfnsdnmsdnmfsd,sfdf,mdmdmjsflaksdjwisjdiwskjaskdlwdsasdwd
-                        if player_id == 1:
-                            
-                            ship2.rect.x = network_positions["p2_x"]
-                            ship2.rect.y = network_positions["p2_y"]
-
-                            pro_ships.draw(game_canvas)
-                            pro_ships_2.draw(game_canvas)
-                            # print("Drawing in p1 condition")
-                            
-                            # for sprite in pro_ships_2:asassd
-                            #     sprite.multi_update()
-                        else:
-                            
-                            ship.rect.x = network_positions["p1_x"]
-                            ship.rect.y = network_positions["p1_y"]
-                            pro_ships_2.draw(game_canvas)
-                            pro_ships.draw(game_canvas)
-            
-                        # print("Drew the ships!") asdasdfse
                         with net_lock:
                             if incoming_remote_lasers:
-                                    lasers_to_spawn = list(incoming_remote_lasers)
-                                    incoming_remote_lasers.clear()
-                                    # print("Created Laser List!")
-    
-                            for laser_data in lasers_to_spawn:
-                                print(f"X:{laser_data["x"]}, Y:{laser_data["y"]}")
-                                remote_laser = Laser(laser_data["x"],laser_data["y"],5,5,damage=1)
-                                lasers.append(remote_laser)
-                        # print("Drew the lasers!")
+                                lasers_to_spawn = list(incoming_remote_lasers)
+                                incoming_remote_lasers.clear()
+
+                        for laser_data in lasers_to_spawn:
+                            remote_laser = Laser(laser_data["x"],laser_data["y"],5,5,damage=1)
+                            lasers.append(remote_laser)
+                            # print("Remote laser ADDED!")
+                        if player_id == 1:
+                            pro_ships.draw(game_canvas)
+                            pro_ships_2.draw(game_canvas)
+                            ship2.rect.x = network_positions["p2_x"]
+                            ship2.rect.y = network_positions["p2_y"]
+                            # print("Drawing in p1 condition")
+                            
+                            # for sprite in pro_ships_2:
+                            #     sprite.multi_update()
+                        else:
+                            pro_ships_2.draw(game_canvas)
+                            pro_ships.draw(game_canvas)
+                            ship.rect.x = network_positions["p1_x"]
+                            ship.rect.y = network_positions["p1_y"]
+                            # print("Drawing in p2 condition")
+                            # for sprite in pro_ships:
+                            #     sprite.multi_update()
+                                
+
                     except Exception as e:
                             print(f"Oh no : {e}")
 
                     else:
+                        # print(multiplayer_mode,network_connected) asfdedsjhgghhjjjjjjjjjjhhhhhhggggghgghhhhjhgjgjgjhjgjgjhjghjgkgjhghkjhgfhjghkjhfkjhgkfkfhhgfjkhjhfgfkjkgjjfjfjhggjkkjjhkjggjgjfkjhjkhjgfkjhkhfkhgjfjkfjhkfhfkjhjfhkjfkhgghjhghjhghjhghhhhhhhhhhghhghgghhjjhgkgkhjgkgghjklkjhghjklkjhghjlkjhghjklkjhhjkklghjkllkjhgghjklkfkghkhjkjfhhjkjhjkjh kkjjkkjkjjhhjgjhjjhgghjhyghhhjhghjyhgghbgjyhjjjjasgujbbbgbvcvcbvcvbvcvcvbvcvbvcvbvcvgcvbvgcvbggggcvbggghhhhggrgfgtgggghthgjugbnccvbgtrfyuioklhghtgfrfrfrfrbhnjkmdsasdsasddrhdhvh
                         pass
                     stars.draw(game_canvas)
                     for star in stars:
@@ -2706,7 +2693,13 @@ async def main():
 
 
 
-              
+                    if player_id == 1:
+                        ship2.rect.x = network_positions["p2_x"]
+                        ship2.rect.y = network_positions["p2_y"]
+                    else: 
+                        ship.rect.x = network_positions["p1_x"]
+                        ship.rect.y = network_positions["p1_y"]
+                    
 
 
 
@@ -2743,7 +2736,6 @@ async def main():
                             cards.clear()
                             symbols.empty()
                         if card_was_chosen == True and current_level < len(level_list):
-                            # if multiplayer_mode == True dssdsdsfdsdfdsdfdsdfdfddsfffffffdddsdfsfssdfdsdfasddsasdsdsasdsaasdsawsddawddaadsasdadadaadwadaddawsdadadsadsadwadwsdawdawsdwsadswswswswsadadswswwsswswswswswsadwsaswswswddwdwdawdwawssaswdadwswsaswdwagdadwwdasdwdwasdwdsawggggggtyuiiiiiuyiuyyyiyiiuyiuyiuggggghhgjgjgdwsaaswdwsaaswddwsaaswwdwsaaswddwsaasdwwdsaaswddwsaaswadawasawdawsdddwsaadawswswswdadwsswwssadddadwsadwawadadwwawdaadwadwadaswdwsaswdaswddsaswdwasswsasdwsaswsasdasaadwdaasasdas
                             current_level += 1
                             level = level_list[current_level-1]
                             startx = (WIDTH // 2) - ((len(level[0]) / 2) * spacer)
@@ -2866,10 +2858,11 @@ async def main():
         else:
             offset_x,offset_y = 0,0
 
-        # print(clock.get_fps())
+
         screen.blit(game_canvas,(-20+offset_x,-20+offset_y))
         pygame.display.flip()
         await asyncio.sleep(0.001)
 asyncio.run(main())
 
 
+# wdsadddwsaaswddwqazxswedcvfrtfvsaasdwaswddwsaswdwsadwsasdwaswddwsaswdwsaswwsaaswdwaawddwaawddwaawdwawdwawdwwawdwaawdwasdwaswdswdwasdwsddsddwadawsdawdsdwawwdsdsdsdsdsddsdsdddswaawsdsdsdwaawdssdassadwasassasadsdawdswdasdaswdsdddswaawsddswaawdsawsddswaawsddswaawsddswaawsddswaawsddswaasddddwdwasasdwwdawdwaawsddwdwaawsddwdwsaaswddwsawsdadwsaaswddwsaaswddwsaawawsdswaawsddswaawsddwsadwwsawsdwsawdswawwdswaswddwsadwsadwsaawsdaaasddswaawsddsawsddswaaawsdsawawsdwsawsddswaawsddswaawsddswaawsddswaawsddswaawsdwadwsadswawsdawsddswaawsddswaawsdawsddswaawsddswaawsddswaaawddswaawsddswaawsddswaawsddswaawsddswaawsdsawawdsswaawsddswaawsddswaawsddsawawsddsawsdwsawsddwaawdwsaaswddwsaaswddwsaaswdwsaaswdwswdwawdwsawdswawdwaawdwaawsdwsaaawddwaawdwawaawdwaawdawdawddaffessedfdwadwawdwawdwaawdawedsdwaawddwaawdwawdwawdwawdwaawdwawddwaawddwawdawdsedfffdes-esefedssdeffedssesddtfcvbgttttvbnvbnvbjgjhgjhghjhghndasdwdasdtdswaawsddswaawsddswaawsdawsdawddswaawsddswaawsddswadsaasdaasdddsaasdddsasdsasdsasdsasdasdawddwaawddwaawdawdadwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwddddddddddddddddddddddddddddddddddfccvbbgtsdsddsadsasddsasdasdsaasdsdaswsdwsawsddwaswswsawfsefsefsdfdfdddddddddsdwsdwsakjhhjhjkjhjkjhjkjhjkjhjkjhjkjhjkjhjkjhjkjhjkjhjkjhwsdawsdd

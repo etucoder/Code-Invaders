@@ -1,0 +1,5 @@
+This is coding
+code = "main.py"
+errors = 2
+for line in code:
+    errors **= 2

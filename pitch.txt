@@ -1,0 +1,41 @@
+Name : Lego Duplicator, Assembler, and Sorter (Factory)
+
+I’m Building a 3D-Assembler / CNC Machine,using the Raspberry Pi 5. The machine will have a special function:
+take any LEGO, and put it on the duplicator plate, and the machine will duplicate it to the best of 
+its ability (Re-print it, colors may not be same) . The hardware will be built myself, and there is no premade tutorial. The machine will scan the brick,
+you will enter the amount onto the Raspberry Pi , it will show you the time taken, a filament and cost estimate, and ask you which
+filament to use. It will print the bricks, then they will be transferred to a assembly line , which will automatically sort them using a custom one-shot YOLO
+model. If you chose to do so, the automatic, custom-build 3d-ASSEMBLER will assemble the legos into a build for you.
+
+Inspo : I'm always 1-2 pieces short of a specific piece I want. Wouldn't it be great to be able to duplicate legos easily? (Plus its just so cool)
+
+Past Projects : I've worked on a Raspberry Pi Robot and a 70-hour game called Code-Invaders, and also 3+ years 3d modeling before I knew about hackclub...
+
+Why this is worth $200+ : This is a custom, innovative project that will help me master my hardware skills.
+This project will also be incredibly useful for anyone who wants to duplicate LEGOs or just build something cool...
+Its a mimic of a perfessional build for a (relativly ) small price that is incredibly unique.
+Items Needed :
+
+    7-inch DSI Raspberry Pi Touchscreen 17.99:  (Lets User customize amount of bricks and filament used, along with letting them see vital stats. DSI cuts off lag, letting YOLO models run much faster.) : https://www.amazon.com/Hosyond-Touchscreen-Compatible-Capacitive-Driver-Free/dp/B0D3QB7X4Z/?th=1
+    Mini LED studio Light Box : 9.99 (Lights up LEGO brick for accurate scanning. Better images = More accurate Model) : https://www.amazon.com/SENLIXIN-Portable-Foldable-Photography-Shooting/dp/B075KK471M/
+    PETG: $56.97 (Used as cheaper support materal instead of PVA) * 3 (3kg total) : https://us.store.bambulab.com/products/petg-basic?id=703099511296864293
+    LEGO Classic 10713 Box : 15.89 (Base Templates for first copy, AI training, and cool, themed decorations for the lowest price) :https://www.amazon.com/LEGO-Classic-Creative-Suitcase-Building/dp/B075QRWRYP/
+    Vibration Motor Pack : 8.99 (Vibrates finished legos from hopper into converyor belt) : https://www.amazon.com/BOJACK-Vibration-Powerful-Electric-Vibrating/dp/B09XDWPMHY/r
+    NEMA 17 Steper Motor :  9.89 (Spins the LEGO template presicly for max accuracy duplication picture quality) : https://www.amazon.com/MAKERELE-Nema-Stepper-Motor-Bipolar/dp/B0FP1RNPXJ/
+    NEMA 17 48m Body (Presses the legos down to attach them together) :13.29: https://www.amazon.com/MAKERELE-Nema-Stepper-Motor-Bipolar/dp/B0FP1SNT6V/ 
+    TMC2208 Stepper Motor Driver : 7.99 (Controls stepper motors, freeing up main board for other tasks) : https://www.amazon.com/hiBCTR-5-Pack-Stepper-Driver-Module/dp/B0DSZFY9H7/
+    Linear Shaft Rods 8 * 400mm 2-pack: 16.99 * 2 = 33.98 (3D ASSEMBLER frame to move on the x,y,and z axis securly): https://www.amazon.com/inches-Vigorous-Linear-Hardened-Printer/dp/B0CXTX5FZ3/ 
+    Linear Ball Bearings 12-pack : 11.99 (Lets the assembler slide across the shaft rods with ease for advanced movement) : https://www.amazon.com/LM8UU-Linear-Bearings-Length-Printer/dp/B087WPGQ8T/
+    Mechanical Endstop Switches (Lock the 3d assembler head in place and let it go to its first postion when on):7.99 : https://www.amazon.com/Printer-Switch%EF%BC%8C5-Mechanical-Compatible-GUBCUB/dp/B09K7K3486/
+    Bambu PC Filament x2 (Used for the 3D ASSEMBLER Frame to prevent sag/warp, and support the assembler head.) : 79.98 : https://us.store.bambulab.com/products/pc-filament
+    1.75mm 8 Spool/Color 250g Each * 2 : 79.98(Lets you print 8 colors of LEGOs without wastig filament "purging")  : https://www.amazon.com/Spools-Printer-PLA-Filament-Bundle/dp/B0BQSKJF28/
+    Raspberry Pi 5 : Already have
+    MG996R Servos : Already have
+    Servo Driver : Already have
+    Motor Driver : Already have
+    Gearmotors : Already have
+    Shipping and Taxes : $35.00
+    
+    Total : $389.92
+
+

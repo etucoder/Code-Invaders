@@ -4,14 +4,12 @@ import json
 import websockets
 
 
-#adasddsasdasdsasdsasdasdsasdwdsdsasdasdadsdassdaswcxzxcdsasdxzxcdaddasdasdwswswssswdwadddwsaswdwsasddsaaddsdasdadwdsawsdddswaawsddswaawsdwdwddwdadsassasaswdwdasswssswswsasdwswadsdsasddsasdasdasdsawdawdwddsasaswddwsaaswddwsaaaswdwdwwswaddwddsdsaadwsdawsdwsddadwsasdwsadadadadadadadwsdwsassssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssdawswswswdaadwswswswswsadadwswswsasdadsasdasdwsaswswswsaadswaadadaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaadadadadwswswswswswswswswsdadwsaswsswsadwsasdwsadswsaa
-
+print("Hello!")
 
 PORT = 8765
 PLAYER_STARTS = {1: "486,400", 2: "800,400"}
 connected_nodes = {}
-match_telemetry = {"p1": {'x' : 486, 'y': 400,"level":1,'in_shop': False}
-                   , "p2": {'x' : 800, 'y' : 400,'level' : 1, 'in_shop' : False}}
+match_telemetry = {"p1": PLAYER_STARTS[1], "p2": PLAYER_STARTS[2],"p1_level" : 1,"p2_level" : 1,"p1_in_shop" : False, "p2_in_shop" : False,"all_bugs_dead_p1" : False,"all_bugs_dead_p2": False,'1' : False,'p2_choosing_cards' : False,'bugs_list' : []}
 connection_lock = asyncio.Lock() 
  
 
@@ -31,24 +29,35 @@ async def route_security_packets(websocket):
             try:
                 incoming_payload = json.loads(packet)
                 
-
+                if 'x' in incoming_payload and 'y' in incoming_payload:
+                        x = int(incoming_payload["x"])
+                        y = int(incoming_payload["y"])
+                        match_telemetry[f"p{player_id}"] = f"{x},{y}"
                 if incoming_payload.get("type") == "laser_fired":
-            
+
                     target_id = 2 if player_id == 1 else 1
                     if target_id in connected_nodes:
                 
                         await connected_nodes[target_id].send(json.dumps(incoming_payload))
                     continue 
-                else:
-                    print(incoming_payload.get("type"))
-           
-                x = int(incoming_payload["x"])
-                y = int(incoming_payload["y"])
                 
-            except (KeyError, TypeError, ValueError, json.JSONDecodeError):
+                if 'level' in incoming_payload:
+                    match_telemetry[f"p{player_id}_level"] = incoming_payload["level"]
+                if 'is_in_shop' in incoming_payload:
+                    match_telemetry[f"p{player_id}_in_shop"] = incoming_payload["is_in_shop"]
+                if 'bugs_dead' in incoming_payload:
+                    match_telemetry[f"all_bugs_dead_p{player_id}"] = incoming_payload["bugs_dead"]
+                    print('bd updateD')
+                if 'choosing_cards' in incoming_payload:
+                    match_telemetry[f"p{player_id}_choosing_cards"] = incoming_payload["choosing_cards"]
+                if 'bugs_list' in incoming_payload:
+                    match_telemetry['bugs_list'] = incoming_payload['bugs_list']
+                print(match_telemetry)
+            except Exception as e:
+                print(e)
                 continue
-                
-            match_telemetry[f"p{player_id}"] = f"{x},{y}"
+                #adawd
+            
             broadcast_string = json.dumps(match_telemetry)
             recipients = tuple(connected_nodes.values())
             await asyncio.gather(
@@ -61,7 +70,7 @@ async def route_security_packets(websocket):
         async with connection_lock:
             if connected_nodes.get(player_id) is websocket:
                 del connected_nodes[player_id]
-                match_telemetry[f"p{player_id}"] = PLAYER_STARTS[player_id]
+                match_telemetry[f"p{player_id}"] = PLAYER_STARTS[player_id] # asadwasdefd
 
 async def main():
     print(f"WebSocket server listening on port {PORT}")
@@ -73,3 +82,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main(), loop_factory=asyncio.SelectorEventLoop)
+#csfesfdsdfsdfsdfsd
