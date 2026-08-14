@@ -36,13 +36,13 @@ game_canvas_color = (0,0,0)
 particles = []
 game_state = 0  
 multiplayer_mode = False
-explosion_sound = pygame.mixer.Sound("explosion.ogg")
-small_explosion_sound = pygame.mixer.Sound("small_explosion1.ogg")
+explosion_sound = pygame.mixer.Sound("explosion.wav")
+small_explosion_sound = pygame.mixer.Sound("small_explosion1.wav")
 small_explosion_sound.set_volume(0.07)
-click_sound = pygame.mixer.Sound("shortclick.ogg")
-laser_sound = pygame.mixer.Sound("laser.ogg")
+click_sound = pygame.mixer.Sound("shortclick.wav")
+laser_sound = pygame.mixer.Sound("laser.wav")
 laser_sound.set_volume(0.15)
-# click_sound.set_volume(0.15) adddwdwasddwasddwasddwdasddwasddwadwasddwasdsdwdwasdasdwadwasdsdwffeddwasdwsdswfsddwasdwddwdwdwasdwasfddwadwadddsadwsdddwwsddasdwswsdwaswasdwafdwasdesdwasddsdfdsddwadswadwsdfedsdwasddwasddwasdwasdwadwasddwadwsddaswdwddwadwasddwswasgrgdfggfdwasddwafesdfdwaswasdddwfjyghjyghgwdwaswassddwaswadwasddwasddwasddadwasdwsrfdwdwasasddgddwasdwsdsawasdwasddwhadesdfsdwadfdwdfdefddfedsfdesfedsfedseds
+# click_sound.set_volume(0.15)
 shake_intensity  =0
 game_canvas = pygame.Surface((WIDTH + 40,HEIGHT + 40),pygame.SRCALPHA)
 #### Menu Stuff #####
@@ -64,9 +64,8 @@ other_bugs_are_dead = False
 next_bug_id = 0
 network_bugs = {}
 explosions = []
-explosions_to_draw = []
 async def network_sync_loop(ship_reference):
-    global explosions_to_draw, all_bugs_are_dead,other_bugs_are_dead,active_ws_connection,p1_coords,level_start, p2_coords, network_connected, game_state, player_id,ship,ship2,network_positions,multiplayer_mode,net_lock,pro_ships_2,pro_ships
+    global all_bugs_are_dead,other_bugs_are_dead,active_ws_connection,p1_coords,level_start, p2_coords, network_connected, game_state, player_id,ship,ship2,network_positions,multiplayer_mode,net_lock,pro_ships_2,pro_ships
     try:
         async with websockets.connect(SERVER_URL,ping_interval=20,ping_timeout=20) as ws:
 
@@ -92,7 +91,7 @@ async def network_sync_loop(ship_reference):
             game_state =   1
             #### Receive the stuff 3/4 working #######
             async def receive_handler():
-                global explosions_to_draw,bugs,network_positions,lasers,net_lock,incoming_remote_lasers,level_start,p1_choosing_cards,p2_choosing_cards
+                global bugs,network_positions,lasers,net_lock,incoming_remote_lasers,level_start,p1_choosing_cards,p2_choosing_cards
                 try:
                     async for message in ws:
                         global_match_state = json.loads(message)
@@ -135,16 +134,10 @@ async def network_sync_loop(ship_reference):
                         with net_lock:
                             p1_choosing_cards = global_match_state.get('p1_choosing_cards', False)
                             p2_choosing_cards = global_match_state.get('p2_choosing_cards', False)
-                        # Copies player 1 so sync works (right?)  dfeskkjhkjhgghfhgdfddwasddawdsddwasdadwasawadwasddwdadwadsddwasashddwaswasdsdwaskjhdwasddwasddwasdjkjhsdasjkdkjhkjhjawdsafrgtdwasdhdwasdasdaasddwasdfg
+                        # Copies player 1 so sync works (right?)  dasdawdsafrgtdwasdhdwasddwasdfg
                             if player_id == 2:
                                 received_ids = set()
-
-                                try:
-                                    for explosion_data in global_match_state["explosions"]:
-                                        explosions_to_draw.append([explosion_data[0],explosion_data[1],explosion_data[2]])
-                                        print("it worked!")
-                                except Exception as e:
-                                      print(f"[Explosion Error] {e} ")
+         
                                 for bug_data in global_match_state["bugs_list"]: # Gets the bug list from plahyer 1
 
                                     bug_id = bug_data[8]
@@ -183,7 +176,7 @@ async def network_sync_loop(ship_reference):
                                         network_bugs[bug_id].kill()
 
                                         del network_bugs[bug_id]
-                                
+                               
 
                 except Exception as e:
                         print(f"[Receiving Error]: Exception {e} from player {player_id}")
@@ -209,11 +202,10 @@ async def network_sync_loop(ship_reference):
                         for bug in bugs:
                             all_attributes = [bug.rect.x,bug.rect.y,bug.w,bug.h,bug.image_num,bug.damage,bug.hp,bug.speed,bug.id,bug.y_speed]
                             the_giant_list.append(all_attributes)
-                        
                         for explosion in explosions:
                             explosions_list.append([explosion[0],explosion[1],explosion[2]])
                         local_payload = {'x' : ship.rect.x,'y' : ship.rect.y, 'level' : current_level,'is_in_shop':is_in_shop,'bugs_dead' : all_bugs_are_dead,'choosing_cards' : im_choosing_cards,'bugs_list' : the_giant_list,'explosions' : explosions_list}
-                        explosions.clear()
+                  
                     elif player_id == 2:
                         local_payload = {'x' : ship2.rect.x, 'y' : ship2.rect.y, 'level' : current_level,'is_in_shop':is_in_shop,'bugs_dead' : all_bugs_are_dead,'choosing_cards' : im_choosing_cards}
                 
@@ -944,7 +936,7 @@ class Bug(pygame.sprite.Sprite):
         global explosions,bugs,enemy_lasers,current_level,ship,overdrive_charge,lasers,mines,cur_frame,shake_intensity,max_overdrive
         memory_error_alive = any(bug.image_path == "memoryerror.png" for bug in bugs)
         if memory_error_alive == True:
-            # waddwasddwasdwasddwadwaddwasdjlsdkdasdwasddwsddwasdwasddwjdwasddwasddwdwdwasddwasdasddwasddwddsdwgerfdgrfdwasddwasdwasddwasdadwdwasdasddwasdddwasdwaslassddwasddwadkadwdwasddwasdwdsadwssdwasddwasdwasddddwsdwasddwasdwasssddwwdawdsasddwasdwasdddwadsdasaswdsdwasdawdsdassasdasadasadaddwasddwasddwasddwdwgdrgfdfgrdwasdasdawdadwadwaddsqASwadwasddwasddwa
+            
             self.image.set_alpha(100)
             self.y_speed = 0.5 * self.og_y_speed
             self.max_creation_cooldown = 200
@@ -987,9 +979,8 @@ class Bug(pygame.sprite.Sprite):
             global explosions
             # Add explosion list here (x,y,color,pixels) ,(Hope this wodwasdgdwasdwasdwadwsadwasddwasddwasdrfghvcvbgcvhfhtdgrdwasdkjdwasdwasdawdadsdwasdhkjhjkjhjm,nmnbvgkhkadsjdawsdhhdassdwasddsdsddsdsdfasdasdsdkaasaadsadsasadadasdkjhjhjygkjhdaswdsdawdwasdddsaalkjlkdadwsdsjddsadasdwadwasddwasdwasdwaslkkkjwasdjhgyjhgjhgjygjhgnbvhnbjhkuhkjhkjkhkjhkjhkjhkjkjhkjhkjhkhghgsjlkjhkjhkfhgjhgsgfdgdhkjhhkjhjkjlkifghfhgffhgfhgfhgfghgfgjhghjkjhkjhkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkhhhhhhhhhjhkjhuhkjvbmbbjjlkjklkjlkj;lk;lkjk;;;lks) diuyiuiuyyuiuyiuyiuyiuyiuyiuyyudasdsaddawdaskjhkjhkjhjhjhwkjhkjjlkjllkjllkjkjhkjhkjkjhhkjhkjhkjhd;lk;;lk;lkllkjlkjjlkjwlkjkldwasasasdsasddwasddwalkjlkjksdwasdwdjhhdfesdfdwasdasddwasddwasdssddwasdwaskjhkhkjhjhjhggghhhhhhhhhhhjkhkjhkjhhgjgjglkjlgfhjhhgjhgbfcvbcdbfcvxwdhhftfghtdhtgbvcbdddadwasdwasdasddsdwdwadasdsddasddwasddwadwasasddwasddddawdsdswdasdasddasddwasddasdwjhdwasdkuhdwasduhhukujhddwasddasdsggdhyrasdddasdwdsaddadwdasdsdwasdasddhkjhdaskjjjhjhwasdwsdwasdio8yuyuiuigyugjhkjhawasdawdadsasdwasdwasdddfekjhujhdfesddaddwasadwasdajshdkashdkaksdalskkdjaslkddwsasdwasdwasdwdwdasdwsaswdwsdwawdwasddwasdasddwadwasddddwwdwasddwaswasddwasddsasddwadwasddwadwadwsassddwadwsdsasdwsadwdwadwasdwasddwdsadwasdwasadwasddwadwasdsdadwasdwaswdwasdaddwasfesdfwadwasdddwdwasdddwasdwdwasasdwaswdwaddwaswdsasdwasddwasdwasdwasddwadddasddwadwadwasdwwasddwadwasddwaddwassddwasddwasdwasddwasdfesddwdddwasdwaswdwasddwasdwsasddffesdfwadwasdsdasdwasddwdwasdswasdwadwasdsdddwasddwasdwasdfesdfewfeswddwassasdwdsadwddwasdwasdwasds
             color = (255,0,0)
-            type_of_explosion = self.image_path
+            type_of_explosion = 0
             explosion = [self.rect.x,self.rect.y,type_of_explosion] 
-            print(explosion)
             explosions.append(explosion)
             self.kill()
             small_explosion_sound.play()
@@ -1427,22 +1418,13 @@ class Laser(pygame.rect.Rect):
             if self.colliderect(ship):
                 ship.hp -= self.damage
                 lasers.remove(self)
-        for bug in bugs:
-            if self.colliderect(bug.rect):
-                if self.pierce <= 0 or bug.hp > 0 : #ASdsadasddsasf
-                    if self in lasers:
-                        lasers.remove(self)
-                    bug.hp -= self.damage
-                elif bug.hp <= 0:
-                    self.pierce -= 1
-                  
-    
+                
 
         if self.top <= 0 :
             lasers.remove(self)
             coord_pairs = [(-4.24,4.24),(-3.00,5.20),(-1.55,5.80),(0.00,6.00),(1.55,5.80),(3.00,5.20),(4.24,4.24)]
 
-        # addwwadwasdwdwsasdsdsdwasdwdddwadswaadssdwdwasdadwasdgffjwdsdasddddwasddwasdfdwasdfesdfddwasddwwasdasddwasdwswasddwsdwasdwasddsfghfdwadsdwsaddwdwfgrfedwasddwasdsfedwaddwasdwawdddhjkdsdwdasddwasddwdwasdaddwasddwadwasdsdddwasdddddddddddddddddddddddddddwasdwadwassdwasddadsgdfgdwddsfsedwsasdasdfdwasfedddwdwadgthtghgjdwasddwsysddwsdadwasdwasdwasdsdasdwsddwadsasdasddwasddwdwasdasddwddwasdsdwasdwdwsdasddsdwadwsdsadsdwaswdwasdadasdwdwasdwsdasdwdwasasdwsdwasddsdwasddwadwasdwasddasdwasdwadwasdwassdasdddwaswasddwddwasdwsdwasddssdddasdwdwasdasdwasddwasdwdwasdgddwadwasdwassddsddwasdddfhfghfghffddwasddsddwasdwasdsddwasdwasddwasddsawdasassdwfsdfdfdwdwasdadwsdsdwdawsddwadwasddsddwasddwsdasddwasdsddasdwdwasddsdsdsasdasdwaddasddwasdwasdsdsasddwasdfsddsaasddwadwassdsawasdsdwasdwasdwasddwasddwadwasddwasddf
+        
 class FileTower(pygame.sprite.Sprite):
     def __init__(self, x,y,w,h,image_path,hp):
         super().__init__()
@@ -2441,7 +2423,7 @@ all_bugs = []
 upgrades_obtained = 0
 async def main():
     #adwsddwdwadwasdwdclkjlkj,mnjhgdgvcbvcbvcbvcbvcbvbvcvbcbvcbvcbvghgfhgfbvcjkjhkjhkjhkjhggdssdfcgvhbjlkjm,nskjlkigjhgzxcszxddfeddwaslkjlilijlijljlilkjdslkjlkjkjhghjhgjjjjhgjhgjjjhgjjjjjghhgkjhukjjhffesdwasrertfesdfdsdferttretrfesdfete4et4etdawsdwasfesdfwasddwasdwdadwdasddawvdxvcxvdadwasdxasdwafseffesfsffehfthtadwsadwdwdwasddwasddwdwasfesdffesdfesdfeasddwafefesdsdgrdffesdfesdfwfesfesfhgdfgrgrdgrgrdfesasddwadwdwfesdgrdgfadsssaxcvdxcdwaswfefsdfdwasesfesddlkjldwasdwadwadswasdwasdakjldwaddwakdwasdwadwadwadjlkadsjlkkiuyuyudwadwaddwasyiuyuiuywase2qwe2klkqe2qe2fesdfesfesfesddwasdwadwaskjkjkjhkjkjhkjhjkjhwasdwasfesdsddwsdwasdcszcszcszxcsdzszcsxcszxcxsgdrfgrfddfrggrfddfrggrfddfrdrgfdrgffgrdadwasdwadwasdwasdwasdwadsadwsadwdwdasdadwdwasdwadwasdwasasdwasdwasdasddwafegrgthydwasdwasdwasczdwadsdddwafessdfeferjuhjhgjyghfesdfesfdwddwassdwasdwasddwasdwdwasdwasdwasdwasddwadsdwadsaddwadwaddwasdwasdsadwxdwase2qe2fsefesfdsdffsfesdffesfefsdfdsdffddwadwadwadaddwasasddwaadwwdawdwasdasddwasdadwadwdwwdwaddwadwasdddwsdwasdaasddwasdwadwasdwasdfesdffesdfesadwsadwadssdawsdwaddwadwadwasdsddwadwadwadwasddwasdwasddwawsdwfesfesfesfefesfesfdwadwadwdasdwadwasddsadsadwaddwasdadddwawdwadwadwaadwadwdsafedwasdwdwadwadwadaadadwsadaddadwddadwadwadwadwadwadwaddwadadwaddwaddwdadwadwaddadwsdadwsawdwadwaddwasdwadwadwadwasddwasddwadwaadwadwdwadsddwasdwaddwadwadwadwadadwadwadfesdfdyrtyryry5yawffmfes;lk;kffsljfdkfledfelfesfesfesffesfeffefsfeswasdasdwadddwasdwadwadwawafesfesfedwadwdwasddwadwaswasdwafesfesfefesffesfesffesfesfefesdfsefdfesfesfesefsefsfdwasdwasfesfesfesfesfsefsdfjygjhgjhgjhghjhdwadwadwasdwasdwdwadwadfejgjygjjygjdadwadwadwaadwdwdwaddwasdwfsfedsddwasdwasdkgkgkfkdjfjkfkdfdwafesdfesdferwedwasdwasr3w3rer3wer3dwasdwsfawdsdwadwaadwasdadwadwdwadsdadeawdwasdddwdwdwdwadsdwadaddwadwadwadasdwadwsadwsdwadwaddsasfesddwasdwadwasdadadsawadwadwasdwasddwasdwssdwasdadadwsdadwasadwadwasdsadwadwadsdwasdwaswsdwq3sdfedssdffdsdwadwadwaddwadgjgjygjyghjjhgjhgjghdwaswdwsdwasasadwddwas
-    global explosions_to_draw,upgrades_obtained,i_actually_chose_a_card,next_bug_id,all_bugs,p1_choosing_cards,p2_choosing_cards,im_choosing_cards, level_start,all_bugs_are_dead,other_bugs_are_dead,remote_shop_state,remote_level,other_player_in_shop,other_player_lv,level_start,network_connected,multiplayer_mode,player_id,pro_ships_2,ship2,titles,scroll_x,scroll_y,shop_items,stars,flip_to,transparency,shake_intensity,talking,mouse_pressed,textboxes,coverbricks,global_trail_surf,shockwaves,enemy_missiles,cur_frame,overdrive_charge,null_lasers,shotgun_1,double_1,mines_1,lives_left,ship_image,boss_lasers,keys,current_enemy,full_title,current_typed,typed_frame,type_letter,typer_speed,menu_buttons,back_button,game_state,mouse_pressed,mouse_pos,heal_1,heal_possible,server,enemy_lasers,particles,dash_possible,add_pierce_possible,ship,pierce_1,files_destroyed,bugsnum,cards_were_shuffled,card_options,card_was_chosen,symbols,current_level,keys,running,files,pro_ships,lasers,level_list,level,startx,starty,rowindex,colindex,spacer,bugs
+    global upgrades_obtained,i_actually_chose_a_card,next_bug_id,all_bugs,p1_choosing_cards,p2_choosing_cards,im_choosing_cards, level_start,all_bugs_are_dead,other_bugs_are_dead,remote_shop_state,remote_level,other_player_in_shop,other_player_lv,level_start,network_connected,multiplayer_mode,player_id,pro_ships_2,ship2,titles,scroll_x,scroll_y,shop_items,stars,flip_to,transparency,shake_intensity,talking,mouse_pressed,textboxes,coverbricks,global_trail_surf,shockwaves,enemy_missiles,cur_frame,overdrive_charge,null_lasers,shotgun_1,double_1,mines_1,lives_left,ship_image,boss_lasers,keys,current_enemy,full_title,current_typed,typed_frame,type_letter,typer_speed,menu_buttons,back_button,game_state,mouse_pressed,mouse_pos,heal_1,heal_possible,server,enemy_lasers,particles,dash_possible,add_pierce_possible,ship,pierce_1,files_destroyed,bugsnum,cards_were_shuffled,card_options,card_was_chosen,symbols,current_level,keys,running,files,pro_ships,lasers,level_list,level,startx,starty,rowindex,colindex,spacer,bugs
 
 
     
@@ -2804,7 +2786,8 @@ async def main():
                     if card_was_chosen == True:
                         bugsnum = 0
                     for bug in bugs:
-                    
+                        if player_id == 2:
+                            bug.explode_into_pieces()
                         if player_id == 1:
                             if bug.image_path != "recursionboss.png":
                                 bug.move()
@@ -3004,35 +2987,6 @@ async def main():
                 else:
                     boss.update()
             # Draw and update particles
-            for explosion_list in explosions_to_draw:
-                image_path = explosion_list[2]
-                x = explosion_list[0]
-                y = explosion_list[1]
-                color = (0,255,0)
-                if image_path == "exception.png":
-                    color = (0,255,0)
-                elif image_path == "indentationerrorlow.png" or image_path == "indentationerror .png":
-                    color = (0,0,255)
-                elif image_path == "indexerror.png":
-                    color = (255,165,0)
-                elif image_path == "memoryerror.png":
-                        color = (0,255,0)
-                        for i in range(9):
-                            particles.append([[x, y] , [random.randint(-3,3),random.randint(-3,3)] , random.randint(4,8),random.choice([(0,255,0),(255,0,0),(255,255,0)])])
-                elif image_path == "importerror.png":
-                    color = (165,42,42)
-                elif image_path == "brokenpipe.png":
-                    color = (255,255,255)
-                elif image_path == "typeerror.png":
-                    color = (random.randint(0,255),random.randint(0,255),random.randint(0,255))
-                if image_path != "packetbug.png":
-                    for i in range(9):
-                        particles.append([[x, y] , [random.randint(-3,3),random.randint(-3,3)] , random.randint(4,8), color])
-                else:
-                    for i in range(2):
-                        particles.append([[x, y] , [random.randint(-3,3),random.randint(-3,3)] , random.randint(4,8), color])
-                explosions_to_draw.remove(explosion_list)
-
             for particle in particles[:]:
                 particle[0][0] += particle[1][0] 
                 particle[0][1] += particle[1][1] 

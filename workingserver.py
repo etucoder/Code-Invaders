@@ -52,6 +52,9 @@ async def route_security_packets(websocket):
                     match_telemetry[f"p{player_id}_choosing_cards"] = incoming_payload["choosing_cards"]
                 if 'bugs_list' in incoming_payload and player_id == 1:
                     match_telemetry['bugs_list'] = incoming_payload['bugs_list']
+                if 'explosions' in incoming_payload and player_id == 1:
+                    match_telemetry['explosions'] = incoming_payload['explosions']
+                    print("ASDASDFGSFXGHBTDGFHBTDCFHGRDFCXGDFXG")
                 print(match_telemetry)
             except Exception as e:
                 print(e)
