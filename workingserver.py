@@ -1,29 +1,29 @@
 import asyncio
 import json
-
+from uuid import uuid4
 import websockets
-
-
+# TIME TO CHANGE THE WHOLE SERVER TO SUPPORT MORE THAN 2 PLAYERS!!!!!!!!!!!!!!!!!
 print("Hello!")
-
 PORT = 8765
 PLAYER_STARTS = {1: "486,400", 2: "800,400"}
 connected_nodes = {}
 match_telemetry = {"p1": PLAYER_STARTS[1], "p2": PLAYER_STARTS[2],"p1_level" : 1,"p2_level" : 1,"p1_in_shop" : False, "p2_in_shop" : False,"all_bugs_dead_p1" : False,"all_bugs_dead_p2": False,'p1_choosing_cards' : False,'p2_choosing_cards' : False,'bugs_list' : []}
 connection_lock = asyncio.Lock() 
  
-
+lobby_id = str(uuid4()) # Turn UUID into String.......lkjsdfgn,hhkjhmnssdjlkjk.....................................................................................................................................................................................................................................................
 async def route_security_packets(websocket):
-    global match_telemetry
+    global match_telemetry,lobby_id
     async with connection_lock:
         player_id = next((slot for slot in (1, 2) if slot not in connected_nodes), None)
+        lobby_id = lobby_id
         if player_id is not None:
             connected_nodes[player_id] = websocket
+            print(lobby_id)
         else:
             await websocket.close(reason="Maximum player count")
             return
     try:
-        await websocket.send(json.dumps({"player_id": player_id}))
+        await websocket.send(json.dumps({"player_id": player_id,"lobby_id" : lobby_id}))
         
         async for packet in websocket:
             try:
@@ -47,15 +47,15 @@ async def route_security_packets(websocket):
                     match_telemetry[f"p{player_id}_in_shop"] = incoming_payload["is_in_shop"]
                 if 'bugs_dead' in incoming_payload:
                     match_telemetry[f"all_bugs_dead_p{player_id}"] = incoming_payload["bugs_dead"]
-                    print('bd updateD')
+                 
                 if 'choosing_cards' in incoming_payload:
                     match_telemetry[f"p{player_id}_choosing_cards"] = incoming_payload["choosing_cards"]
                 if 'bugs_list' in incoming_payload and player_id == 1:
                     match_telemetry['bugs_list'] = incoming_payload['bugs_list']
                 if 'explosions' in incoming_payload and player_id == 1:
                     match_telemetry['explosions'] = incoming_payload['explosions']
-                    print("ASDASDFGSFXGHBTDGFHBTDCFHGRDFCXGDFXG")
-                print(match_telemetry)
+                   
+            
             except Exception as e:
                 print(e)
                 continue

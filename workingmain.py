@@ -7,6 +7,9 @@ import json
 import threading
 import time
 import sys
+from uuid import uuid4
+print(f"Platform : {sys.platform}")
+print("Started!")
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy()) # type: ignore
 remote_level = 0
@@ -19,6 +22,8 @@ network_thread_launched = False
 p1_coords = "400,600"
 p2_coords = "800,600"
 SERVER_URL = "ws://localhost:8765"
+#
+# SERVER_URL = "wss://code-invaders-server.onrender.com"
 pygame.init()
 pygame.font.init()
 font = pygame.font.SysFont(None,96)
@@ -42,7 +47,6 @@ small_explosion_sound.set_volume(0.07)
 click_sound = pygame.mixer.Sound("shortclick.ogg")
 laser_sound = pygame.mixer.Sound("laser.ogg")
 laser_sound.set_volume(0.15)
-# click_sound.set_volume(0.15) adddwdwasddwasddwasddwdasddwasddwadwasddwasdsdwdwasdasdwadwasdsdwffeddwasdwsdswfsddwasdwddwdwdwasdwasfddwadwadddsadwsdddwwsddasdwswsdwaswasdwafdwasdesdwasddsdfdsddwadswadwsdfedsdwasddwasddwasdwasdwadwasddwadwsddaswdwddwadwasddwswasgrgdfggfdwasddwafesdfdwaswasdddwfjyghjyghgwdwaswassddwaswadwasddwasddwasddadwasdwsrfdwdwasasddgddwasdwsdsawasdwasddwhadesdfsdwadfdwdfdefddfedsfdesfedsfedseds
 shake_intensity  =0
 game_canvas = pygame.Surface((WIDTH + 40,HEIGHT + 40),pygame.SRCALPHA)
 #### Menu Stuff #####
@@ -65,16 +69,21 @@ next_bug_id = 0
 network_bugs = {}
 explosions = []
 explosions_to_draw = []
-async def network_sync_loop(ship_reference):
+
+game_id = uuid4()
+
+
+async def network_sync_loop(ship_reference,game_id = 0):
     global explosions_to_draw, all_bugs_are_dead,other_bugs_are_dead,active_ws_connection,p1_coords,level_start, p2_coords, network_connected, game_state, player_id,ship,ship2,network_positions,multiplayer_mode,net_lock,pro_ships_2,pro_ships
     try:
+        print("Going to connect")
         async with websockets.connect(SERVER_URL,ping_interval=20,ping_timeout=20) as ws:
 
             active_ws_connection = ws
             
             handshake_data = await ws.recv()
             config_receipt = json.loads(handshake_data)
-            
+            print("CONNECTED")
             player_id = int(config_receipt["player_id"])
 
             multiplayer_mode = True
@@ -187,7 +196,6 @@ async def network_sync_loop(ship_reference):
 
                 except Exception as e:
                         print(f"[Receiving Error]: Exception {e} from player {player_id}")
-# asdadsgdhyjukiujhgfvdcfvbgnhdwdwadawsdsdasddrfc jdwadwsdwasdsddwaswasdwddwasddwasdCostdwdwsddwadwdadwddwasdwsdwasdaddwadwdwasdadwasdwaadwasdddwadwdwdassdmk,l.mdwllklklklkadwsdsdwasdddwaasddwaseffdawdsaddfdfddasdfdfdfnbmnddwaswdwasdwwdwadfeasddwdwasdasdddwasasddwasdwasddwadwadwaddwasdwasdasdwasddwasdwddasddwdwasdwasddwakjhskmjdwasdnhbgvfsqasbgnnkjhhmjdwasdk,mjnhbcbfgdgfdgjkj
 
             async def send_handler():
                 global explosions,card_was_chosen,p1_choosing_cards,p2_choosing_cards,im_choosing_cards,network_connected,outbound_events,net_lock,all_bugs_are_dead
@@ -204,7 +212,7 @@ async def network_sync_loop(ship_reference):
                         is_in_shop = False
                     if player_id == 1:
                         the_giant_list = []
-                        #  Create Explosions List, ADSADADSFadwdwadhugfwswsdwadsssssssssssssssssadwswswswswswswsssssdsdsssdsssssdsdsdfadadsasdwsasdwsasdasddwasdSDFSESDAADWADDWAsdfsdawdddwadwswwswswssdawswswsdadafesdwaadwadwSDSADWASDSDSDWASDAWDASDWSAS
+                        #  Create Explosions List
                         explosions_list = []
                         for bug in bugs:
                             all_attributes = [bug.rect.x,bug.rect.y,bug.w,bug.h,bug.image_num,bug.damage,bug.hp,bug.speed,bug.id,bug.y_speed]
@@ -228,7 +236,7 @@ async def network_sync_loop(ship_reference):
 
             await asyncio.gather(receive_handler(),send_handler())
             
-#dhkjghjhjhghjhgdwaddasassdddawdwasddwasdddwasdwasddasddwaddwasddwasdwadsdwdwaddwdwdasddwasdasddasdfesdfdwawasdfdwasdesfesdfesdfesfesfdwahkjhshkjjyghjgygfhfdawswafesddwsadfesdfdwasdwasdwasiuyxgfdgdfgfdgfdgfkjhhgfhhgfhhgfdwasdwadwasddwasddwasdwddwdwadwasdwasddwasdwasddwaddwasddwashghhhhhgfwasddwasddwadwadwddwasdwasdwasdwasdwasdwadwsdwadwsalkjkjhkjhjkjhkjjhjkjdgfdgfhgjhgjhgjhmnbmnbmnbmnbmnbmkjydwasddwasdfaddwasdgjhgjhghjhgjhgjhgjjhgjjhgfhgtfghgfdgfdgfdfdgfdDfhggfdgjhkjhkjhkjhkjkjhkkjhkjhjhgjhjhgafdfdsdsddwasddwasdshgfhgfghjhgdwasdwadwadwasddwasddwadwasjhgjgjhgjhgjhghhgfdfgfduytuytyuuytuuytuytwasdwadwasdwdwasddwasdWASDDWASDDWASDadadsdwadwasdwasddwasddwasdwasddwasdwadwasdsdwdadwaddwadwasdwasdwadadwasdsdsasqADWASDWASDDWASwasdwasddwasdwasddwasddwasddwasddwasdawddwasddwfhjugjyghjhghgjbmnbmjhjkjhdewSADWASDDWASDADWASDDWASDDWASDWADWASDWASDhgjhgjjhgjhggfdgfhggfggjhggjhgjhgjhghgasgjhghjhgjhghjhghgfdgfdghgfhhgfghdagjhgjhsfdsdhgfbvbwkjhuhkjhkjhkjhkjhkjhkjhafdsaadfdsjkjhkjhjkjhjhjhhhhhhhhhjhjhjhjkjkjdafsrgdrdwasdsfsfdtjhgjhhgfhtfhgfhgfnbvnbnbvnbasdwasddwasddwdwadwasdsdwsdwdwasdadwasdwasadwdsaasddwasddwasdxdsda asfedsdfeffesdf
+
     except Exception as e:
         print(f"Connection failed/closed : Error {e}")
         network_connected = False
@@ -270,7 +278,7 @@ class ShopItem:
         if self.image != None:
             self.image = pygame.image.load(self.image).convert_alpha()
             self.image = pygame.transform.scale(self.image,(72,72))
-            # game_canvas.blit(image,(WIDTH//2 - (image.width //2),200))
+           
     def draw(self,mouse_pos):
         nb = (160,32,240)
         global scroll_y,scroll_y
@@ -944,7 +952,6 @@ class Bug(pygame.sprite.Sprite):
         global explosions,bugs,enemy_lasers,current_level,ship,overdrive_charge,lasers,mines,cur_frame,shake_intensity,max_overdrive
         memory_error_alive = any(bug.image_path == "memoryerror.png" for bug in bugs)
         if memory_error_alive == True:
-            # waddwasddwasdwasddwadwaddwasdjlsdkdasdwasddwsddwasdwasddwjdwasddwasddwdwdwasddwasdasddwasddwddsdwgerfdgrfdwasddwasdwasddwasdadwdwasdasddwasdddwasdwaslassddwasddwadkadwdwasddwasdwdsadwssdwasddwasdwasddddwsdwasddwasdwasssddwwdawdsasddwasdwasdddwadsdasaswdsdwasdawdsdassasdasadasadaddwasddwasddwasddwdwgdrgfdfgrdwasdasdawdadwadwaddsqASwadwasddwasddwa
             self.image.set_alpha(100)
             self.y_speed = 0.5 * self.og_y_speed
             self.max_creation_cooldown = 200
@@ -985,7 +992,6 @@ class Bug(pygame.sprite.Sprite):
                 self.y_speed = 0.5 * self.og_y_speed
         if self.hp <= 0:
             global explosions
-            # Add explosion list here (x,y,color,pixels) ,(Hope this wodwasdgdwasdwasdwadwsadwasddwasddwasdrfghvcvbgcvhfhtdgrdwasdkjdwasdwasdawdadsdwasdhkjhjkjhjm,nmnbvgkhkadsjdawsdhhdassdwasddsdsddsdsdfasdasdsdkaasaadsadsasadadasdkjhjhjygkjhdaswdsdawdwasdddsaalkjlkdadwsdsjddsadasdwadwasddwasdwasdwaslkkkjwasdjhgyjhgjhgjygjhgnbvhnbjhkuhkjhkjkhkjhkjhkjhkjkjhkjhkjhkhghgsjlkjhkjhkfhgjhgsgfdgdhkjhhkjhjkjlkifghfhgffhgfhgfhgfghgfgjhghjkjhkjhkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkhhhhhhhhhjhkjhuhkjvbmbbjjlkjklkjlkj;lk;lkjk;;;lks) diuyiuiuyyuiuyiuyiuyiuyiuyiuyyudasdsaddawdaskjhkjhkjhjhjhwkjhkjjlkjllkjllkjkjhkjhkjkjhhkjhkjhkjhd;lk;;lk;lkllkjlkjjlkjwlkjkldwasasasdsasddwasddwalkjlkjksdwasdwdjhhdfesdfdwasdasddwasddwasdssddwasdwaskjhkhkjhjhjhggghhhhhhhhhhhjkhkjhkjhhgjgjglkjlgfhjhhgjhgbfcvbcdbfcvxwdhhftfghtdhtgbvcbdddadwasdwasdasddsdwdwadasdsddasddwasddwadwasasddwasddddawdsdswdasdasddasddwasddasdwjhdwasdkuhdwasduhhukujhddwasddasdsggdhyrasdddasdwdsaddadwdasdsdwasdasddhkjhdaskjjjhjhwasdwsdwasdio8yuyuiuigyugjhkjhawasdawdadsasdwasdwasdddfekjhujhdfesddaddwasadwasdajshdkashdkaksdalskkdjaslkddwsasdwasdwasdwdwdasdwsaswdwsdwawdwasddwasdasddwadwasddddwwdwasddwaswasddwasddsasddwadwasddwadwadwsassddwadwsdsasdwsadwdwadwasdwasddwdsadwasdwasadwasddwadwasdsdadwasdwaswdwasdaddwasfesdfwadwasdddwdwasdddwasdwdwasasdwaswdwaddwaswdsasdwasddwasdwasdwasddwadddasddwadwadwasdwwasddwadwasddwaddwassddwasddwasdwasddwasdfesddwdddwasdwaswdwasddwasdwsasddffesdfwadwasdsdasdwasddwdwasdswasdwadwasdsdddwasddwasdwasdfesdfewfeswddwassasdwdsadwddwasdwasdwasds
             color = (255,0,0)
             type_of_explosion = self.image_path
             explosion = [self.rect.x,self.rect.y,type_of_explosion] 
@@ -2455,9 +2461,9 @@ async def main():
             other_player_lv = level_start["p1_lv"]
             other_player_in_shop = level_start["p1_inshop"] 
         if game_state == 5 and multiplayer_mode == False:
-              
-                multiplayer_mode = True
-                launch_network_thread(ship)
+            multiplayer_mode = True
+            launch_network_thread(ship)
+            print("P2 LAUNCHED")
 
 
         mouseclicked = False
@@ -3093,3 +3099,4 @@ async def main():
 asyncio.run(main())
 
 
+#douiiidwasdwdwaedwadwasdwasdwadwasdsdwasdwadwdwasddwadwaadwasddwasddwdwadwadwadsdwasddwasddwasdwasddwasdwasddwadwsdwasdwuydwdwasdsdwadddadsbvcbfcvbfdgrdgffefesffesfesfesdfesfesdfesfesdfesffesddwasdwasdwadwasde2e2qwdwasdwsdwaddwadwasddwasddwasddwadwasdwasdwaddwasyuidwaddwasdfesfesfesfesffesdfdwadwasdwadwadwawsdwasffesdfedsdfeddwasdwadwsdwadwasdwadesdfesddwasukjhmnbnmkhje2qwedwasddwadwadwsasddwadwasddwasdhkjhkjhjkhjkjhkhkjh,m,,mn,ngjgmnbbmmnbnmmnmjhgjhjhgjgjhgkkhjkkjhkhjhkjhkjmnbnmnbnbkjhujhkjhkgfesdioioiuhkjhkjhkjhkjhjhkjhkjhkjhkjhjhjkjhjhkjhkjkkjhkjhioiuiiuiuoiuoooiuoiuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuoiuijuoiuoiuiyiuyyiuiuyiuiuyiuyiuyuyuuykkjhjjhgjhgjjhgjhgkjhkjhjjhjkjhkjhkhkjhoiuoiuoiuoiuooiuoiukjkjhjhljljlljlkjkhkjhkjhkkjhkjcvfthgfdrgfdkjhjkjoiuoiooiuoiuoiuooiuoiuoiuoiuokjhkjkjkjhjlkjkjjhjgjjhgjhgkjjhhljkmnbnmlkjklkhkjhjmnbhgyjkjhjhkjhjkjhkjhjhkjkmnbkjhmnbhghgkjjhgjhjhgjhghhgfdjhnhkhkjkjhkkjhkjkjhjkjhjhghkjhkjhkjhjkkjhjjhgdwdwhkjhkjhkhkikjhjkjhkjhkjhkjhfjhgnbvnbvnbvhhjhygjhgkjhkjjlkjkjlkjkuhkuhdwasdwasfesddwadwaddwasddwasdwadzvfdfesfesdfdhtfghgrhdgrfkjhkjkjhjhaadwadwdwadwaddwadsdwdwasgrdwdwasfxvxvdcxvdcvdcxdwasdfsfesfesddwdwadwadwadwawdwdwasdwadsdwadwadwadwadwafsfesdfaddwasdwfesdeadswdwadwadwdwadwadwdgrhfggrsfesgcbcbgdgrdggrdfetyytrtydwadadwaddwadwadwfsfesffesdfeefesfdffesfefesfesfesdwajgjhkjhjhgjhjhjhgjhgjhghgjhgkjjhgnhkjhkhkjhkjhkjjhjmnbgjiuytuyuytmmbbhggnbvcbfhgfhfhgffhgfhggghgfvnbbvnvjgjhgjhghkjkjhkkjhjgjhgjhgjjhgjjhkkhmnbbmvnbhvnhvnbvnbvjhgjjhgjhgjjgjhgjhgddwddwadwasddwadwadwasdswasdaddwasdwadaddddwasddwasdwdwadasdwdwadwaasdwswasddwadwasddwasdwwasddwasdwadfesdwasdsddwdwasadzxczxcwasdgrgfddwadwasdwasdsddwasddasdwasdwadwdwadzfdwasdwadwasddwasdsdsadexcdwasdadwdwadwadwadwacdwasdadwasdwdwadsdssdsvxvcxvdxckjhkjkjhkjkjhkdwfsffffjhkhkkjhkjhkkjhjkjhkjhjhwadsddwdddddddddzv xzdcszcszxcdddddddddccbmnbmnccbnnwddadwasdfxcvfxvsdfxcdvczxscxzcsxwgtfesfesfdwafesfdaddddwasddwadwawadvnbvndwaasdsdgjhdwadsdwadwgjhgjhgmmnliulkjnljklkjbnmjkjhkhnmliukjhdwaddwadjyghjgvcwetretretretrertergjhgkjhvnbvhgfcvbvcwaddwadhfggugdwaddwadwadwasfhgyuydhdwddwdwasdwasdzcxdwadwasdwadwadwadwadwaswadwdwadwadwadwasdsdsddwasddwakjdwadwadsadwadwdwdadwadwadwdwasddwadssadwsdwafxczxsdwasddwasddwddadwadawadhkjhjhwadwadsdsasdwaddwdddwasdwddwdwddwadwaddwadwdwasddfesdwadsdwadsdwadsccszcszxcadswddwasddwasasddwadwasdnvnbvnngjhgjdwasdhghdwcbdwasdwaddwadsvcbadwadwasdwasdhfdawdadddwasdfkjhkjhsfdwdczfdxdwawasdwasdwadwwasdsdlkjlkcvdadwadwdxvcvddvbbmnbmnbvb mjsadwasdwaffdwaswadwdwdwdwaddwadwagtdwadzcsdwasjkdwadwasdwddwadwasaugjykhujnnbjkhuiydjugydrgdfdagdgrfasdwasddwadwdwdwasdasdwasddwaadzcdwadwadwadwadwadwadddwasddadwasddwadwasdwadwasddwasdwasdwaszxcfesdffefesfdwadwadfsfdwasddzcxsdcxzdwasdadwadwasdwdwasdkuyhhkuhjfsdfghjnvbvwesrtyufsfesffesddwasddwasdddjghjdsdsdwasddwasdwadwafeddwasdsdwadwasdwadwadwasddwafesfdsdfsdfddgijghnbtrfdwesdqwaserwfdyjhuikjkjwadwadwdawaaavbndwdwadwasddwadwadwasddwasdaszvxcjuygdwasdzcsdwafedwasdwadwadwasdwadwdwdwaddxcvxcvxvdxvdxvchhfnbvbnvbngurtfhfgdwzxzcsxcsvfesvxcvvnhm,jjhkuhgfhdfghbvngrdwasdwasdzcszxdwasdyjghbdwaddzclkjsuhygbvvnvbnghtjkidwadwasddwadczcsxdwaddzczhbmnhjgyhjgxvdcvdxcvdxcbdgrfsdfgjuihjdwdwadwasddwadwasddwadwxfhghnvbnasddwadsdwdwadwadwafzxczscgryfghdwadsadwaasddwadwadwadwasdddwasdwadwasdwasddwasytuhgikhdfwadsadwasdwawadwadsadwadwadwaddwaadwadwadwdwadwajerdgfwhkjhdwasdasddgfyghjgbndwadxcvbnmnbvcsdjgjhdwasdghghkkjhkjfghaddwaddwadwasddwadwasddwadwadwwadwadsdawdaszxvxcdwadwadwadwdwadssqSQsddwkhk

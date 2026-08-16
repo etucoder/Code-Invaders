@@ -14,12 +14,12 @@ X-GitHub-Request-Id: 5FAA:1A987F:866F28:8F577F:6A7E313B
 x-github-edge-region: iad
 Accept-Ranges: bytes
 Age: 0
-Date: Fri, 14 Aug 2026 00:20:28 GMT
+Date: Fri, 14 Aug 2026 01:09:55 GMT
 Via: 1.1 varnish
-X-Served-By: cache-dfw-kdal2120030-DFW
+X-Served-By: cache-dfw-kdal2120108-DFW
 X-Cache: HIT
 X-Cache-Hits: 0
-X-Timer: S1786666829.818876,VS0,VE43
+X-Timer: S1786669796.524377,VS0,VE40
 Vary: Accept-Encoding
-X-Fastly-Request-ID: 365b1ba6ee6e9f2891ff437f26c5cf6781a7d57d
+X-Fastly-Request-ID: 4ee90fbd97e795974ed62e360f7cc8a6bc57e750
 
