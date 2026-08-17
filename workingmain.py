@@ -85,7 +85,8 @@ async def network_sync_loop(ship_reference,game_id = 0):
             config_receipt = json.loads(handshake_data)
             print("CONNECTED")
             player_id = int(config_receipt["player_id"])
-
+            lobby_id = config_receipt["lobby_id"]
+            print(f"Lobby ID : {lobby_id}")
             multiplayer_mode = True
             network_connected = True
             if player_id == 1:
@@ -98,8 +99,8 @@ async def network_sync_loop(ship_reference,game_id = 0):
                 print(player_id)
     
             network_connected = True
-            game_state =   1
-            #### Receive the stuff 3/4 working #######
+            game_state =  1
+            ################################################################################### Receive the stuff (somehow working) ################AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA########
             async def receive_handler():
                 global explosions_to_draw,bugs,network_positions,lasers,net_lock,incoming_remote_lasers,level_start,p1_choosing_cards,p2_choosing_cards
                 try:
@@ -144,7 +145,7 @@ async def network_sync_loop(ship_reference,game_id = 0):
                         with net_lock:
                             p1_choosing_cards = global_match_state.get('p1_choosing_cards', False)
                             p2_choosing_cards = global_match_state.get('p2_choosing_cards', False)
-                        # Copies player 1 so sync works (right?)  dfeskkjhkjhgghfhgdfddwasddawdsddwasdadwasawadwasddwdadwadsddwasashddwaswasdsdwaskjhdwasddwasddwasdjkjhsdasjkdkjhkjhjawdsafrgtdwasdhdwasdasdaasddwasdfg
+                        # Copies player 1 so sync works (right?)  dfdeskkjhkjhgghfhgdfddwasddawdsddwasdadwasawadwasddwdadwadsddwasashddwaswasdsdwaskjhdwasddwasddwasdjkjhsdasjkdkjhkjhjawdsafrgtdwasdhdwasdasdaasddwasdfg
                             if player_id == 2:
                                 received_ids = set()
 
