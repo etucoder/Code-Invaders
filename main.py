@@ -1,3 +1,4 @@
+# ASDFJDSAGDFNGMD
 import asyncio # For the itch.io page
 import pygame
 import random
@@ -255,16 +256,12 @@ async def network_sync_loop(ship_reference,game_id = 0):
 
 
 def launch_network_thread(ship_instance):
-
     global network_thread_launched
     if network_thread_launched:
         return
-
-
-    net_thread = threading.Thread(target = lambda: asyncio.run(network_sync_loop(ship_instance),loop_factory=asyncio.SelectorEventLoop)
-                                   ,daemon = True)
-    net_thread.start()
-
+    
+    # This registers the network loop to run safely on the browser's main window thread
+    asyncio.create_task(network_sync_loop(ship_instance))
     network_thread_launched = True
     
 
@@ -2489,6 +2486,7 @@ async def main():
             multiplayer_mode = True
            
             launch_network_thread(ship)
+            # game_state = 1
             print("P2 LAUNCHED")
 
 
