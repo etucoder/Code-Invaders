@@ -2467,6 +2467,7 @@ the_lobby_frame = 0
 the_lobby_cooldown = 10
 attempt_num = 0
 mouse_spark_color = (0,255,0)
+speed_add_for_minigame = 0
 async def main():
     
     global mouse_spark_color,game_canvas_color,explosions_to_draw,upgrades_obtained,i_actually_chose_a_card,next_bug_id,all_bugs,p1_choosing_cards,p2_choosing_cards,im_choosing_cards, level_start,all_bugs_are_dead,other_bugs_are_dead,remote_shop_state,remote_level,other_player_in_shop,other_player_lv,level_start,network_connected,multiplayer_mode,player_id,pro_ships_2,ship2,titles,scroll_x,scroll_y,shop_items,stars,flip_to,transparency,shake_intensity,talking,mouse_pressed,textboxes,coverbricks,global_trail_surf,shockwaves,enemy_missiles,cur_frame,overdrive_charge,null_lasers,shotgun_1,double_1,mines_1,lives_left,ship_image,boss_lasers,keys,current_enemy,full_title,current_typed,typed_frame,type_letter,typer_speed,menu_buttons,back_button,game_state,mouse_pressed,mouse_pos,heal_1,heal_possible,server,enemy_lasers,particles,dash_possible,add_pierce_possible,ship,pierce_1,files_destroyed,bugsnum,cards_were_shuffled,card_options,card_was_chosen,symbols,current_level,keys,running,files,pro_ships,lasers,level_list,level,startx,starty,rowindex,colindex,spacer,bugs
@@ -2499,7 +2500,7 @@ async def main():
             if particles.__len__() <= 90:
                 for i in range(1):
                     particles.append([[random.randint(0,WIDTH), random.randint(0,HEIGHT)] , [random.randint(-2,2),random.randint(-2,2)] , random.randint(6,6),random.choice([(255,0,0),(0,255,0),(0,0,255)])])
-            level = [["i","i","i","i","i","i","i","i","i","i"],["x","i","e","e","e","e","e","e","i","x"],["x","i","e","e","e","e","e","e","i","x"],["x","i","e","e","e","e","e","e","i","x"],["x","i","e","e","e","e","e","e","i","x"],["x","i","e","e","e","e","e","e","i","x"],["x","x","x","x","x","x","x","x","x","x"]]                
+            level = [["i","i","i","i","i","i","i"],["x","i","e","e","e","i","x"],["x","i","e","e","e","i","x"],["x","i","e","e","e","i","x"],["x","i","e","e","e","i","x"],["x","x","x","x","x","x","x"]]                
         mouse_pressed = pygame.mouse.get_pressed()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -3188,6 +3189,7 @@ async def main():
             startx = 0 
             starty = 0
             if bugs.__len__() == 0:
+                global speed_add_for_minigame
                 startx = (WIDTH // 2) - ((len(level[0]) / 2) * spacer)
                 colindex = 0
                 # Draws the enemies based  
@@ -3195,13 +3197,13 @@ async def main():
                     for exception in row:
                         # Draws the basic exception enemy 
                         if exception == "e":
-                            bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,0,1,1,1,y_speed=0.25,id = next_bug_id)
+                            bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,0,1,1,1,y_speed=0.2+speed_add_for_minigame,id = next_bug_id)
                         # Draws the mini-tank indentation error enem
                         elif exception == "i":
-                            bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,1,1.5,3,0.8,y_speed = 0.25,id = next_bug_id)
+                            bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,1,1.5,3,0.8,y_speed = 0.2+speed_add_for_minigame,id = next_bug_id)
                         # Draws the fast, rusher exception error
                         elif exception == "x":
-                            bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,2,1,1,1,y_speed = 0.5,id = next_bug_id)
+                            bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,2,1,1,1,y_speed = 0.4+speed_add_for_minigame*2,id = next_bug_id)
                         # Draws the tanky supporting memory error
                         elif exception == "m":
                             bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,3,3,7,0.4,y_speed = 0.2,id = next_bug_id)
@@ -3252,6 +3254,7 @@ async def main():
                         next_bug_id += 1
                     colindex -= spacer
                     rowindex = 0
+                speed_add_for_minigame += 0.05
                 for bug in bugs:
                     all_bugs.append(bug)
             bugs.draw(game_canvas)
