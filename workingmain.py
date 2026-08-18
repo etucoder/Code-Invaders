@@ -7,6 +7,14 @@ import json
 import threading
 import time
 import sys
+text_to_type,text_index,text_line = "",0,0
+keep_this_text = []
+# 150 Hours ! Yay!
+# Updates
+### Multiplayer : Working 
+#### Issues : Game starts without player 2 joining... May be easy to fix... or not...
+#### Multi-Lobbies Working!
+#### Add loading screen so player dont get confused.....
 from uuid import uuid4
 print(f"Platform : {sys.platform}")
 print("Started!")
@@ -74,6 +82,7 @@ game_id = uuid4()
 
 
 async def network_sync_loop(ship_reference,game_id = 0):
+    await asyncio.sleep(3)
     global explosions_to_draw, all_bugs_are_dead,other_bugs_are_dead,active_ws_connection,p1_coords,level_start, p2_coords, network_connected, game_state, player_id,ship,ship2,network_positions,multiplayer_mode,net_lock,pro_ships_2,pro_ships
     try:
         print("Going to connect")
@@ -137,7 +146,7 @@ async def network_sync_loop(ship_reference,game_id = 0):
                             p1_shop = global_match_state.get('p1_in_shop',False)
                             p2_shop = global_match_state.get('p2_in_shop',False)
           
-#f
+
                             level_start["p2_lv"] = p2_lv
                             level_start["p2_inshop"] = p2_shop
                             level_start["p1_lv"] = p1_lv
@@ -145,7 +154,7 @@ async def network_sync_loop(ship_reference,game_id = 0):
                         with net_lock:
                             p1_choosing_cards = global_match_state.get('p1_choosing_cards', False)
                             p2_choosing_cards = global_match_state.get('p2_choosing_cards', False)
-                        # Copies player 1 so sync works (right?)  dfdeskkjhkjhgghfhgdfddwasddawdsddwasdadwasawadwasddwdadwadsddwasashddwaswasdsdwaskjhdwasddwasddwasdjkjhsdasjkdkjhkjhjawdsafrgtdwasdhdwasdasdaasddwasdfg
+                        # Copies player 1 so sync works (right?) 
                             if player_id == 2:
                                 received_ids = set()
 
@@ -657,7 +666,7 @@ class Textbox():
         text_surface = self.font.render(self.current_text,True,self.text_color)
         surface.blit(text_surface,(self.box_rect.x + 20,self.box_rect.y + 55))
 
-
+turn_button_teal = [False,False,False,False,False]
 class MenuButton():
     def __init__(self,text,center_x,center_y,width,height,target_state,color = (30,30,35)):
         self.text = text
@@ -670,12 +679,21 @@ class MenuButton():
         self.idle_color = color
         self.hover_color = (0,180,255)
     def draw(self,game_canvas,font,mousepos):
+        global mouse_spark_color
         the_color = (0,0,0)
+        
+        mousepos = (mouse_pos[0] + 25,mouse_pos[1] + 25)
         if self.rect.collidepoint(mousepos):
             the_color = self.hover_color
+            mouse_spark_color = self.hover_color
+            turn_button_teal[self.target_state-1] = True
         else:
             the_color = self.idle_color
-
+            turn_button_teal[self.target_state-1] = False
+        if turn_button_teal.__contains__(True):
+            mouse_spark_color = self.hover_color
+        else:
+            mouse_spark_color = (0,255,255)
         pygame.draw.rect(game_canvas,the_color,self.rect,border_radius=8)
         pygame.draw.rect(game_canvas,(255,255,255),self.rect,width=2,border_radius=8)
 
@@ -689,7 +707,7 @@ class MenuButton():
         return False
 
 
-##### Game Stuff #####f
+##### Game Stuff #####
 # ########### SHIPPY ########## 
 class Ship(pygame.sprite.Sprite):
     def __init__(self,x,y,w,h,image_path,damage,hp = 10,speed = 6,knockback = 0,pierce = 0):
@@ -1206,8 +1224,7 @@ class Bug(pygame.sprite.Sprite):
                     self.hp -= laser.damage
 
         if self.hp <= 0:
-            print("WWWhkjdwahkjhjhkjjhsddwaswddwasdwdwasdsdwdasaddwasddwasdhkjhkjhdwasdwasddwdwasddwasdwasdhkdawdala;lskdw;lslkldad;ldsasjhkWWWWWdwWWnkjhdwasdgjhghjhgkjdwashkjhdhWWWWWWdwasdwadlkljklkjlkjkjwasdadrdgddsdfsdsdwasdassawwdasadwaskjhjWADASDEFSFDF")
-            for i in range(4):
+             for i in range(4):
                 particle = [[self.rect.centerx, self.rect.centery] , [random.randint(-4,4),random.randint(-4,4)] , random.randint(3,8), (255,0,0)]
                 particles.append(particle)
                 
@@ -1436,7 +1453,7 @@ class Laser(pygame.rect.Rect):
                 lasers.remove(self)
         for bug in bugs:
             if self.colliderect(bug.rect):
-                if self.pierce <= 0 or bug.hp > 0 : #ASdsadasddsasf
+                if self.pierce <= 0 or bug.hp > 0 : 
                     if self in lasers:
                         lasers.remove(self)
                     bug.hp -= self.damage
@@ -1449,7 +1466,7 @@ class Laser(pygame.rect.Rect):
             lasers.remove(self)
             coord_pairs = [(-4.24,4.24),(-3.00,5.20),(-1.55,5.80),(0.00,6.00),(1.55,5.80),(3.00,5.20),(4.24,4.24)]
 
-        # addwwadwasdwdwsasdsdsdwasdwdddwadswaadssdwdwasdadwasdgffjwdsdasddddwasddwasdfdwasdfesdfddwasddwwasdasddwasdwswasddwsdwasdwasddsfghfdwadsdwsaddwdwfgrfedwasddwasdsfedwaddwasdwawdddhjkdsdwdasddwasddwdwasdaddwasddwadwasdsdddwasdddddddddddddddddddddddddddwasdwadwassdwasddadsgdfgdwddsfsedwsasdasdfdwasfedddwdwadgthtghgjdwasddwsysddwsdadwasdwasdwasdsdasdwsddwadsasdasddwasddwdwasdasddwddwasdsdwasdwdwsdasddsdwadwsdsadsdwaswdwasdadasdwdwasdwsdasdwdwasasdwsdwasddsdwasddwadwasdwasddasdwasdwadwasdwassdasdddwaswasddwddwasdwsdwasddssdddasdwdwasdasdwasddwasdwdwasdgddwadwasdwassddsddwasdddfhfghfghffddwasddsddwasdwasdsddwasdwasddwasddsawdasassdwfsdfdfdwdwasdadwsdsdwdawsddwadwasddsddwasddwsdasddwasdsddasdwdwasddsdsdsasdasdwaddasddwasdwasdsdsasddwasdfsddsaasddwadwassdsawasdsdwasdwasdwasddwasddwadwasddwasddf
+       
 class FileTower(pygame.sprite.Sprite):
     def __init__(self, x,y,w,h,image_path,hp):
         super().__init__()
@@ -2446,9 +2463,13 @@ other_bugs_are_dead = False
 all_bugs = []
 
 upgrades_obtained = 0
+the_lobby_frame = 0
+the_lobby_cooldown = 10
+attempt_num = 0
+mouse_spark_color = (0,255,0)
 async def main():
-    #adwsddwdwadwasdwdclkjlkj,mnjhgdgvcbvcbvcbvcbvcbvbvcvbcbvcbvcbvghgfhgfbvcjkjhkjhkjhkjhggdssdfcgvhbjlkjm,nskjlkigjhgzxcszxddfeddwaslkjlilijlijljlilkjdslkjlkjkjhghjhgjjjjhgjhgjjjhgjjjjjghhgkjhukjjhffesdwasrertfesdfdsdferttretrfesdfete4et4etdawsdwasfesdfwasddwasdwdadwdasddawvdxvcxvdadwasdxasdwafseffesfsffehfthtadwsadwdwdwasddwasddwdwasfesdffesdfesdfeasddwafefesdsdgrdffesdfesdfwfesfesfhgdfgrgrdgrgrdfesasddwadwdwfesdgrdgfadsssaxcvdxcdwaswfefsdfdwasesfesddlkjldwasdwadwadswasdwasdakjldwaddwakdwasdwadwadwadjlkadsjlkkiuyuyudwadwaddwasyiuyuiuywase2qwe2klkqe2qe2fesdfesfesfesddwasdwadwaskjkjkjhkjkjhkjhjkjhwasdwasfesdsddwsdwasdcszcszcszxcsdzszcsxcszxcxsgdrfgrfddfrggrfddfrggrfddfrdrgfdrgffgrdadwasdwadwasdwasdwasdwadsadwsadwdwdasdadwdwasdwadwasdwasasdwasdwasdasddwafegrgthydwasdwasdwasczdwadsdddwafessdfeferjuhjhgjyghfesdfesfdwddwassdwasdwasddwasdwdwasdwasdwasdwasddwadsdwadsaddwadwaddwasdwasdsadwxdwase2qe2fsefesfdsdffsfesdffesfefsdfdsdffddwadwadwadaddwasasddwaadwwdawdwasdasddwasdadwadwdwwdwaddwadwasdddwsdwasdaasddwasdwadwasdwasdfesdffesdfesadwsadwadssdawsdwaddwadwadwasdsddwadwadwadwasddwasdwasddwawsdwfesfesfesfefesfesfdwadwadwdasdwadwasddsadsadwaddwasdadddwawdwadwadwaadwadwdsafedwasdwdwadwadwadaadadwsadaddadwddadwadwadwadwadwadwaddwadadwaddwaddwdadwadwaddadwsdadwsawdwadwaddwasdwadwadwadwasddwasddwadwaadwadwdwadsddwasdwaddwadwadwadwadadwadwadfesdfdyrtyryry5yawffmfes;lk;kffsljfdkfledfelfesfesfesffesfeffefsfeswasdasdwadddwasdwadwadwawafesfesfedwadwdwasddwadwaswasdwafesfesfefesffesfesffesfesfefesdfsefdfesfesfesefsefsfdwasdwasfesfesfesfesfsefsdfjygjhgjhgjhghjhdwadwadwasdwasdwdwadwadfejgjygjjygjdadwadwadwaadwdwdwaddwasdwfsfedsddwasdwasdkgkgkfkdjfjkfkdfdwafesdfesdferwedwasdwasr3w3rer3wer3dwasdwsfawdsdwadwaadwasdadwadwdwadsdadeawdwasdddwdwdwdwadsdwadaddwadwadwadasdwadwsadwsdwadwaddsasfesddwasdwadwasdadadsawadwadwasdwasddwasdwssdwasdadadwsdadwasadwadwasdsadwadwadsdwasdwaswsdwq3sdfedssdffdsdwadwadwaddwadgjgjygjyghjjhgjhgjghdwaswdwsdwasasadwddwas
-    global explosions_to_draw,upgrades_obtained,i_actually_chose_a_card,next_bug_id,all_bugs,p1_choosing_cards,p2_choosing_cards,im_choosing_cards, level_start,all_bugs_are_dead,other_bugs_are_dead,remote_shop_state,remote_level,other_player_in_shop,other_player_lv,level_start,network_connected,multiplayer_mode,player_id,pro_ships_2,ship2,titles,scroll_x,scroll_y,shop_items,stars,flip_to,transparency,shake_intensity,talking,mouse_pressed,textboxes,coverbricks,global_trail_surf,shockwaves,enemy_missiles,cur_frame,overdrive_charge,null_lasers,shotgun_1,double_1,mines_1,lives_left,ship_image,boss_lasers,keys,current_enemy,full_title,current_typed,typed_frame,type_letter,typer_speed,menu_buttons,back_button,game_state,mouse_pressed,mouse_pos,heal_1,heal_possible,server,enemy_lasers,particles,dash_possible,add_pierce_possible,ship,pierce_1,files_destroyed,bugsnum,cards_were_shuffled,card_options,card_was_chosen,symbols,current_level,keys,running,files,pro_ships,lasers,level_list,level,startx,starty,rowindex,colindex,spacer,bugs
+    
+    global mouse_spark_color,game_canvas_color,explosions_to_draw,upgrades_obtained,i_actually_chose_a_card,next_bug_id,all_bugs,p1_choosing_cards,p2_choosing_cards,im_choosing_cards, level_start,all_bugs_are_dead,other_bugs_are_dead,remote_shop_state,remote_level,other_player_in_shop,other_player_lv,level_start,network_connected,multiplayer_mode,player_id,pro_ships_2,ship2,titles,scroll_x,scroll_y,shop_items,stars,flip_to,transparency,shake_intensity,talking,mouse_pressed,textboxes,coverbricks,global_trail_surf,shockwaves,enemy_missiles,cur_frame,overdrive_charge,null_lasers,shotgun_1,double_1,mines_1,lives_left,ship_image,boss_lasers,keys,current_enemy,full_title,current_typed,typed_frame,type_letter,typer_speed,menu_buttons,back_button,game_state,mouse_pressed,mouse_pos,heal_1,heal_possible,server,enemy_lasers,particles,dash_possible,add_pierce_possible,ship,pierce_1,files_destroyed,bugsnum,cards_were_shuffled,card_options,card_was_chosen,symbols,current_level,keys,running,files,pro_ships,lasers,level_list,level,startx,starty,rowindex,colindex,spacer,bugs
 
 
     
@@ -2461,8 +2482,10 @@ async def main():
         elif player_id == 2:
             other_player_lv = level_start["p1_lv"]
             other_player_in_shop = level_start["p1_inshop"] 
+        # GAME STATE 5
         if game_state == 5 and multiplayer_mode == False:
             multiplayer_mode = True
+           
             launch_network_thread(ship)
             print("P2 LAUNCHED")
 
@@ -2470,6 +2493,13 @@ async def main():
         mouseclicked = False
         clock.tick(FPS)
         mouse_pos = pygame.mouse.get_pos()
+        if game_state == 0:
+            for i in range(1):
+                particles.append([[mouse_pos[0]+25, mouse_pos[1]+25] , [random.randint(-2,2),random.randint(-2,2)] , random.randint(3,8),mouse_spark_color])
+            if particles.__len__() <= 90:
+                for i in range(1):
+                    particles.append([[random.randint(0,WIDTH), random.randint(0,HEIGHT)] , [random.randint(-2,2),random.randint(-2,2)] , random.randint(6,6),random.choice([(255,0,0),(0,255,0),(0,0,255)])])
+            level = [["i","i","i","i","i","i","i","i","i","i"],["x","i","e","e","e","e","e","e","i","x"],["x","i","e","e","e","e","e","e","i","x"],["x","i","e","e","e","e","e","e","i","x"],["x","i","e","e","e","e","e","e","i","x"],["x","i","e","e","e","e","e","e","i","x"],["x","x","x","x","x","x","x","x","x","x"]]                
         mouse_pressed = pygame.mouse.get_pressed()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -2510,6 +2540,54 @@ async def main():
                         game_state = back_button.target_state
                 mouseclicked = True
         game_canvas.fill(game_canvas_color)
+        global the_lobby_cooldown,the_lobby_frame,attempt_num,text_to_type,text_index,text_line,keep_this_text
+        if game_state == 5:
+            game_canvas_color = (25,25,25)
+            letters = list("abcdefghijklmnopqrstuvwzyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()")
+            if text_to_type == "":
+                if attempt_num <= 20:
+                    full_text = f">>> [Lobby_Attempt_{attempt_num}] Attempting to join Lobby with ID {str(uuid4())}..."
+                else:
+                    full_text = f">>> [MyServerIsSlowError] Too many attempts. Try refreshing the page.                                                                                                                                                                                                                                                                                                                                                                                            " 
+            # text_to_type = ""
+            
+            text_to_type += list(full_text)[text_index]
+            
+            text_index += 1
+            if text_index >= len(full_text):
+                text_index = 0
+                keep_this_text.append([text_to_type,80,100+text_line*20])
+                text_line += 1
+                text_to_type = ""
+                attempt_num += 1
+            if attempt_num >= 22:
+                game_state = 0
+            full_text2 = card_font.render(text_to_type,True,(0,255,0))
+
+            terminal_background = pygame.rect.Rect((WIDTH//2 - 350),(HEIGHT//2 - 250),800,500)
+            terminal_top_bar1 = pygame.rect.Rect(((WIDTH//2 - 350)+320),(HEIGHT//2 - 240),75,25)
+            tgc = 105
+            tgc2 = 169
+            pygame.draw.rect(game_canvas,(0,0,0),terminal_background,border_radius = 15)
+            pygame.draw.rect(game_canvas,(tgc,tgc,tgc),terminal_top_bar1,border_radius = 5)
+            ttr = card_font.render("Problems",True,(tgc2,tgc2,tgc2))
+            game_canvas.blit(ttr,ttr.get_rect( left = 170, top = (HEIGHT//2 - 235) ))
+            ttr = card_font.render("Output",True,(tgc2,tgc2,tgc2))
+            game_canvas.blit(ttr,ttr.get_rect( left = 250, top = (HEIGHT//2 - 235) ))
+            ttr = card_font.render("Debug Console",True,(tgc2,tgc2,tgc2))
+            game_canvas.blit(ttr,ttr.get_rect( left = 310, top = (HEIGHT//2 - 235) ))
+            ttr = card_font.render("Ports",True,(tgc2,tgc2,tgc2))
+            game_canvas.blit(ttr,ttr.get_rect( left = 420, top = (HEIGHT//2 - 235) ))
+            ttr = card_font.render("Terminal",True,(255,255,255))
+            game_canvas.blit(ttr,ttr.get_rect( left = 480, top = (HEIGHT//2 - 235) ))
+            for text_stat in keep_this_text:
+                ttr = card_font.render(text_stat[0],True,(0,255,0))
+                game_canvas.blit(ttr,ttr.get_rect( left = 180, top = text_stat[2]))
+            game_canvas.blit(full_text2,full_text2.get_rect( left = 180, top = 100+text_line*20))
+            
+            print(f"Finding Lobby...{cur_frame}")
+        else:
+            game_canvas_color = (0,0,0)
         keys = pygame.key.get_pressed()
         mouse_pos = pygame.mouse.get_pos()
         if game_state == 4:
@@ -2762,7 +2840,7 @@ async def main():
                 if not multiplayer_mode or network_connected:
                     global incoming_remote_lasers,remote_level,remote_shop_state
                     lasers_to_spawn = []
-                    with net_lock: # Update Level stuff asdwdasdadwasdjkddwasxfdgrdfgcvbfesdfdgrdfbveddfesdfwasdwasdwadwasdwaswasdgfgrwadwasdsjjkjhhkjhkfesdfffesddwasdwasdwadwasdwdwasdjhdwashkjhkjjhdwsadafesdfdswdasdadwsdwawswsdwdwasdwasdwadwawasdwasdwdwasdwasdwasdashfthfhtgfsedfesfesdfdasdwasdwasdwasddwadwadsadsasdasded
+                    with net_lock: 
                         remote_level = level_start.get('p2_lv',1) if player_id == 1 else level_start.get("p1_lv",1)
                         remote_shop_state = level_start.get("p2_inshop",False) if player_id == 1 else level_start.get("p1_inshop",False)
                         if player_id == 2 and remote_level >= 1:
@@ -2812,7 +2890,7 @@ async def main():
                         bugsnum = 0
                     for bug in bugs:
                     
-                        if player_id == 1:
+                        if player_id == 1 or multiplayer_mode == False:
                             if bug.image_path != "recursionboss.png":
                                 bug.move()
                                 bug.check_for_collisions()
@@ -2823,7 +2901,7 @@ async def main():
                     for enlaser in enemy_lasers:
                         enlaser.draw()
                         enlaser.update()
-                    
+             
                     symbols.draw(game_canvas)
 
 
@@ -2890,11 +2968,10 @@ async def main():
                             im_choosing_cards = False
 
                             print(f"Cards chosen and destroyed! {card_was_chosen}, {cards_were_shuffled}, {(previous_bugsnum > 0 or player_id == 2)} ")
-                            # dkdwfesdffesfes dfafesfefefesdfesfesfesfdliljkljllijsfsdwadwdwadsdwaddwaddaalijldslijlijlijllijlijkllllijdwdwadwddwasadaadwasdwagrfsfedfefedsdwsadwadgdwasdwaddwfwdadwdwdwadwasdwawadwadwadawdddadadwdadwaddadaadwfsfasddwadwadwdwadadwsttuyuijhjdadwadwasdwasdkhjkjlkjiljlijlijlijlijlkjilijjhkjhkjkjhkhkjhmnvbghvnbvghgcgbvlj,mljiuykjhkjhkjhkdaddwasdgkjhgjhdgdwadwaddwadadsfgdgdfrgkuhkh;lk;lkpoijlkijokjoijlkjhuigytughuythkjhkjhkjhkjhdadwadsdwadwadwadwa;lkhkjdwaadadawsadadsassdwadwasdfsdadwskjhjhgjhghsdwfsgrdfxbuittyuw3rkiutgyjhgyii9pohkhukhkhkhkhkkhkjhjiuyiuyiuyiuyjdawkjhkuhkhuhjkjhjhgjhgjhguytthjdwasdwashmbmmbmnmmbmjbjmjbjbmjbdwasasdwsasmbnmnbjgyjgjgjgjgyjgjygjygkjhjhdwasdwdfsafdesfsdfcdawdsasdwasdassfasoiuoiuoigjkhkjhkjhkjhhkkjhkhkjhkhmnbbnjhkjhihkhdadadwasdsadwsadikjdwadwadwdwadwadwadwadsahkihkihkhimnbmnmnbmnbmnbdwdjhgjhuytuythgfwdadwfesdfesdfesfesfesfdfesdkhkkjhjhgnbvnbvnbvnbadwdwasdwdwasddwasdsasdwasdwadwadadwadadwadadwadsadwasdasdasddwadwadddwasdsaswadwasdwadwadwadwsasdwsdsarwfsdawdsadwsddawdawsdwdasdadwsaadwdwadwasdadwadwasdwassdwasddwasddaddwasqASDADdsfeghtuaddwasdaddwawadwadwdwadwasdadwasddadadwsfsfesfesfesfesfsfesdfsdfwasdwasdwsadwadwadwasffsdffesfesdfesdfesdsdasdadwasaadwdwashkhkjfdwasdhkdwadkdwadwadsdwadwadwaddwadwadwadwajhdakawadsadwsdadwadwadwdwasdsgrdfdhhhdsadwhjeqoqwuewoewquueeewqeqewqdwsddwasdaddwadwadwadwasdwadwdwadwasdwadwadwadwdwdwadwasddwsddwasddawsdwadwadwafxvasdafkdwaddwadwaddwasddwadwasdawasdwasdwasddwadwasdsawadwadwadwadwasdwajhkjhkjkjhkjkjkddwasddwasdwasdwasdwadadjjjhelpitdoesnt work dlfkesffsfesddfssfsffesdwadwadadookkhkhjhkjhhhiuiyuiiuhhhiuhiuhdksfjefkgjdsfgdsfefjkhfesdfkjhfgcvfdsfkejshfkejghksfjhtksdjfhsekfjhgvbbdkgjkslkfjertrwerlsfc lfsdferfdrtwerdrtlertertelrker erltjelrlterkjrtelrkj dfgbwkejrhbsdfkjwer uytuyt
+                            
                         else:
                             pass
-                            # print(f"TRIPLE FAIL FAIL {player_id}, {cards_were_shuffled},{(previous_bugsnum > 0 or player_id == 2)}")
-                            # im_choosing_cards = True
+                           
                    
                         
                         if (player_id == 1 or multiplayer_mode == False) and current_level < len(level_list) and card_was_chosen and p2_choosing_cards == False:
@@ -3094,10 +3171,101 @@ async def main():
             offset_x,offset_y = 0,0
 
         # Blits the shaking screen to the static screen
+        if game_state == 0:
+            for particle in particles[:]:
+                particle[0][0] += particle[1][0] 
+                particle[0][1] += particle[1][1] 
+                particle[2] -= 0.1 
+                rect_particle = pygame.rect.Rect(particle[0][0],particle[0][1],particle[2],particle[2])
+                try:
+                    color = particle[3]
+                    pygame.draw.rect(game_canvas,particle[3],rect_particle)
+                except:
+                    pygame.draw.rect(game_canvas,(0,200,100),rect_particle)
+
+                if particle[2] <= 0:
+                    particles.remove(particle) 
+            startx = 0 
+            starty = 0
+            if bugs.__len__() == 0:
+                startx = (WIDTH // 2) - ((len(level[0]) / 2) * spacer)
+                colindex = 0
+                # Draws the enemies based  
+                for row in level:
+                    for exception in row:
+                        # Draws the basic exception enemy 
+                        if exception == "e":
+                            bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,0,1,1,1,y_speed=0.25,id = next_bug_id)
+                        # Draws the mini-tank indentation error enem
+                        elif exception == "i":
+                            bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,1,1.5,3,0.8,y_speed = 0.25,id = next_bug_id)
+                        # Draws the fast, rusher exception error
+                        elif exception == "x":
+                            bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,2,1,1,1,y_speed = 0.5,id = next_bug_id)
+                        # Draws the tanky supporting memory error
+                        elif exception == "m":
+                            bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,3,3,7,0.4,y_speed = 0.2,id = next_bug_id)
+                        # Draws the giant tank spawner import error
+                        elif exception == "p":
+                            bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,4,3,15,0.25,y_speed = 0.2,id = next_bug_id)
+                        # Spawns the shooting brokenpipe error
+                        elif exception == "b":
+                            bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,5,3,1,0.4,y_speed = 0.5,id = next_bug_id)
+                        # Spawns the typeerror enemy
+                        elif exception == "t":
+                            bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,6,random.randint(1,7),random.randint(1,7),0.4,y_speed = random.uniform(0.5,1.5),id = next_bug_id)
+                        elif exception == "n":
+                            bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,8,0,24,0.5,id = next_bug_id)
+                        # Spawns the recursion boss
+                        elif exception == "BOSS":
+                            bug = RecursionBoss(WIDTH//2 - 150,50,240,120,"recursionboss.png",1,100,id = next_bug_id)
+                            bosses.add(bug)
+                        # Spawns a deprecated error
+                        elif exception == "d":
+                            bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,9,1.5,12,0.5,0.35,id = next_bug_id)
+                        # Spawns a deprecated giant
+                        elif exception == "dg":
+                            bug = Bug(startx  + rowindex * spacer,starty - colindex,48,48,10,1.5,48,0.5,0.05,id = next_bug_id)
+                            spacer += 1
+                            rowindex += 1
+                        elif exception == "q":
+                            bug = Bug(startx + rowindex * spacer , starty - colindex,24,24,11,2,10,0.5,y_speed = 0.25,id = next_bug_id)
+                        elif exception == "r":
+                            bug = Bug(startx + rowindex * spacer, starty - colindex,24,24,12,1.5,5,1.75,1.5,id = next_bug_id)
+                        elif exception == "l":
+                            bug = Bug(startx + rowindex * spacer, starty - colindex,24,24,13,3,5,1.75,0.3,id = next_bug_id)
+                        if exception not in ("", "s", "BOSS", "BSOD"):
+                            bugs.add(bug)
+                            
+                        if exception == "s":
+                            for i in range(3):
+                                for j in range(3):
+                                    bug = Bug((startx  + rowindex * spacer ) + i * 10,(starty - colindex) + j * 10 ,9,9,7,1,1,0.4,y_speed = 0,id = next_bug_id)
+                                    bugs.add(bug)
+                                    next_bug_id += 1
+                        
+                        elif exception == "BSOD":
+                            boss = Bluegame_canvasOfDeath(0,50,200,100,"bluescreenofdeath.png")
+                            bosses.add(boss)
+                        
+                        rowindex += 1
+                        next_bug_id += 1
+                    colindex -= spacer
+                    rowindex = 0
+                for bug in bugs:
+                    all_bugs.append(bug)
+            bugs.draw(game_canvas)
+            for bug in bugs:
+                bug.move()
+                print(f"{bug.rect.x,bug.rect.y,bug.rect.w,bug.rect.h}")
+                for particle in particles:
+                    rparticle = pygame.rect.Rect(particle[0][0],particle[0][1],particle[2],particle[2])
+                    if bug.rect.colliderect(rparticle) and particle[3] == (0,255,255):
+                        bug.hp -= 0.5
+                bug.check_for_collisions()
         screen.blit(game_canvas,(-20+offset_x,-20+offset_y))
         pygame.display.flip()
         await asyncio.sleep(0.001)
 asyncio.run(main())
 
 
-#douiiidwasdwdwaedwadwasdwasdwadwasdsdwasdwadwdwasddwadwaadwasddwasddwdwadwadwadsdwasddwasddwasdwasddwasdwasddwadwsdwasdwuydwdwasdsdwadddadsbvcbfcvbfdgrdgffefesffesfesfesdfesfesdfesfesdfesffesddwasdwasdwadwasde2e2qwdwasdwsdwaddwadwasddwasddwasddwadwasdwasdwaddwasyuidwaddwasdfesfesfesfesffesdfdwadwasdwadwadwawsdwasffesdfedsdfeddwasdwadwsdwadwasdwadesdfesddwasukjhmnbnmkhje2qwedwasddwadwadwsasddwadwasddwasdhkjhkjhjkhjkjhkhkjh,m,,mn,ngjgmnbbmmnbnmmnmjhgjhjhgjgjhgkkhjkkjhkhjhkjhkjmnbnmnbnbkjhujhkjhkgfesdioioiuhkjhkjhkjhkjhjhkjhkjhkjhkjhjhjkjhjhkjhkjkkjhkjhioiuiiuiuoiuoooiuoiuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuoiuijuoiuoiuiyiuyyiuiuyiuiuyiuyiuyuyuuykkjhjjhgjhgjjhgjhgkjhkjhjjhjkjhkjhkhkjhoiuoiuoiuoiuooiuoiukjkjhjhljljlljlkjkhkjhkjhkkjhkjcvfthgfdrgfdkjhjkjoiuoiooiuoiuoiuooiuoiuoiuoiuokjhkjkjkjhjlkjkjjhjgjjhgjhgkjjhhljkmnbnmlkjklkhkjhjmnbhgyjkjhjhkjhjkjhkjhjhkjkmnbkjhmnbhghgkjjhgjhjhgjhghhgfdjhnhkhkjkjhkkjhkjkjhjkjhjhghkjhkjhkjhjkkjhjjhgdwdwhkjhkjhkhkikjhjkjhkjhkjhkjhfjhgnbvnbvnbvhhjhygjhgkjhkjjlkjkjlkjkuhkuhdwasdwasfesddwadwaddwasddwasdwadzvfdfesfesdfdhtfghgrhdgrfkjhkjkjhjhaadwadwdwadwaddwadsdwdwasgrdwdwasfxvxvdcxvdcvdcxdwasdfsfesfesddwdwadwadwadwawdwdwasdwadsdwadwadwadwadwafsfesdfaddwasdwfesdeadswdwadwadwdwadwadwdgrhfggrsfesgcbcbgdgrdggrdfetyytrtydwadadwaddwadwadwfsfesffesdfeefesfdffesfefesfesfesdwajgjhkjhjhgjhjhjhgjhgjhghgjhgkjjhgnhkjhkhkjhkjhkjjhjmnbgjiuytuyuytmmbbhggnbvcbfhgfhfhgffhgfhggghgfvnbbvnvjgjhgjhghkjkjhkkjhjgjhgjhgjjhgjjhkkhmnbbmvnbhvnhvnbvnbvjhgjjhgjhgjjgjhgjhgddwddwadwasddwadwadwasdswasdaddwasdwadaddddwasddwasdwdwadasdwdwadwaasdwswasddwadwasddwasdwwasddwasdwadfesdwasdsddwdwasadzxczxcwasdgrgfddwadwasdwasdsddwasddasdwasdwadwdwadzfdwasdwadwasddwasdsdsadexcdwasdadwdwadwadwadwacdwasdadwasdwdwadsdssdsvxvcxvdxckjhkjkjhkjkjhkdwfsffffjhkhkkjhkjhkkjhjkjhkjhjhwadsddwdddddddddzv xzdcszcszxcdddddddddccbmnbmnccbnnwddadwasdfxcvfxvsdfxcdvczxscxzcsxwgtfesfesfdwafesfdaddddwasddwadwawadvnbvndwaasdsdgjhdwadsdwadwgjhgjhgmmnliulkjnljklkjbnmjkjhkhnmliukjhdwaddwadjyghjgvcwetretretretrertergjhgkjhvnbvhgfcvbvcwaddwadhfggugdwaddwadwadwasfhgyuydhdwddwdwasdwasdzcxdwadwasdwadwadwadwadwaswadwdwadwadwadwasdsdsddwasddwakjdwadwadsadwadwdwdadwadwadwdwasddwadssadwsdwafxczxsdwasddwasddwddadwadawadhkjhjhwadwadsdsasdwaddwdddwasdwddwdwddwadwaddwadwdwasddfesdwadsdwadsdwadsccszcszxcadswddwasddwasasddwadwasdnvnbvnngjhgjdwasdhghdwcbdwasdwaddwadsvcbadwadwasdwasdhfdawdadddwasdfkjhkjhsfdwdczfdxdwawasdwasdwadwwasdsdlkjlkcvdadwadwdxvcvddvbbmnbmnbvb mjsadwasdwaffdwaswadwdwdwdwaddwadwagtdwadzcsdwasjkdwadwasdwddwadwasaugjykhujnnbjkhuiydjugydrgdfdagdgrfasdwasddwadwdwdwasdasdwasddwaadzcdwadwadwadwadwadwadddwasddadwasddwadwasdwadwasddwasdwasdwaszxcfesdffefesfdwadwadfsfdwasddzcxsdcxzdwasdadwadwasdwdwasdkuyhhkuhjfsdfghjnvbvwesrtyufsfesffesddwasddwasdddjghjdsdsdwasddwasdwadwafeddwasdsdwadwasdwadwadwasddwafesfdsdfsdfddgijghnbtrfdwesdqwaserwfdyjhuikjkjwadwadwdawaaavbndwdwadwasddwadwadwasddwasdaszvxcjuygdwasdzcsdwafedwasdwadwadwasdwadwdwdwaddxcvxcvxvdxvdxvchhfnbvbnvbngurtfhfgdwzxzcsxcsvfesvxcvvnhm,jjhkuhgfhdfghbvngrdwasdwasdzcszxdwasdyjghbdwaddzclkjsuhygbvvnvbnghtjkidwadwasddwadczcsxdwaddzczhbmnhjgyhjgxvdcvdxcvdxcbdgrfsdfgjuihjdwdwadwasddwadwasddwadwxfhghnvbnasddwadsdwdwadwadwafzxczscgryfghdwadsadwaasddwadwadwadwasdddwasdwadwasdwasddwasytuhgikhdfwadsadwasdwawadwadsadwadwadwaddwaadwadwadwdwadwajerdgfwhkjhdwasdasddgfyghjgbndwadxcvbnmnbvcsdjgjhdwasdghghkkjhkjfghaddwaddwadwasddwadwasddwadwadwwadwadsdawdaszxvxcdwadwadwadwdwadssqSQsddwkhk
