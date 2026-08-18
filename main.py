@@ -49,11 +49,11 @@ game_canvas_color = (0,0,0)
 particles = []
 game_state = 0  
 multiplayer_mode = False
-explosion_sound = pygame.mixer.Sound("explosion.ogg")
-small_explosion_sound = pygame.mixer.Sound("small_explosion1.ogg")
+explosion_sound = pygame.mixer.Sound("assets/explosion.ogg")
+small_explosion_sound = pygame.mixer.Sound("assets/small_explosion1.ogg")
 small_explosion_sound.set_volume(0.07)
-click_sound = pygame.mixer.Sound("shortclick.ogg")
-laser_sound = pygame.mixer.Sound("laser.ogg")
+click_sound = pygame.mixer.Sound("assets/shortclick.ogg")
+laser_sound = pygame.mixer.Sound("assets/laser.ogg")
 laser_sound.set_volume(0.15)
 shake_intensity  =0
 game_canvas = pygame.Surface((WIDTH + 40,HEIGHT + 40),pygame.SRCALPHA)
@@ -503,28 +503,28 @@ titles.append(max_hp_surface)
 titles.append(speed_surface)
 titles.append(overdrive_surface)
 # All upgrades in shop
-cooldown_files_1 = ShopItem("Office Processor",25,"No! You can't open 2 tabs at once!","Cooldown reduced by 10%","Heal-Files",330+scroll_x,100+scroll_y, w = 300,h = 180,image = "officecore.png")
-cooldown_files_2 = ShopItem("Gaming Processor",125,"They don't need to fire their weapons.\nThey just need to wear a skin with more\nthan one color to crash my laptop...","Cooldown reduced by 20%","Heal-Files",330+scroll_x,300+scroll_y, w = 300,h = 180,image = "gamingcore.png")
-cooldown_files_3 = ShopItem("Dev Processor",750, "Finally, I can run Vs Code and ChatGPT\nat the same time!","Cooldown reduced by 35%","Heal-Files",330+scroll_x,500+scroll_y,w = 300,h = 180, image = "devcore.png")
-cooldown_files_4 = ShopItem("Server Processor",3000, "Time to set my render distance to max\nand fill the whole world with TNT","Cooldown reduced by 50%","Heal-Files",330+scroll_x,700+scroll_y,w=300,h = 180,image = "servercpu.png")
+cooldown_files_1 = ShopItem("Office Processor",25,"No! You can't open 2 tabs at once!","Cooldown reduced by 10%","Heal-Files",330+scroll_x,100+scroll_y, w = 300,h = 180,image = "assets/officecore.png")
+cooldown_files_2 = ShopItem("Gaming Processor",125,"They don't need to fire their weapons.\nThey just need to wear a skin with more\nthan one color to crash my laptop...","Cooldown reduced by 20%","Heal-Files",330+scroll_x,300+scroll_y, w = 300,h = 180,image = "assets/gamingcore.png")
+cooldown_files_3 = ShopItem("Dev Processor",750, "Finally, I can run Vs Code and ChatGPT\nat the same time!","Cooldown reduced by 35%","Heal-Files",330+scroll_x,500+scroll_y,w = 300,h = 180, image = "assets/devcore.png")
+cooldown_files_4 = ShopItem("Server Processor",3000, "Time to set my render distance to max\nand fill the whole world with TNT","Cooldown reduced by 50%","Heal-Files",330+scroll_x,700+scroll_y,w=300,h = 180,image = "assets/servercpu.png")
 
-speed_files_1 = ShopItem("Office Mouse",10,"At this point , the mouse is more dust\nthen technology. Better off using\ntelepathy to control the cursor...",r"Cursor is 10% faster","Heal-Files",660+scroll_x,100+scroll_y, w = 300,h = 180,image = "officemouse.png")
-speed_files_2 = ShopItem("RGB Mouse",30,"More LEDs than mouse parts. 'But it\nGLOWS...' So does uranium I don't use it\nfor programming (Most of the time)",r"Cursor is 25% faster","Heal-Files",660+scroll_x,300+scroll_y, w = 300,h = 180,image = "rgb.png")
-speed_files_3 = ShopItem("High-End Gaming Mouse",150, "Great tracking , it makes you better\nat gaming. Instead of dying 20 times\nfor every 1 person I kill, I die 19...",r"Cursor is 50% Faster","Heal-Files",660+scroll_x,500+scroll_y,w = 300,h = 180, image = "devmouse.png")
-speed_files_4 = ShopItem("Industrial-Grade Mouse",750, "Developed after someone misclicked one\nto many times. Power consumption reduced\nfrom 50 cities to 45",r"Cursor is 100% Faster","Heal-Files",660+scroll_x,700+scroll_y,w=300,h = 180,image = "industrialmouse.png")
+speed_files_1 = ShopItem("Office Mouse",10,"At this point , the mouse is more dust\nthen technology. Better off using\ntelepathy to control the cursor...",r"Cursor is 10% faster","Heal-Files",660+scroll_x,100+scroll_y, w = 300,h = 180,image = "assets/officemouse.png")
+speed_files_2 = ShopItem("RGB Mouse",30,"More LEDs than mouse parts. 'But it\nGLOWS...' So does uranium I don't use it\nfor programming (Most of the time)",r"Cursor is 25% faster","Heal-Files",660+scroll_x,300+scroll_y, w = 300,h = 180,image = "assets/rgb.png")
+speed_files_3 = ShopItem("High-End Gaming Mouse",150, "Great tracking , it makes you better\nat gaming. Instead of dying 20 times\nfor every 1 person I kill, I die 19...",r"Cursor is 50% Faster","Heal-Files",660+scroll_x,500+scroll_y,w = 300,h = 180, image = "assets/devmouse.png")
+speed_files_4 = ShopItem("Industrial-Grade Mouse",750, "Developed after someone misclicked one\nto many times. Power consumption reduced\nfrom 50 cities to 45",r"Cursor is 100% Faster","Heal-Files",660+scroll_x,700+scroll_y,w=300,h = 180,image = "assets/industrialmouse.png")
 
-ram_files_1 = ShopItem("DDR2 Stick",25,"It may hold more data my being used as \nnotepad than actual RAM. Type any 2\nletters to make it crash.",r"Lasers do 10% more damage","Heal-Files",990+scroll_x,100+scroll_y, w = 300,h = 180,image = "ddr2.png")
-ram_files_2 = ShopItem("Aluminum-Coated DDR3",125,"Oh, it didn't come with any heat\nshielding but some old\naluminum foil fixed that...",r"Lasers do 25% more damage","Heal-Files",990+scroll_x,300+scroll_y, w = 300,h = 180,image = "ddr3.png")
-ram_files_3 = ShopItem("RGB DDR4",750, "You may have bought it more for the\nlights than the RAM, and you can't\ntellwhich is higher quality..",r"Lasers do 50% more damage","Heal-Files",990+scroll_x,500+scroll_y,w = 300,h = 180, image = "ddr4.png")
-ram_files_4 = ShopItem("256GB DDR5",3000, "Costs your whole life savings just so\nyou could load Minecraft a little\nfaster...",r"Lasers do 100% more damage","Heal-Files",990+scroll_x,700+scroll_y,w=300,h = 180,image = "ddr5.png")
+ram_files_1 = ShopItem("DDR2 Stick",25,"It may hold more data my being used as \nnotepad than actual RAM. Type any 2\nletters to make it crash.",r"Lasers do 10% more damage","Heal-Files",990+scroll_x,100+scroll_y, w = 300,h = 180,image = "assets/ddr2.png")
+ram_files_2 = ShopItem("Aluminum-Coated DDR3",125,"Oh, it didn't come with any heat\nshielding but some old\naluminum foil fixed that...",r"Lasers do 25% more damage","Heal-Files",990+scroll_x,300+scroll_y, w = 300,h = 180,image = "assets/ddr3.png")
+ram_files_3 = ShopItem("RGB DDR4",750, "You may have bought it more for the\nlights than the RAM, and you can't\ntellwhich is higher quality..",r"Lasers do 50% more damage","Heal-Files",990+scroll_x,500+scroll_y,w = 300,h = 180, image = "assets/ddr4.png")
+ram_files_4 = ShopItem("256GB DDR5",3000, "Costs your whole life savings just so\nyou could load Minecraft a little\nfaster...",r"Lasers do 100% more damage","Heal-Files",990+scroll_x,700+scroll_y,w=300,h = 180,image = "assets/ddr5.png")
 
 
-cooler_files_1 = ShopItem("Ice Pack",5,"Actually pretty good at cooling but\ngetting up every 15 minutes to replace it\njust so VSCode keeps running is kind\nof irritating.",r"Overdrive lasts 10% longer","Heal-Files",1320+scroll_x,100+scroll_y, w = 320,h = 180,image = "icepack.png")
-cooler_files_2 = ShopItem("Aluminum Block",12,"Grabbed this out of a calculator and put a\ncpu on it to fry an egg at work...\nYou can taste some aluminum if you\ntry enough.",r"Overdrive lasts 25% longer","Heal-Files",1320+scroll_x,300+scroll_y, w = 320,h = 180,image = "aluminumblock.png")
-cooler_files_3 = ShopItem("Aluminum Tower",125, "A Nice tower with copper pipes\nrunning through them. We only bought it\nbecause of our server room being so hot\nit was classified as a 'Fire Hazard'",r"Overdrive lasts 50% longer","Heal-Files",1320+scroll_x,500+scroll_y,w = 320,h = 180, image = "coolingtower1.png")
-cooler_files_4 = ShopItem("Pure Metal Dual-Tower",800, "Sure, it cools well, but someone put ONE\nstack of papers next to the cooling fan and\nnow the whole building somehow has our\npaper.",r"Overdrive lasts 100% longer","Heal-Files",1320+scroll_x,700+scroll_y,w=320,h = 180,image = "coolingtower2.png")
-cooler_files_5 = ShopItem("Liquid Nitrogen Cooling Pot",4500, "When you never want to lag again, this is\nthe perfect cooler. Also functions as\nAir Conditioning in the summmer\nmy making the room 10 degrees colder.",r"Overdrive lasts 325% Longer","Heal-Files",1320+scroll_x,900+scroll_y,w = 320,h = 180, image = "liquidnitrogencooler.png")
-cooler_files_6 = ShopItem("Cyrostat Dilution Refrigarator",45000, "I'm sure Google won't mind us putting our\nservers in there next to the quantum\ncomputer.All I know is I can't use the\ncooling racks for my yougurt anymore...",r"Overdrive lasts 500% Longer" ,"Heal-Files",1320+scroll_x,1100+scroll_y,w=320,h = 180,image = "quantumcooler.png")
+cooler_files_1 = ShopItem("Ice Pack",5,"Actually pretty good at cooling but\ngetting up every 15 minutes to replace it\njust so VSCode keeps running is kind\nof irritating.",r"Overdrive lasts 10% longer","Heal-Files",1320+scroll_x,100+scroll_y, w = 320,h = 180,image = "assets/icepack.png")
+cooler_files_2 = ShopItem("Aluminum Block",12,"Grabbed this out of a calculator and put a\ncpu on it to fry an egg at work...\nYou can taste some aluminum if you\ntry enough.",r"Overdrive lasts 25% longer","Heal-Files",1320+scroll_x,300+scroll_y, w = 320,h = 180,image = "assets/aluminumblock.png")
+cooler_files_3 = ShopItem("Aluminum Tower",125, "A Nice tower with copper pipes\nrunning through them. We only bought it\nbecause of our server room being so hot\nit was classified as a 'Fire Hazard'",r"Overdrive lasts 50% longer","Heal-Files",1320+scroll_x,500+scroll_y,w = 320,h = 180, image = "assets/coolingtower1.png")
+cooler_files_4 = ShopItem("Pure Metal Dual-Tower",800, "Sure, it cools well, but someone put ONE\nstack of papers next to the cooling fan and\nnow the whole building somehow has our\npaper.",r"Overdrive lasts 100% longer","Heal-Files",1320+scroll_x,700+scroll_y,w=320,h = 180,image = "assets/coolingtower2.png")
+cooler_files_5 = ShopItem("Liquid Nitrogen Cooling Pot",4500, "When you never want to lag again, this is\nthe perfect cooler. Also functions as\nAir Conditioning in the summmer\nmy making the room 10 degrees colder.",r"Overdrive lasts 325% Longer","Heal-Files",1320+scroll_x,900+scroll_y,w = 320,h = 180, image = "assets/liquidnitrogencooler.png")
+cooler_files_6 = ShopItem("Cyrostat Dilution Refrigarator",45000, "I'm sure Google won't mind us putting our\nservers in there next to the quantum\ncomputer.All I know is I can't use the\ncooling racks for my yougurt anymore...",r"Overdrive lasts 500% Longer" ,"Heal-Files",1320+scroll_x,1100+scroll_y,w=320,h = 180,image = "assets/quantumcooler.png")
 
 for item in (cooldown_files_1, cooldown_files_2, cooldown_files_3, cooldown_files_4):
     item.effect_type = "Cooldown-Decrease"
@@ -537,11 +537,11 @@ for item in (cooler_files_1, cooler_files_2, cooler_files_3, cooler_files_4, coo
 
 six = 6
 
-case_files_1 = ShopItem("Layered Plastic Bag",3,"Finally found a use for all those plastic\nbags...",r"Files get +1 max HP","Heal-Files",1670+scroll_x,100+scroll_y, w = 320,h = 180,image = "plasticbags.png")
-case_files_2 = ShopItem("Brittle Plastic Shell",10,"Made out of the same plastic as throw-away\nutensils. They have the same strength,but\nat least the utensils can hold food...",r"Files get +2.5 Max HP","Heal-Files",1670+scroll_x,300+scroll_y, w = 320,h = 180,image = "plasticcase.png")
-case_files_3 = ShopItem("Aluminum Alloy",50, "Comes with a complimentary premium aluminum\n(foil) case worth $100 (In sentimental\nvalue...)'",r"Files get +5 Max HP","Heal-Files",1670+scroll_x,500+scroll_y,w = 320,h = 180, image = "aluminum.png")
-case_files_4 = ShopItem("Carbon Fiber",400, "The same material NASA uses for rockets.\nThe difference is they go to space and\ntheir launch date is still\nsomehow before ours?",r"Files get +10 Max HP","Heal-Files",1670+scroll_x,700+scroll_y,w=320,h = 180,image = "carbonfiber.png")
-case_files_5 = ShopItem("Titantium Safe",2000, "Protects the program files from 2008 because\nthey somehow still hold the code together..",r"Files get +25 Max HP","Heal-Files",1670+scroll_x,900+scroll_y,w = 320,h = 180, image = "safe.png")
+case_files_1 = ShopItem("Layered Plastic Bag",3,"Finally found a use for all those plastic\nbags...",r"Files get +1 max HP","Heal-Files",1670+scroll_x,100+scroll_y, w = 320,h = 180,image = "assets/plasticbags.png")
+case_files_2 = ShopItem("Brittle Plastic Shell",10,"Made out of the same plastic as throw-away\nutensils. They have the same strength,but\nat least the utensils can hold food...",r"Files get +2.5 Max HP","Heal-Files",1670+scroll_x,300+scroll_y, w = 320,h = 180,image = "assets/plasticcase.png")
+case_files_3 = ShopItem("Aluminum Alloy",50, "Comes with a complimentary premium aluminum\n(foil) case worth $100 (In sentimental\nvalue...)'",r"Files get +5 Max HP","Heal-Files",1670+scroll_x,500+scroll_y,w = 320,h = 180, image = "assets/aluminum.png")
+case_files_4 = ShopItem("Carbon Fiber",400, "The same material NASA uses for rockets.\nThe difference is they go to space and\ntheir launch date is still\nsomehow before ours?",r"Files get +10 Max HP","Heal-Files",1670+scroll_x,700+scroll_y,w=320,h = 180,image = "assets/carbonfiber.png")
+case_files_5 = ShopItem("Titantium Safe",2000, "Protects the program files from 2008 because\nthey somehow still hold the code together..",r"Files get +25 Max HP","Heal-Files",1670+scroll_x,900+scroll_y,w = 320,h = 180, image = "assets/safe.png")
 
 for item in (case_files_1, case_files_2, case_files_3, case_files_4, case_files_5):
     item.effect_type = "File Max Hp"
@@ -890,22 +890,22 @@ class Ship(pygame.sprite.Sprite):
         self.rect.x = self.rect.x
         self.rect.y = self.rect.y
         
-items = [pygame.transform.scale(pygame.image.load("exception.png").convert_alpha(),(24,24)),
-        pygame.transform.scale(pygame.image.load("indentationerror.png").convert_alpha(),(24,24)),
-        pygame.transform.scale(pygame.image.load("indexerror.png").convert_alpha(),(24,24)),
-        pygame.transform.scale(pygame.image.load("memoryerror.png").convert_alpha(),(24,24)),
-        pygame.transform.scale(pygame.image.load("importerror.png").convert_alpha(),(24,24)),
-        pygame.transform.scale(pygame.image.load("brokenpipe.png").convert_alpha(),(24,24)),
-        pygame.transform.scale(pygame.image.load("typeerror.png").convert_alpha(),(24,24)),
-        pygame.transform.scale(pygame.image.load("packetbug.png").convert_alpha(),(9,9)),
-        pygame.transform.scale(pygame.image.load("nullpointererror.png").convert_alpha(),(24,24)),
-        pygame.transform.scale(pygame.image.load("deprecatedmethod.png").convert_alpha(),(24,24)),
-        pygame.transform.scale(pygame.image.load("deprecatedgiant.png").convert_alpha(),(24,24)),
-        pygame.transform.scale(pygame.image.load("sqlinjector.png").convert_alpha(),(24,24)) ,
-        pygame.transform.scale(pygame.image.load("racecondition.png").convert_alpha(),(24,24)),
-        pygame.transform.scale(pygame.image.load("sleepthread.png").convert_alpha(),(24,24))]
-names = ["exception.png","indentationerror.png","indexerror.png","memoryerror.png","importerror.png","brokenpipe.png","typeerror.png","packetbug.png","nullpointererror.png",
-         "deprecatedmethod.png","deprecatedgiant.png","sqlinjector.png","racecondition.png","sleepthread.png"]
+items = [pygame.transform.scale(pygame.image.load("assets/exception.png").convert_alpha(),(24,24)),
+        pygame.transform.scale(pygame.image.load("assets/indentationerror.png").convert_alpha(),(24,24)),
+        pygame.transform.scale(pygame.image.load("assets/indexerror.png").convert_alpha(),(24,24)),
+        pygame.transform.scale(pygame.image.load("assets/memoryerror.png").convert_alpha(),(24,24)),
+        pygame.transform.scale(pygame.image.load("assets/importerror.png").convert_alpha(),(24,24)),
+        pygame.transform.scale(pygame.image.load("assets/brokenpipe.png").convert_alpha(),(24,24)),
+        pygame.transform.scale(pygame.image.load("assets/typeerror.png").convert_alpha(),(24,24)),
+        pygame.transform.scale(pygame.image.load("assets/packetbug.png").convert_alpha(),(9,9)),
+        pygame.transform.scale(pygame.image.load("assets/nullpointererror.png").convert_alpha(),(24,24)),
+        pygame.transform.scale(pygame.image.load("assets/deprecatedmethod.png").convert_alpha(),(24,24)),
+        pygame.transform.scale(pygame.image.load("assets/deprecatedgiant.png").convert_alpha(),(24,24)),
+        pygame.transform.scale(pygame.image.load("assets/sqlinjector.png").convert_alpha(),(24,24)) ,
+        pygame.transform.scale(pygame.image.load("assets/racecondition.png").convert_alpha(),(24,24)),
+        pygame.transform.scale(pygame.image.load("assets/sleepthread.png").convert_alpha(),(24,24))]
+names = ["assets/exception.png","assets/indentationerror.png","assets/indexerror.png","assets/memoryerror.png","assets/importerror.png","assets/brokenpipe.png","assets/typeerror.png","assets/packetbug.png","assets/nullpointererror.png",
+         "assets/deprecatedmethod.png","assets/deprecatedgiant.png","assets/sqlinjector.png","assets/racecondition.png","assets/sleepthread.png"]
 class Bug(pygame.sprite.Sprite):
     def __init__(self,x,y,w,h,image_path,damage,hp ,speed,y_speed = 0.5,id = None ):
         super().__init__()
@@ -938,7 +938,7 @@ class Bug(pygame.sprite.Sprite):
         self.teleport_cooldown = 0
         self.max_teleport_cooldown = 50
         self.id = id
-        if self.image_path == "packetbug.png":
+        if self.image_path == "assets/packetbug.png":
             self.orbit_angle = random.uniform(0,2*math.pi)
             self.target_radius = random.uniform(140,180)
         self.packetcooldown = 10
@@ -967,7 +967,7 @@ class Bug(pygame.sprite.Sprite):
 # Thoughts : How to spawn boss? Custom
     def check_for_collisions(self):
         global explosions,bugs,enemy_lasers,current_level,ship,overdrive_charge,lasers,mines,cur_frame,shake_intensity,max_overdrive
-        memory_error_alive = any(bug.image_path == "memoryerror.png" for bug in bugs)
+        memory_error_alive = any(bug.image_path == "assets/memoryerror.png" for bug in bugs)
         if memory_error_alive == True:
             self.image.set_alpha(100)
             self.y_speed = 0.5 * self.og_y_speed
@@ -976,14 +976,14 @@ class Bug(pygame.sprite.Sprite):
         else:
             self.max_creation_cooldown = 100
         for laser in lasers:
-            memory_error_alive = any(bug.image_path == "memoryerror.png" for bug in bugs)
-            if memory_error_alive == False or self.image_path == "memoryerror.png":
+            memory_error_alive = any(bug.image_path == "assets/memoryerror.png" for bug in bugs)
+            if memory_error_alive == False or self.image_path == "assets/memoryerror.png":
                 self.y_speed = self.og_y_speed
                 self.image.set_alpha(255)
                 if self.rect.colliderect(laser):
-                    if self.image_path != "sqlinjector.png":
+                    if self.image_path != "assets/sqlinjector.png":
                         self.hp -= laser.damage
-                    if self.image_path == "sqlinjector.png":
+                    if self.image_path == "assets/sqlinjector.png":
                         self.hp -= laser.damage
                         laser.yv = laser.speed
                         laser.state = "Reflected"
@@ -1000,7 +1000,7 @@ class Bug(pygame.sprite.Sprite):
                                 laser.pierce -= 1
                     if self.hp <= 0:
                         global data_coins
-                        if self.image_path == "exception.png":
+                        if self.image_path == "assets/exception.png":
                             data_coins += 1
 
                 
@@ -1017,28 +1017,28 @@ class Bug(pygame.sprite.Sprite):
             self.kill()
             small_explosion_sound.play()
             if overdrive_charge < max_overdrive and ship.overdrive_duration <= 0:
-                if self.image_path != "packetbug.png": 
+                if self.image_path != "assets/packetbug.png": 
                     overdrive_charge += 100
                 else:
                     overdrive_charge += 0.25
             color = (0,255,0)
-            if self.image_path == "exception.png":
+            if self.image_path == "assets/exception.png":
                 color = (0,255,0)
-            elif self.image_path == "indentationerrorlow.png" or self.image_path == "indentationerror .png":
+            elif self.image_path == "assets/indentationerrorlow.png" or self.image_path == "assets/indentationerror .png":
                 color = (0,0,255)
-            elif self.image_path == "indexerror.png":
+            elif self.image_path == "assets/indexerror.png":
                 color = (255,165,0)
-            elif self.image_path == "memoryerror.png":
+            elif self.image_path == "assets/memoryerror.png":
                  color = (0,255,0)
                  for i in range(9):
                     particles.append([[self.rect.centerx, self.rect.centery] , [random.randint(-3,3),random.randint(-3,3)] , random.randint(4,8),random.choice([(0,255,0),(255,0,0),(255,255,0)])])
-            elif self.image_path == "importerror.png":
+            elif self.image_path == "assets/importerror.png":
                 color = (165,42,42)
-            elif self.image_path == "brokenpipe.png":
+            elif self.image_path == "assets/brokenpipe.png":
                 color = (255,255,255)
-            elif self.image_path == "typeerror.png":
+            elif self.image_path == "assets/typeerror.png":
                 color = (random.randint(0,255),random.randint(0,255),random.randint(0,255))
-            if self.image_path != "packetbug.png":
+            if self.image_path != "assets/packetbug.png":
                 for i in range(9):
                     particles.append([[self.rect.centerx, self.rect.centery] , [random.randint(-3,3),random.randint(-3,3)] , random.randint(4,8), color])
             else:
@@ -1056,17 +1056,17 @@ class Bug(pygame.sprite.Sprite):
                 else:
                     self.hp -= ship.dash_damage
         for file in files:
-            if current_level != 20 and self.image_path != "packetbug.png":
+            if current_level != 20 and self.image_path != "assets/packetbug.png":
                 if self.rect.colliderect(file.rect):
                     self.hp = 0
                     file.hp -= self.damage
                     shake_intensity = 35
         global spacer
-        if self.hp <= self.max_hp * 0.5 and self.image_path == "indentationerror.png":
-            self.image_path = "indentationerrorlow.png"
+        if self.hp <= self.max_hp * 0.5 and self.image_path == "assets/indentationerror.png":
+            self.image_path = "assets/indentationerrorlow.png"
             self.image = pygame.transform.scale(pygame.image.load(self.image_path).convert_alpha(),(self.w,self.h))
             self.rect = self.image.get_rect(topleft = (self.rect.x,self.rect.y))
-        if self.image_path == "importerror.png":
+        if self.image_path == "assets/importerror.png":
             if self.creation_cooldown <= 0:
                 child_bug = Bug(self.rect.x, self.rect.bottom,24,24,0,1,1,1)
                 bugs.add(child_bug)
@@ -1074,16 +1074,16 @@ class Bug(pygame.sprite.Sprite):
             else:
                 self.creation_cooldown -= 1
 
-        if self.image_path == "brokenpipe.png" and self.cooldown <= 0:
+        if self.image_path == "assets/brokenpipe.png" and self.cooldown <= 0:
             enemy_laser = EnemyLaser(self.rect.centerx - 2, self.float_y,9,9,damage=0.5,speed=6)
             enemy_lasers.append(enemy_laser)
             self.cooldown = self.max_cooldown
-        elif self.image_path == "brokenpipe.png" and self.cooldown > 0:
+        elif self.image_path == "assets/brokenpipe.png" and self.cooldown > 0:
             self.cooldown -= 1
 
         
 
-        if self.image_path == "packetbug.png":
+        if self.image_path == "assets/packetbug.png":
     
             if self.target_radius > 10:
                 self.target_radius -= 0.36
@@ -1108,7 +1108,7 @@ class Bug(pygame.sprite.Sprite):
                 self.orbit_angle += 0.02 
 
             for other_bug in bugs:
-                if other_bug != self and other_bug.image_path == "packetbug.png":
+                if other_bug != self and other_bug.image_path == "assets/packetbug.png":
                     sep_dx = self.rect.centerx - other_bug.rect.centerx
                     sep_dy = self.rect.centery - other_bug.rect.centery
                     sep_dist = math.hypot(sep_dx, sep_dy)
@@ -1127,7 +1127,7 @@ class Bug(pygame.sprite.Sprite):
 
 
           
-        if self.image_path == "nullpointererror.png":
+        if self.image_path == "assets/nullpointererror.png":
             if self.null_cooldown <= 0:
                 null_bullet = NullLaser(self.rect.centerx,self.rect.centery,12,12,speed = 6)
                 null_lasers.append(null_bullet)
@@ -1151,7 +1151,7 @@ class Bug(pygame.sprite.Sprite):
                 self.null_cooldown -= 1
 
         
-        if self.image_path == "deprecatedmethod.png" and self.hp <= 0:
+        if self.image_path == "assets/deprecatedmethod.png" and self.hp <= 0:
                 startx,starty = self.rect.x,self.rect.y
                 for i in range(3):
                     for j in range(3):
@@ -1160,7 +1160,7 @@ class Bug(pygame.sprite.Sprite):
                         bug.orbit_angle = random.uniform(0,2*math.pi)
                         bug.target_radius = random.uniform(140,180)
                 bugs.remove(self)
-        if self.image_path == "deprecatedgiant.png":
+        if self.image_path == "assets/deprecatedgiant.png":
                 if self.hp <= 0:
                     startx,starty = self.rect.x,self.rect.y
                     for i in range(10):
@@ -1180,17 +1180,17 @@ class Bug(pygame.sprite.Sprite):
                         self.packetcooldown = 10
                     else:
                         self.packetcooldown -= 1
-        if self.image_path == "sqlinjector.png":
+        if self.image_path == "assets/sqlinjector.png":
             for bug in bugs:
                 if bug.rect.x == self.rect.x:
                     bug.y_speed = self.y_speed
         else:
             for bug in bugs:
-                if not(bug.rect.x == self.rect.x and bug.image_path == "sqlinjector.png") and not(any(bug.image_path == "memoryerror.png" for bug in bugs)):
+                if not(bug.rect.x == self.rect.x and bug.image_path == "assets/sqlinjector.png") and not(any(bug.image_path == "assets/memoryerror.png" for bug in bugs)):
                     self.y_speed = self.og_y_speed
 
 
-        if self.image_path == "racecondition.png" and self.teleport_cooldown <= 0:
+        if self.image_path == "assets/racecondition.png" and self.teleport_cooldown <= 0:
        
             for laser in lasers:
                 if laser.x >= self.rect.left and laser.x <= self.rect.right and laser.y >= self.rect.y:
@@ -1203,11 +1203,11 @@ class Bug(pygame.sprite.Sprite):
       
                         self.teleport_cooldown = self.max_teleport_cooldown
                         self.float_y -= 25
-        elif self.image_path == "racecondition.png":
+        elif self.image_path == "assets/racecondition.png":
             self.teleport_cooldown -= 1
 
 
-        if self.image_path == "sleepthread.png":
+        if self.image_path == "assets/sleepthread.png":
             if self.sleep_freeze_cooldown <= 0:
                 missile = FreezeMissile(self.rect.x,self.rect.y,10,10,1,1,0,0,4,2.5,200)
                 enemy_missiles.append(missile)
@@ -1308,7 +1308,7 @@ class Mine(pygame.sprite.Sprite):
         self.y = y
         self.float_y = float(y)
         self.w = w
-        self.image_path = "mine.png"
+        self.image_path = "assets/mine.png"
         self.h = h
         self.image = pygame.transform.scale(pygame.image.load(self.image_path).convert_alpha(),(w,h))
         self.rect = self.image.get_rect(topleft = (x,y))
@@ -1340,11 +1340,11 @@ class Mine(pygame.sprite.Sprite):
                 self.is_stuck = True
             for bug in bugs:
                 if self.rect.colliderect(bug.rect):
-                    if bug.image_path == "sqlinjector.png":
+                    if bug.image_path == "assets/sqlinjector.png":
                         self.tx = self.startx
                         self.ty = self.starty
                         self.state = "Reversed"
-                        self.image_path = "minetriggered.png"
+                        self.image_path = "assets/minetriggered.png"
                         self.image = pygame.transform.scale(pygame.image.load(self.image_path).convert_alpha(),(self.w,self.h))
                         self.rect = self.image.get_rect(topleft = (self.x,self.y))
         if self.is_stuck:
@@ -1534,19 +1534,19 @@ class UpgradeCard(pygame.sprite.Sprite):
 
         symbol = self.typeofcard
         if symbol == "Triangle":
-            symbol = SymbolSprite(self.x, self.y, 70, 70, "redtriangle.png")
+            symbol = SymbolSprite(self.x, self.y, 70, 70, "assets/redtriangle.png")
             self.the_color = (255,0,0)
         elif symbol == "Square":
-            symbol = SymbolSprite(self.x, self.y, 70, 70, "orangesquare.png")
+            symbol = SymbolSprite(self.x, self.y, 70, 70, "assets/orangesquare.png")
             self.the_color = (255,165,0)
         elif symbol == "Circle":
-            symbol = SymbolSprite(self.x, self.y, 50, 50, "yellowcircle.png")
+            symbol = SymbolSprite(self.x, self.y, 50, 50, "assets/yellowcircle.png")
             self.the_color = (255,255,0)
         elif symbol == "Pentagon":
-            symbol = SymbolSprite(self.x, self.y, 50, 50, "greenpentagon.png")
+            symbol = SymbolSprite(self.x, self.y, 50, 50, "assets/greenpentagon.png")
             self.the_color = (0,255,0)
         elif symbol == "Hexagon":
-            symbol = SymbolSprite(self.x, self.y, 50, 50, "bluehexagon.png")
+            symbol = SymbolSprite(self.x, self.y, 50, 50, "assets/bluehexagon.png")
             self.the_color = (0,0,255)
 
         symbol.rect.center = (card_rect.centerx, card_rect.top + 60)
@@ -1718,7 +1718,7 @@ class RecursionBoss(pygame.sprite.Sprite):
 
     def check_for_collisions(self):
             global bugs,enemy_lasers
-            memory_error_alive = any(bug.image_path == "memoryerror.png" for bug in bugs)
+            memory_error_alive = any(bug.image_path == "assets/memoryerror.png" for bug in bugs)
             if memory_error_alive == True:
                 self.image.set_alpha(100)
                 self.y_speed = 0
@@ -1726,8 +1726,8 @@ class RecursionBoss(pygame.sprite.Sprite):
             else:
                 self.max_creation_cooldown = 100
             for laser in lasers:
-                memory_error_alive = any(bug.image_path == "memoryerror.png" for bug in bugs)
-                if memory_error_alive == False or self.image_path == "memoryerror.png":
+                memory_error_alive = any(bug.image_path == "assets/memoryerror.png" for bug in bugs)
+                if memory_error_alive == False or self.image_path == "assets/memoryerror.png":
                     self.image.set_alpha(255)
                     if self.rect.colliderect(laser):
                         for i in range(2):
@@ -1774,30 +1774,30 @@ class RecursionBoss(pygame.sprite.Sprite):
                             if self.hp <= 499 and self.shots_fired >= 3:
                                 self.shots_fired = 0
                                 for i in range(5):
-                                    the_choice = random.choice(("exception.png",
-                                                    "indentationerror.png",
-                                                    "indexerror.png",
-                                                    "memoryerror.png",
-                                                    "importerror.png",
-                                                    "brokenpipe.png","typeerror.png"))
+                                    the_choice = random.choice(("assets/exception.png",
+                                                    "assets/indentationerror.png",
+                                                    "assets/indexerror.png",
+                                                    "assets/memoryerror.png",
+                                                    "assets/importerror.png",
+                                                    "assets/brokenpipe.png","assets/typeerror.png"))
                                     
-                                    if the_choice == "exception.png":
+                                    if the_choice == "assets/exception.png":
                                         bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,0,1,1,1)
                                                                         
-                                    elif the_choice == "indentationerror.png":
+                                    elif the_choice == "assets/indentationerror.png":
                                             bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,1,1.5,3,0.8)
 
-                                    elif the_choice == "indexerror.png":
+                                    elif the_choice == "assets/indexerror.png":
                                         bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,2,1,1,1,y_speed = 1.2)
-                                    elif the_choice == "memoryerror.png":
+                                    elif the_choice == "assets/memoryerror.png":
                                         bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,3,3,10,0.4,y_speed = 0.2)
-                                    elif the_choice == "importerror.png":
+                                    elif the_choice == "assets/importerror.png":
                                         bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,4,3,15,0.25,y_speed = 0.2)
 
-                                    elif the_choice == "brokenpipe.png":
+                                    elif the_choice == "assets/brokenpipe.png":
                                         bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,5,3,1,0.4,y_speed = 0.5)
 
-                                    elif the_choice == "typeerror.png":
+                                    elif the_choice == "assets/typeerror.png":
                                         bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,6,random.randint(1,7),random.randint(1,7),0.4,y_speed = random.uniform(0.5,1.5))
                                     bugs.add(bug)
 
@@ -1820,30 +1820,30 @@ class RecursionBoss(pygame.sprite.Sprite):
                     if self.beam_count == 1:
                         if self.hp <= 499  and self.shots_fired >= 3:
                             for i in range(5):
-                                the_choice = random.choice(("exception.png",
-                                                "indentationerror.png",
-                                                "indexerror.png",
-                                                "memoryerror.png",
-                                                "importerror.png",
-                                                "brokenpipe.png","typeerror.png"))
+                                the_choice = random.choice(("assets/exception.png",
+                                                "assets/indentationerror.png",
+                                                "assets/indexerror.png",
+                                                "assets/memoryerror.png",
+                                                "assets/importerror.png",
+                                                "assets/brokenpipe.png","typeerror.png"))
                                 
-                                if the_choice == "exception.png":
+                                if the_choice == "assets/exception.png":
                                     bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,0,1,1,1)
                                                                     
-                                elif the_choice == "indentationerror.png":
+                                elif the_choice == "assets/indentationerror.png":
                                         bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,1,1.5,3,0.8)
 
-                                elif the_choice == "indexerror.png":
+                                elif the_choice == "assets/indexerror.png":
                                     bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,2,1,1,1,y_speed = 1.2)
-                                elif the_choice == "memoryerror.png":
+                                elif the_choice == "assets/memoryerror.png":
                                     bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,3,3,10,0.4,y_speed = 0.2)
-                                elif the_choice == "importerror.png":
+                                elif the_choice == "assets/importerror.png":
                                     bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,4,3,15,0.25,y_speed = 0.2)
 
-                                elif the_choice == "brokenpipe.png":
+                                elif the_choice == "assets/brokenpipe.png":
                                     bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,5,3,1,0.4,y_speed = 0.5)
 
-                                elif the_choice == "typeerror.png":
+                                elif the_choice == "assets/typeerror.png":
                                     bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,6,random.randint(1,7),random.randint(1,7),0.4,y_speed = random.uniform(0.5,1.5))
                                 bugs.add(bug)
                     
@@ -1943,7 +1943,7 @@ class Star(pygame.sprite.Sprite):
         self.w = w
         self.h = h
         size = random.randint(10,30)
-        self.images = [pygame.transform.scale(pygame.image.load("star.png").convert_alpha(),(size,size)),pygame.transform.scale(pygame.image.load("otherstar.png").convert_alpha(),(size,size)),pygame.transform.scale(pygame.image.load("otherotherstar.png").convert_alpha(),(size,size))]
+        self.images = [pygame.transform.scale(pygame.image.load("assets/star.png").convert_alpha(),(size,size)),pygame.transform.scale(pygame.image.load("assets/otherstar.png").convert_alpha(),(size,size)),pygame.transform.scale(pygame.image.load("assets/otherotherstar.png").convert_alpha(),(size,size))]
         self.image = self.images[random.randint(0,len(self.images)-1)]
         self.rect = self.image.get_rect(topleft = (x,y))
         self.draw_self = True
@@ -2279,8 +2279,8 @@ class CoverBrick(pygame.rect.Rect):
 pro_ships = pygame.sprite.Group()
 pro_ships_2= pygame.sprite.Group()
 coverbricks = []
-ship = Ship(400,600,27,33,"ship1.png",1,10)   
-ship2 = Ship(800,600,27,33,"ship2.png",1,10)
+ship = Ship(400,600,27,33,"assets/ship1.png",1,10)   
+ship2 = Ship(800,600,27,33,"assets/ship2.png",1,10)
 ship.is_local = True
 ship2.is_local = False
 pro_ships_2.add(ship2)
@@ -2293,15 +2293,15 @@ keys = pygame.key.get_pressed()
 mines = pygame.sprite.Group()
 files = pygame.sprite.Group()
 symbols = pygame.sprite.Group()
-main = FileTower(WIDTH//2 - 40 , HEIGHT - 130,80,120,"main.png",12)
-server = FileTower(WIDTH//2 - 140 , HEIGHT - 130,80,120,"server.png",8)
-client = FileTower(WIDTH//2 + 60 , HEIGHT - 130,80,120,"client.png",8)
-image_folder = FileTower(WIDTH//2 + 160 , HEIGHT - 120,120,110,"game_sprites.png",8)
-spritesheets = FileTower(WIDTH//2 - 280 , HEIGHT - 120,120,110,"spritesheets.png",8)
-devlog = FileTower(WIDTH//2 - 380 , HEIGHT - 130,80,120,"devlog.png",8)
-error_log = FileTower(WIDTH//2 + 300 , HEIGHT - 130,100,120,"error_log.png",8)
-readme = FileTower(WIDTH//2 - 480 , HEIGHT - 130,80,120,"readme.png",8)
-gitignore = FileTower(WIDTH//2 + 410 , HEIGHT - 130,80,120,"gitignore.png",8)
+main = FileTower(WIDTH//2 - 40 , HEIGHT - 130,80,120,"assets/main.png",12)
+server = FileTower(WIDTH//2 - 140 , HEIGHT - 130,80,120,"assets/server.png",8)
+client = FileTower(WIDTH//2 + 60 , HEIGHT - 130,80,120,"assets/client.png",8)
+image_folder = FileTower(WIDTH//2 + 160 , HEIGHT - 120,120,110,"assets/game_sprites.png",8)
+spritesheets = FileTower(WIDTH//2 - 280 , HEIGHT - 120,120,110,"assets/spritesheets.png",8)
+devlog = FileTower(WIDTH//2 - 380 , HEIGHT - 130,80,120,"assets/devlog.png",8)
+error_log = FileTower(WIDTH//2 + 300 , HEIGHT - 130,100,120,"assets/error_log.png",8)
+readme = FileTower(WIDTH//2 - 480 , HEIGHT - 130,80,120,"assets/readme.png",8)
+gitignore = FileTower(WIDTH//2 + 410 , HEIGHT - 130,80,120,"assets/gitignore.png",8)
 cards = []
 cooldown_1 = UpgradeCard(0,HEIGHT//2 - 180,200,300,"Square","Cooldown",-((ship.max_cooldown / 15) * 0.5) ,0)
 ################ ALL CARDS ####################################
@@ -2445,7 +2445,7 @@ typer_speed = 10
 
 
 
-ship_image = pygame.image.load("ship.png").convert_alpha()
+ship_image = pygame.image.load("assets/ship.png").convert_alpha()
 ship_image = pygame.transform.scale(ship_image,(27,33))
 talking = False
 overdrive_charge = 100
@@ -2672,12 +2672,12 @@ async def main():
             ]
 
             image_list = [
-                "exception.png",
-                "indentationerror.png",
-                "indexerror.png",
-                "memoryerror.png",
-                "importerror.png",
-                "brokenpipe.png"
+                "assets/exception.png",
+                "assets/indentationerror.png",
+                "assets/indexerror.png",
+                "assets/memoryerror.png",
+                "assets/importerror.png",
+                "assets/brokenpipe.png"
             ]
 
 
@@ -2891,7 +2891,7 @@ async def main():
                     for bug in bugs:
                     
                         if player_id == 1 or multiplayer_mode == False:
-                            if bug.image_path != "recursionboss.png":
+                            if bug.image_path != "assets/recursionboss.png":
                                 bug.move()
                                 bug.check_for_collisions()
                         
@@ -3022,7 +3022,7 @@ async def main():
                                         bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,8,0,24,0.5,id = next_bug_id)
                                     # Spawns the recursion boss
                                     elif exception == "BOSS":
-                                        bug = RecursionBoss(WIDTH//2 - 150,50,240,120,"recursionboss.png",1,100,id = next_bug_id)
+                                        bug = RecursionBoss(WIDTH//2 - 150,50,240,120,"assets/recursionboss.png",1,100,id = next_bug_id)
                                         bosses.add(bug)
                                     # Spawns a deprecated error
                                     elif exception == "d":
@@ -3049,7 +3049,7 @@ async def main():
                                                 next_bug_id += 1
                                     
                                     elif exception == "BSOD":
-                                        boss = Bluegame_canvasOfDeath(0,50,200,100,"bluescreenofdeath.png")
+                                        boss = Bluegame_canvasOfDeath(0,50,200,100,"assets/bluescreenofdeath.png")
                                         bosses.add(boss)
                                     
                                     rowindex += 1
@@ -3081,7 +3081,7 @@ async def main():
                 laser.update()
             # Update Bosses
             for boss in bosses:
-                if boss.image_path == "recursionboss.png":
+                if boss.image_path == "assets/recursionboss.png":
                     boss.update()
                     boss.check_for_collisions()
                     boss.shoot()
@@ -3093,23 +3093,23 @@ async def main():
                 x = explosion_list[0]
                 y = explosion_list[1]
                 color = (0,255,0)
-                if image_path == "exception.png":
+                if image_path == "assets/exception.png":
                     color = (0,255,0)
-                elif image_path == "indentationerrorlow.png" or image_path == "indentationerror .png":
+                elif image_path == "assets/indentationerrorlow.png" or image_path == "assets/indentationerror.png":
                     color = (0,0,255)
-                elif image_path == "indexerror.png":
+                elif image_path == "assets/indexerror.png":
                     color = (255,165,0)
-                elif image_path == "memoryerror.png":
+                elif image_path == "assets/memoryerror.png":
                         color = (0,255,0)
                         for i in range(9):
                             particles.append([[x, y] , [random.randint(-3,3),random.randint(-3,3)] , random.randint(4,8),random.choice([(0,255,0),(255,0,0),(255,255,0)])])
-                elif image_path == "importerror.png":
+                elif image_path == "assets/importerror.png":
                     color = (165,42,42)
-                elif image_path == "brokenpipe.png":
+                elif image_path == "assets/brokenpipe.png":
                     color = (255,255,255)
-                elif image_path == "typeerror.png":
+                elif image_path == "assets/typeerror.png":
                     color = (random.randint(0,255),random.randint(0,255),random.randint(0,255))
-                if image_path != "packetbug.png":
+                if image_path != "assets/packetbug.png":
                     for i in range(9):
                         particles.append([[x, y] , [random.randint(-3,3),random.randint(-3,3)] , random.randint(4,8), color])
                 else:
@@ -3156,7 +3156,7 @@ async def main():
                 win  = title_font.render(f"YOU LOSE...",True , (255,0,0))
                 game_canvas.blit(win,win.get_rect(center = (WIDTH//2 , 200)))
                 current_level = 0
-                ship = Ship(100,100,27,33,"ship.png",1,1)
+                ship = Ship(100,100,27,33,"assets/ship.png",1,1)
 
 
 
@@ -3219,7 +3219,7 @@ async def main():
                             bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,8,0,24,0.5,id = next_bug_id)
                         # Spawns the recursion boss
                         elif exception == "BOSS":
-                            bug = RecursionBoss(WIDTH//2 - 150,50,240,120,"recursionboss.png",1,100,id = next_bug_id)
+                            bug = RecursionBoss(WIDTH//2 - 150,50,240,120,"assets/recursionboss.png",1,100,id = next_bug_id)
                             bosses.add(bug)
                         # Spawns a deprecated error
                         elif exception == "d":
@@ -3246,7 +3246,7 @@ async def main():
                                     next_bug_id += 1
                         
                         elif exception == "BSOD":
-                            boss = Bluegame_canvasOfDeath(0,50,200,100,"bluescreenofdeath.png")
+                            boss = Bluegame_canvasOfDeath(0,50,200,100,"assets/bluescreenofdeath.png")
                             bosses.add(boss)
                         
                         rowindex += 1
