@@ -1,4 +1,4 @@
-# ASDFJDSAGDFNGMD
+# bkdfjhdddwaswddwadwdwadwdwadwadzfdwdwasddwadsdwdswdwasdwadasdwadwddswasadwasdwasdwdddwasddwdwadwdwadwadwawdwasdwadwsfefdasdwdwasdswasdwasdddawsddwadwadwfesdwadwdwadsasddwaddwadsdwaswdwasdddwasdwadwadsdwadwasdwddwaddwadwadwadwwdwadwadwadwdwasddwasdwasdwddwasdaddwdasdsdwasdwasdaddwadwadsdsdwadwdwadwadwadwddwasddwsadwasddwadwasddwadwadwasddwasddwasddwadwade22qe2e2qwWddwaddwadsdwadwaddwadswadsdwadsdwadwdwadwadwadwdwadwdwadwdwadwadwadwdaddwasdwawawdwdwadwdwadwadwdwaddwadsdsadwadwdwaddwadsdwdwasddwasddwadwadssqdwasqdwadwaddwaddwadwadwdwadwddadwadwaddwadwadwadwadwadwadwadwadwdhtfhtfhghtffesdsfesgdfkhjwadwdwasddwadwadddddwasdwdwadwadsddwasdwasddwadwadwdasdwasdwadwadwadsdsasdwdwadsdwadwadwadwadwadwadadwadwdwadwdddddddddddddddddddwasdwasddwadwddwasdasddwadwasdwasddwasddwasddwadwasfesfesdwasdwsasdwasdwaddadwadsdwasdwadwadwadwasddwasdwadwadsasdDWADWADWDWADDWADWDWADWADSADasdwdwaddwadwdwasddwawaddwdwadwadDWASDwadwaddwaddwadwaddwasqADWADWADWADWDAWDADWAadwasdwsdr3wr3wdwasddwadwadwadwdwdwaddwaddwadsdwadwdwdwadwadwassdwdwadwassdasddwdwasdddwasdswasddwadwdwasdddddadddddwadwadwadwdwasdwadwassddwdwasadwsdwsdasdwddawadwassdddwasdwadwasddwassasdddwasddwadwadwwasddwasddasddfwadwaddasddwasdadwadswaddwadwadwasdwafasdsdwasddwadsasddwasdwadwdwadsdwaddwadsdwawdadawadwaddwadwaddwasdwadwdwadwadwasddwadwadwadsdsdwadwdaasdwadsdwadwadsdwadwadadasdwadwdadwasddwadwadsddwasddwdwadwdadsdwadsasddwadsddasdwadadsdwasdwasdwadsdwaddwaddwadsdwadsdwadsdsdwasdwadwadsdsadwadsdwadsdwaddwasddwaddwadwaddwadwadwaddwasddwasdadwaddwaddwddwasddwdwadsdwadfdsdwaddwaddwadwadadwdwasddwadwadwadwawadfdwaszxcwwdadsadwadwadwadwdwadwadsdwadsdwasddwaddwaddwadwdwadsdwadwdwadddwadwadwaddwadwaddwadwadwddwadsddadwadsdwaddwadwadwdwadwadwdwdwadwadddwadwadwdwwadwadwadwwasddwaddwasdwasdwadwaddwdwadwasddwasdwadwaadwswsaaasdwasddwasdwasdadwadwasddsddwadwjlkjdwasdaslkjaddwadwasddwasdwaddwadwadwadwadwadwdadwswaddwadwaswadwadwadwasdwasgrdfgrfdrgfdwasdwddwasdadwdwadwadwdwadsdwasdadwadwczxcdadwzvxcdwadfgrdfddaaddwadwadwadsadwswswdwasddwadwadadswsadsdwadsdwasdwddsddwasdwdwasdwadwadsdwadwasdswasasddwadwdwadwadwsddwadddwadwasdwwadwwacvxvcbvfcdwasdwasdvgdfrAfecfeddafddfesfesfesfefesfesfesdfesdfesffefesdfesfesdffesdfdwadwadwafesfesdwwadwdwaddwasddwadwadwadwaddwdwasdddwdwadwdsadwdwdwadsafeadsdwasdwasdwadwdwasdfesdfadwawasdwasdwdwasddwasfdwasdwadcxzfedwaddwaswaswdwasdwadwdwadwdwassdfeffedwddwfsdwadfesdfedwdwasdssdczxdwrwecxzxdsadwadcxzcdsdwadwadwadwadwaasddwadwdwadwadwdwdwasddawdwasdwdwdwafesfdwadwadwaSDasdwdasasdaskjfhdalskjfhjdskfhkdsjgfdskjfhsdkjfhksjdfsfesdfdwadwaddwdwaasdasdgdfaasdasdasdsdasdasdadskhkjbmbndawasdasdasdwadsasasasdasdasdasdasdsdFJDdasagmncvzvczczxzxzsdasdasdasdgfsjdhSAGDFNGdwasdsMDaasdasddfdddsaasdesgdawdaasdaefssdadaadwdsfsdfasddawdsfeasdasdfsdfsasdsdefwasdsdasasdasddsd
 import asyncio # For the itch.io page
 import pygame
 import random
@@ -12,6 +12,7 @@ text_to_type,text_index,text_line = "",0,0
 keep_this_text = []
 # 150 Hours ! Yay!
 # Updates
+# Added Score and Score Text when enemy dies
 ### Multiplayer : Working 
 #### Issues : Game starts without player 2 joining... May be easy to fix... or not...
 #### Multi-Lobbies Working!
@@ -31,12 +32,16 @@ network_thread_launched = False
 p1_coords = "400,600"
 p2_coords = "800,600"
 # SERVER_URL = "ws://localhost:8765"
+# BROOOOOOOOOOOOOOOOOOOO IT NO WORKKK help help help
 SERVER_URL = "wss://code-invaders-server.onrender.com"
 pygame.init()
 pygame.font.init()
 font = pygame.font.SysFont(None,96)
 title_font = pygame.font.Font("PressStart2P.ttf", 72)
 subtitle_font = pygame.font.Font("PressStart2P.ttf", 42)
+score_font = pygame.font.Font("PressStart2P.ttf", 28)
+score_add_font = pygame.font.Font("PressStart2P.ttf", 12)
+score_text = []
 card_font = pygame.font.SysFont(None,20)
 ui_font = pygame.font.Font("VT323-Regular.ttf", 20)
 small_font = ui_font = pygame.font.Font("VT323-Regular.ttf", 18)
@@ -80,6 +85,7 @@ explosions_to_draw = []
 
 game_id = uuid4()
 
+score = 0
 
 async def network_sync_loop(ship_reference,game_id = 0):
     await asyncio.sleep(3)
@@ -87,8 +93,7 @@ async def network_sync_loop(ship_reference,game_id = 0):
     try:
         print("Going to connect")
         async with websockets.connect(SERVER_URL,ping_interval=20,ping_timeout=20) as ws:
-
-            active_ws_connection = ws
+    
             
             handshake_data = await ws.recv()
             config_receipt = json.loads(handshake_data)
@@ -534,7 +539,7 @@ for item in (ram_files_1, ram_files_2, ram_files_3, ram_files_4):
     item.effect_type = "Damage"
 for item in (cooler_files_1, cooler_files_2, cooler_files_3, cooler_files_4, cooler_files_5, cooler_files_6):
     item.effect_type = "Overdrive-Duration"
-
+# YYAYAYAYAasfghjkdsaslfghjkvxcfdfdbhggffgadwasdw
 six = 6
 
 case_files_1 = ShopItem("Layered Plastic Bag",3,"Finally found a use for all those plastic\nbags...",r"Files get +1 max HP","Heal-Files",1670+scroll_x,100+scroll_y, w = 320,h = 180,image = "assets/plasticbags.png")
@@ -944,6 +949,7 @@ class Bug(pygame.sprite.Sprite):
         self.packetcooldown = 10
         self.sleep_freeze_cooldown = 300
         self.max_sleep_freeze_cooldown = self.sleep_freeze_cooldown
+        self.kill_score = 0
     def move(self,axis = "n",amount = 0):
         if axis == "x":
             self.movetox = amount
@@ -1008,12 +1014,13 @@ class Bug(pygame.sprite.Sprite):
                 self.image.set_alpha(100)
                 self.y_speed = 0.5 * self.og_y_speed
         if self.hp <= 0:
-            global explosions
+            global explosions,score,score_add_font,score_text,game_state
             color = (255,0,0)
             type_of_explosion = self.image_path
             explosion = [self.rect.x,self.rect.y,type_of_explosion] 
             print(explosion)
             explosions.append(explosion)
+  
             self.kill()
             small_explosion_sound.play()
             if overdrive_charge < max_overdrive and ship.overdrive_duration <= 0:
@@ -1021,30 +1028,45 @@ class Bug(pygame.sprite.Sprite):
                     overdrive_charge += 100
                 else:
                     overdrive_charge += 0.25
+                self.kill_score = 1
             color = (0,255,0)
             if self.image_path == "assets/exception.png":
                 color = (0,255,0)
-            elif self.image_path == "assets/indentationerrorlow.png" or self.image_path == "assets/indentationerror .png":
+                self.kill_score = 10
+            elif self.image_path == "assets/indentationerrorlow.png" or self.image_path == "assets/indentationerror.png":
                 color = (0,0,255)
+                self.kill_score = 20
             elif self.image_path == "assets/indexerror.png":
                 color = (255,165,0)
+                self.kill_score = 20
             elif self.image_path == "assets/memoryerror.png":
                  color = (0,255,0)
+                 self.kill_score = 100
                  for i in range(9):
                     particles.append([[self.rect.centerx, self.rect.centery] , [random.randint(-3,3),random.randint(-3,3)] , random.randint(4,8),random.choice([(0,255,0),(255,0,0),(255,255,0)])])
             elif self.image_path == "assets/importerror.png":
                 color = (165,42,42)
+                self.kill_score = 50
             elif self.image_path == "assets/brokenpipe.png":
                 color = (255,255,255)
+                self.kill_score = 25
             elif self.image_path == "assets/typeerror.png":
                 color = (random.randint(0,255),random.randint(0,255),random.randint(0,255))
+                self.kill_score = 40
             if self.image_path != "assets/packetbug.png":
                 for i in range(9):
                     particles.append([[self.rect.centerx, self.rect.centery] , [random.randint(-3,3),random.randint(-3,3)] , random.randint(4,8), color])
+
             else:
                 for i in range(2):
                     particles.append([[self.rect.centerx, self.rect.centery] , [random.randint(-3,3),random.randint(-3,3)] , random.randint(4,8), color])
-        
+                self.kill_score = 1
+            if game_state == 1 :
+                score += self.kill_score
+                print(f"{color}-{self.kill_score}")
+                title_surface = score_add_font.render(str(f"+{self.kill_score}"),True,color)
+                score_text_to_add = [title_surface,self.rect.x,self.rect.y,10,2,255,color]
+                score_text.append(score_text_to_add)
         for ship in pro_ships:
             if self.rect.colliderect(ship.rect):
                 shake_intensity = 30
@@ -2468,7 +2490,7 @@ mouse_spark_color = (0,255,0)
 speed_add_for_minigame = 0
 async def main():
     
-    global mouse_spark_color,game_canvas_color,explosions_to_draw,upgrades_obtained,i_actually_chose_a_card,next_bug_id,all_bugs,p1_choosing_cards,p2_choosing_cards,im_choosing_cards, level_start,all_bugs_are_dead,other_bugs_are_dead,remote_shop_state,remote_level,other_player_in_shop,other_player_lv,level_start,network_connected,multiplayer_mode,player_id,pro_ships_2,ship2,titles,scroll_x,scroll_y,shop_items,stars,flip_to,transparency,shake_intensity,talking,mouse_pressed,textboxes,coverbricks,global_trail_surf,shockwaves,enemy_missiles,cur_frame,overdrive_charge,null_lasers,shotgun_1,double_1,mines_1,lives_left,ship_image,boss_lasers,keys,current_enemy,full_title,current_typed,typed_frame,type_letter,typer_speed,menu_buttons,back_button,game_state,mouse_pressed,mouse_pos,heal_1,heal_possible,server,enemy_lasers,particles,dash_possible,add_pierce_possible,ship,pierce_1,files_destroyed,bugsnum,cards_were_shuffled,card_options,card_was_chosen,symbols,current_level,keys,running,files,pro_ships,lasers,level_list,level,startx,starty,rowindex,colindex,spacer,bugs
+    global score,mouse_spark_color,game_canvas_color,explosions_to_draw,upgrades_obtained,i_actually_chose_a_card,next_bug_id,all_bugs,p1_choosing_cards,p2_choosing_cards,im_choosing_cards, level_start,all_bugs_are_dead,other_bugs_are_dead,remote_shop_state,remote_level,other_player_in_shop,other_player_lv,level_start,network_connected,multiplayer_mode,player_id,pro_ships_2,ship2,titles,scroll_x,scroll_y,shop_items,stars,flip_to,transparency,shake_intensity,talking,mouse_pressed,textboxes,coverbricks,global_trail_surf,shockwaves,enemy_missiles,cur_frame,overdrive_charge,null_lasers,shotgun_1,double_1,mines_1,lives_left,ship_image,boss_lasers,keys,current_enemy,full_title,current_typed,typed_frame,type_letter,typer_speed,menu_buttons,back_button,game_state,mouse_pressed,mouse_pos,heal_1,heal_possible,server,enemy_lasers,particles,dash_possible,add_pierce_possible,ship,pierce_1,files_destroyed,bugsnum,cards_were_shuffled,card_options,card_was_chosen,symbols,current_level,keys,running,files,pro_ships,lasers,level_list,level,startx,starty,rowindex,colindex,spacer,bugs
 
 
     
@@ -2523,7 +2545,7 @@ async def main():
                         if player_id == 2:
                             cards_were_shuffled = False 
                         im_choosing_cards = False
-                        print(f"{player_id} Chose a card! {card_was_chosen}, {event.key}")
+                        # print(f"{player_id} Chose a card! {card_was_chosen}, {event.key}")
                         cards.clear()
                         symbols.empty()
             
@@ -3073,6 +3095,31 @@ async def main():
                 game_canvas.blit(txt,txt.get_rect(center = ( WIDTH//2 , 100) ))
                 print("Whooooooo")
 
+            title_surface = score_font.render(f"Score : {str(score)}",True,(0,255,80))
+            game_canvas.blit(title_surface,title_surface.get_rect(right = 1000 , top = 30))
+
+            for score_stat in score_text:
+                score_surf = score_stat[0]
+                score_x,score_y = score_stat[1],score_stat[2]
+                score_fade_duration = score_stat[3]
+                score_move_speed = score_stat[4]
+                score_alpha = score_stat[5]
+                score_color = score_stat[6]
+                # print(score_alpha)
+                if score_alpha <= 0:
+                    if score_stat in score_text:
+                        score_text.remove(score_stat)
+                        continue
+                score_alpha = int(max(0,min(score_alpha,255)))
+                temp_surf = score_surf.copy()
+                mask = pygame.Surface(temp_surf.get_size(),pygame.SRCALPHA)
+                mask.fill((score_color[0],score_color[1],score_color[2],score_alpha))
+                print(f"SCORE STUFF : {(score_color[0],score_color[1],score_color[2],score_alpha)}")
+                score_stat[5] -= score_fade_duration
+                temp_surf.blit(mask,(0,0),special_flags = pygame.BLEND_RGBA_MULT)
+
+                game_canvas.blit(temp_surf,temp_surf.get_rect(center = (score_x , score_y)))
+                score_stat[2] -= score_move_speed
             # Draw bosses
             bosses.draw(game_canvas)
             # Update boss lasers
@@ -3171,6 +3218,8 @@ async def main():
             offset_x,offset_y = 0,0
 
         # Blits the shaking screen to the static screen
+
+        
         if game_state == 0:
             for particle in particles[:]:
                 particle[0][0] += particle[1][0] 
@@ -3259,7 +3308,7 @@ async def main():
             bugs.draw(game_canvas)
             for bug in bugs:
                 bug.move()
-                print(f"{bug.rect.x,bug.rect.y,bug.rect.w,bug.rect.h}")
+                # print(f"{bug.rect.x,bug.rect.y,bug.rect.w,bug.rect.h}")
                 for particle in particles:
                     rparticle = pygame.rect.Rect(particle[0][0],particle[0][1],particle[2],particle[2])
                     if bug.rect.colliderect(rparticle) and particle[3] == (0,255,255):
