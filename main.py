@@ -2,32 +2,23 @@ import asyncio # For the itch.io
 import pygame
 import random
 import math
-import websockets
 import json
-import threading
 import sys
 
+
+MAX_PARTICLES = 200
 text_to_type,text_index,text_line = "",0,0
 keep_this_text = []
 # 150 Hours ! Yay!
 # Updates
-# Added Score and Score Text when enemy dies
+# Added Score and Score Text when enemy dies #
 ### Multiplayer : Working 
 #### Issues : Game starts without player 2 joining... May be easy to fix... or not...
 #### Multi-Lobbies Working!
-#### Add loading screen so player dont get confused.....
+#### Add loading screen in multiplayer so player dont get confused.....
 from uuid import uuid4
-print(f"Platform : {sys.platform}")
-print("Started!")
-if sys.platform == "win32":
-    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy()) # type: ignore
-remote_level = 0
-remote_shop_state = False
-net_lock = threading.Lock() # Lock
-websocket_client = None
-player_id = None
-network_connected = False
-network_thread_launched = False
+
+
 p1_coords = "400,600"
 p2_coords = "800,600"
 # SERVER_URL = "ws://localhost:8765"
@@ -36,14 +27,15 @@ SERVER_URL = "wss://code-invaders-server.onrender.com"
 pygame.init()
 pygame.font.init()
 font = pygame.font.SysFont(None,96)
-title_font = pygame.font.Font("PressStart2P.ttf", 72)
-subtitle_font = pygame.font.Font("PressStart2P.ttf", 42)
-score_font = pygame.font.Font("PressStart2P.ttf", 28)
-score_add_font = pygame.font.Font("PressStart2P.ttf", 12)
+title_font = pygame.font.Font("assets/PressStart2P.ttf", 72)
+subtitle_font = pygame.font.Font("assets/PressStart2P.ttf", 42)
+
+score_font = pygame.font.Font("assets/PressStart2P.ttf", 28)
+score_add_font = pygame.font.Font("assets/PressStart2P.ttf", 12)
 score_text = []
 card_font = pygame.font.SysFont(None,20)
-ui_font = pygame.font.Font("VT323-Regular.ttf", 20)
-small_font = ui_font = pygame.font.Font("VT323-Regular.ttf", 18)
+ui_font = pygame.font.Font("assets/VT323-Regular.ttf", 20)
+small_font = ui_font = pygame.font.Font("assets/VT323-Regular.ttf", 18)
 WIDTH , HEIGHT = 1000 ,600
 FPS =  60                
 screen = pygame.display.set_mode((WIDTH,HEIGHT))
@@ -51,7 +43,7 @@ running = True
 clock = pygame.time.Clock()
 game_canvas_color = (0,0,0)
 particles = []
-game_state = 0  
+game_state = -1  
 multiplayer_mode = False
 explosion_sound = pygame.mixer.Sound("assets/explosion.ogg")
 small_explosion_sound = pygame.mixer.Sound("assets/small_explosion1.ogg")
@@ -60,7 +52,8 @@ click_sound = pygame.mixer.Sound("assets/shortclick.ogg")
 laser_sound = pygame.mixer.Sound("assets/laser.ogg")
 laser_sound.set_volume(0.15)
 shake_intensity  =0
-game_canvas = pygame.Surface((WIDTH + 40,HEIGHT + 40),pygame.SRCALPHA)
+game_canvas = pygame.Surface((WIDTH + 40,HEIGHT + 40)).convert()
+# game_canvas = screen
 #### Menu Stuff #####
 
 data_coins = 0 
@@ -85,191 +78,6 @@ explosions_to_draw = []
 game_id = uuid4()
 
 score = 0
-
-async def network_sync_loop(ship_reference,game_id = 0):
-    await asyncio.sleep(3)
-    global explosions_to_draw, all_bugs_are_dead,other_bugs_are_dead,active_ws_connection,p1_coords,level_start, p2_coords, network_connected, game_state, player_id,ship,ship2,network_positions,multiplayer_mode,net_lock,pro_ships_2,pro_ships
-    try:
-        print("Going to connect")
-        async with websockets.connect(SERVER_URL,ping_interval=20,ping_timeout=20) as ws:
-    
-            
-            handshake_data = await ws.recv()
-            config_receipt = json.loads(handshake_data)
-            print("CONNECTED")
-            player_id = int(config_receipt["player_id"])
-            lobby_id = config_receipt["lobby_id"]
-            print(f"Lobby ID : {lobby_id}")
-            multiplayer_mode = True
-            network_connected = True
-            if player_id == 1:
-                ship.is_local = True
-                ship2.is_local = False
-            elif player_id == 2:
-                ship2.is_local = True
-                ship.is_local = False
-            else:
-                print(player_id)
-    
-            network_connected = True
-            game_state =  1
-            ################################################################################### Receive the stuff (somehow working) ################AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA########
-            async def receive_handler():
-                global explosions_to_draw,bugs,network_positions,lasers,net_lock,incoming_remote_lasers,level_start,p1_choosing_cards,p2_choosing_cards
-                try:
-                    async for message in ws:
-                        global_match_state = json.loads(message)
-                        if global_match_state.get("type") == "laser_fired":
-                            with net_lock:
-                                incoming_remote_lasers.append({
-                                    "x" : global_match_state["x"],
-                                    "y" : global_match_state["y"],
-                                    "d" : global_match_state["damage"],
-                                    "p" : global_match_state["pierce"]
-                                })
-                            
-                            continue
-                        
-            
-                        with net_lock:
-                            p1_x,p1_y = map(int, global_match_state.get("p1","486,400").split(","))
-                            p2_x,p2_y = map(int, global_match_state.get("p2","486,400").split(","))
-                           
-                        with net_lock:
-                            network_positions["p1_x"] = p1_x
-                            network_positions["p1_y"] = p1_y
-                            network_positions["p2_x"] = p2_x
-                            network_positions["p2_y"] = p2_y
-
-                        with net_lock:
-                            level_start['p1_bugs_are_dead'] = global_match_state.get("all_bugs_dead_p1", False)
-                            level_start['p2_bugs_are_dead'] = global_match_state.get("all_bugs_dead_p2", False)
-                        with net_lock:
-                            p1_lv = global_match_state.get('p1_level',1)
-                            p2_lv = global_match_state.get('p2_level',1)
-                            p1_shop = global_match_state.get('p1_in_shop',False)
-                            p2_shop = global_match_state.get('p2_in_shop',False)
-          
-
-                            level_start["p2_lv"] = p2_lv
-                            level_start["p2_inshop"] = p2_shop
-                            level_start["p1_lv"] = p1_lv
-                            level_start["p1_inshop"] = p1_shop
-                        with net_lock:
-                            p1_choosing_cards = global_match_state.get('p1_choosing_cards', False)
-                            p2_choosing_cards = global_match_state.get('p2_choosing_cards', False)
-                        # Copies player 1 so sync works (right?) 
-                            if player_id == 2:
-                                received_ids = set()
-
-                                try:
-                                    for explosion_data in global_match_state["explosions"]:
-                                        explosions_to_draw.append([explosion_data[0],explosion_data[1],explosion_data[2]])
-                                        print("it worked!")
-                                except Exception as e:
-                                      print(f"[Explosion Error] {e} ")
-                                for bug_data in global_match_state["bugs_list"]: # Gets the bug list from plahyer 1
-
-                                    bug_id = bug_data[8]
-
-                                    received_ids.add(bug_id)
-
-                                    if bug_id not in network_bugs:
-                                        
-                                        new_bug = Bug(
-                                            x = bug_data[0],
-                                            y = bug_data[1],
-                                            w = bug_data[2],
-                                            h = bug_data[3],
-                                            image_path= bug_data[4],
-                                            damage = bug_data[5],
-                                            hp = bug_data[6],
-                                            speed = bug_data[7],
-                                            id = bug_data[8],
-                                            y_speed= bug_data[9]
-
-                                        )
-
-                                        network_bugs[bug_id] = new_bug
-                                        bugs.add(new_bug)
-
-                                    else:
-
-                                        bug = network_bugs[bug_id]
-
-                                        bug.rect.x = bug_data[0]
-                                        bug.rect.y = bug_data[1]
-                                        bug.hp = bug_data[6]
-
-                                for bug_id in list(network_bugs.keys()):
-                                    if bug_id not in received_ids:
-                                        network_bugs[bug_id].kill()
-
-                                        del network_bugs[bug_id]
-                                
-
-                except Exception as e:
-                        print(f"[Receiving Error]: Exception {e} from player {player_id}")
-
-            async def send_handler():
-                global explosions,card_was_chosen,p1_choosing_cards,p2_choosing_cards,im_choosing_cards,network_connected,outbound_events,net_lock,all_bugs_are_dead
-                while network_connected:
-                    events_to_send = []
-                    with net_lock:
-                        if outbound_events:
-                            events_to_send = list(outbound_events)
-                            outbound_events.clear()
-                    is_in_shop = False
-                    if game_state == 4:
-                        is_in_shop = True
-                    else:
-                        is_in_shop = False
-                    if player_id == 1:
-                        the_giant_list = []
-                        #  Create Explosions List
-                        explosions_list = []
-                        for bug in bugs:
-                            all_attributes = [bug.rect.x,bug.rect.y,bug.w,bug.h,bug.image_num,bug.damage,bug.hp,bug.speed,bug.id,bug.y_speed]
-                            the_giant_list.append(all_attributes)
-                        
-                        for explosion in explosions:
-                            explosions_list.append([explosion[0],explosion[1],explosion[2]])
-                        local_payload = {'x' : ship.rect.x,'y' : ship.rect.y, 'level' : current_level,'is_in_shop':is_in_shop,'bugs_dead' : all_bugs_are_dead,'choosing_cards' : im_choosing_cards,'bugs_list' : the_giant_list,'explosions' : explosions_list}
-                        explosions.clear()
-                    elif player_id == 2:
-                        local_payload = {'x' : ship2.rect.x, 'y' : ship2.rect.y, 'level' : current_level,'is_in_shop':is_in_shop,'bugs_dead' : all_bugs_are_dead,'choosing_cards' : im_choosing_cards}
-                
-                    else:
-
-                        pass
-                    await ws.send(json.dumps(local_payload))
-
-                    for event_packet in events_to_send:
-                            await ws.send(json.dumps(event_packet))
-                    await asyncio.sleep(0.016)
-
-            await asyncio.gather(receive_handler(),send_handler())
-            
-
-    except Exception as e:
-        print(f"Connection failed/closed : Error {e}")
-        network_connected = False
-
-
-
-
-
-def launch_network_thread(ship_instance):
-    global network_thread_launched
-    if network_thread_launched:
-        return
-    
-    # This registers the network loop to run safely on the browser's main window thread
-    asyncio.create_task(network_sync_loop(ship_instance))
-    network_thread_launched = True
-    
-
-
 
 class ShopItem:
     def __init__(self,name,cost,description,stats,effect_type,x,y,w = 260,h = 130,image = None):
@@ -538,7 +346,7 @@ for item in (ram_files_1, ram_files_2, ram_files_3, ram_files_4):
     item.effect_type = "Damage"
 for item in (cooler_files_1, cooler_files_2, cooler_files_3, cooler_files_4, cooler_files_5, cooler_files_6):
     item.effect_type = "Overdrive-Duration"
-# YYAYAYAYAasfghjkdsaslfghjkvxcfdfdbhggffgadwasdw
+
 six = 6
 
 case_files_1 = ShopItem("Layered Plastic Bag",3,"Finally found a use for all those plastic\nbags...",r"Files get +1 max HP","Heal-Files",1670+scroll_x,100+scroll_y, w = 320,h = 180,image = "assets/plasticbags.png")
@@ -711,6 +519,63 @@ class MenuButton():
 
 ##### Game Stuff #####
 # ########### SHIPPY ########## 
+
+class ControlButton(pygame.rect.Rect):
+    def __init__(self,x,y,w,h,dir,color,symbol):
+        super().__init__(x,y,w,h)
+        self.x = x  
+        self.y = y
+        self.w = w
+        self.h = h
+        self.dir = dir
+        self.color = color
+        self.symbol = symbol
+
+    def draw(self):
+        pygame.draw.rect(game_canvas,self.color,self,border_radius=5)
+
+    def check_for_clicks(self,touches):
+        global ship,ship2
+        for key,coords in touches.items():
+            player_id = 1
+            if self.collidepoint((coords[0],coords[1])):
+                if self.dir == "Up":
+                    if player_id == 1 or multiplayer_mode == False:
+                        ship.rect.y -= ship.speed
+                    elif player_id == 2:
+                        ship2.rect.y -= ship2.speed
+                elif self.dir == "Down":
+                    if player_id == 1 or multiplayer_mode == False:
+                        ship.rect.y += ship.speed
+                    elif player_id == 2:
+                        ship2.rect.y += ship2.speed
+                elif self.dir == "Left":
+                    if player_id == 1 or multiplayer_mode == False:
+                        ship.rect.x -= ship.speed
+                    elif player_id == 2:
+                        ship2.rect.x -= ship2.speed
+                elif self.dir == "Right":
+                    if player_id == 1 or multiplayer_mode == False:
+                        ship.rect.x += ship.speed
+                    elif player_id == 2:
+                        ship2.rect.x += ship.speed
+                elif self.dir == "Shoot":
+                    if player_id == 1 or multiplayer_mode == False:
+                        ship.shoot(this_is_a_trigger=True)
+                       
+                    elif player_id == 2:
+                        ship2.shoot()
+                elif self.dir == "Overdrive":
+                    if player_id == 1 or multiplayer_mode == False:
+                        ship.overdrive_duration = ship.max_overdrive_duration
+                    elif player_id == 2:
+                        ship2.overdrive_duration = ship2.max_overdrive_duration
+
+controls = [ControlButton(200,100,80,80,"Up",(255,200,60),None),ControlButton(200,200,80,80,"Down",(255,200,60),None),ControlButton(100,200,80,80,"Left",(255,200,60),None),ControlButton(300,200,80,80,"Right",(255,200,60),None),ControlButton(300,100,80,80,"Shoot",(255,200,60),None)]
+
+
+
+
 class Ship(pygame.sprite.Sprite):
     def __init__(self,x,y,w,h,image_path,damage,hp = 10,speed = 6,knockback = 0,pierce = 0):
         super().__init__()
@@ -754,8 +619,8 @@ class Ship(pygame.sprite.Sprite):
         green_rect = pygame.rect.Rect(self.rect.centerx,self.rect.centery + 25,5,(100/self.max_hp) * self.hp)
     def move(self):
         if self.is_local == True:
-            global keys,bugs,overdrive_charge
-            if self.invert_duration <= 0:
+            global keys,bugs,overdrive_charge,control_mode
+            if self.invert_duration <= 0 and control_mode == "Computer":
                 if keys[pygame.K_UP] or keys[pygame.K_w]:
                     self.rect.y -= self.speed
                 elif keys[pygame.K_DOWN] or keys[pygame.K_s]:
@@ -767,7 +632,7 @@ class Ship(pygame.sprite.Sprite):
 
 
             else:
-                if keys[pygame.K_UP] or keys[pygame.K_w]:
+                if keys[pygame.K_UP] or keys[pygame.K_w] and control_mode == "Computer":
                     self.rect.y += self.speed
                 elif keys[pygame.K_DOWN] or keys[pygame.K_s]:
                     self.rect.y -= self.speed
@@ -776,6 +641,8 @@ class Ship(pygame.sprite.Sprite):
                 elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
                     self.rect.x -= self.speed
                 self.invert_duration -= 1
+
+            
 
 
             if keys[pygame.K_RSHIFT] and self.can_dash and self.dash_cooldown <= 0:
@@ -836,10 +703,11 @@ class Ship(pygame.sprite.Sprite):
                 self.max_cooldown = self.max_max_cooldown
             else :
                 self.max_cooldown = 0.25 * self.max_max_cooldown
-    def shoot(self):
-        global lasers,card_was_chosen,overdrive_charge,net_lock,outbound_events
+    def shoot(self,this_is_a_trigger= False):
+    
+        global lasers,card_was_chosen,overdrive_charge,outbound_events
 
-        if (keys[pygame.K_SPACE] or keys[pygame.K_e]) and self.cooldown <= 0 and self.is_local:
+        if (keys[pygame.K_SPACE] or keys[pygame.K_e] or this_is_a_trigger) and self.cooldown <= 0 and self.is_local:
             if self.weapon_type == "Regular":
                 laser = Laser(self.rect.centerx,self.rect.top,5,5,damage=self.damage,knockback=self.knockback,pierce=self.pierce)
                 lasers.append(laser)
@@ -853,8 +721,7 @@ class Ship(pygame.sprite.Sprite):
                     "damage" : self.damage ,
                     "pierce" : self.pierce
                 }
-                with net_lock:
-                    outbound_events.append(payload)
+                
             elif self.weapon_type == "Double":
                 laser = Laser(self.rect.x+3,self.rect.y+10,5,5,damage=self.damage,knockback=self.knockback,pierce=self.pierce)
                 laser1 = Laser(self.rect.x+18,self.rect.y+10,5,5,damage=self.damage,knockback=self.knockback,pierce=self.pierce)
@@ -910,6 +777,8 @@ items = [pygame.transform.scale(pygame.image.load("assets/exception.png").conver
         pygame.transform.scale(pygame.image.load("assets/sleepthread.png").convert_alpha(),(24,24))]
 names = ["assets/exception.png","assets/indentationerror.png","assets/indexerror.png","assets/memoryerror.png","assets/importerror.png","assets/brokenpipe.png","assets/typeerror.png","assets/packetbug.png","assets/nullpointererror.png",
          "assets/deprecatedmethod.png","assets/deprecatedgiant.png","assets/sqlinjector.png","assets/racecondition.png","assets/sleepthread.png"]
+
+memory_error_alive = False
 class Bug(pygame.sprite.Sprite):
     def __init__(self,x,y,w,h,image_path,damage,hp ,speed,y_speed = 0.5,id = None ):
         super().__init__()
@@ -971,8 +840,8 @@ class Bug(pygame.sprite.Sprite):
         self.rect.y = int(self.float_y)
 # Thoughts : How to spawn boss? Custom
     def check_for_collisions(self):
-        global explosions,bugs,enemy_lasers,current_level,ship,overdrive_charge,lasers,mines,cur_frame,shake_intensity,max_overdrive
-        memory_error_alive = any(bug.image_path == "assets/memoryerror.png" for bug in bugs)
+        global memory_error_alive,explosions,bugs,enemy_lasers,current_level,ship,overdrive_charge,lasers,mines,cur_frame,shake_intensity,max_overdrive
+        
         if memory_error_alive == True:
             self.image.set_alpha(100)
             self.y_speed = 0.5 * self.og_y_speed
@@ -1017,7 +886,7 @@ class Bug(pygame.sprite.Sprite):
             color = (255,0,0)
             type_of_explosion = self.image_path
             explosion = [self.rect.x,self.rect.y,type_of_explosion] 
-            print(explosion)
+
             explosions.append(explosion)
   
             self.kill()
@@ -1042,7 +911,8 @@ class Bug(pygame.sprite.Sprite):
                  color = (0,255,0)
                  self.kill_score = 100
                  for i in range(9):
-                    particles.append([[self.rect.centerx, self.rect.centery] , [random.randint(-3,3),random.randint(-3,3)] , random.randint(4,8),random.choice([(0,255,0),(255,0,0),(255,255,0)])])
+                    if particles.__len__() <= MAX_PARTICLES:
+                        particles.append([[self.rect.centerx, self.rect.centery] , [random.randint(-3,3),random.randint(-3,3)] , random.randint(4,8),random.choice([(0,255,0),(255,0,0),(255,255,0)])])
             elif self.image_path == "assets/importerror.png":
                 color = (165,42,42)
                 self.kill_score = 50
@@ -1053,16 +923,18 @@ class Bug(pygame.sprite.Sprite):
                 color = (random.randint(0,255),random.randint(0,255),random.randint(0,255))
                 self.kill_score = 40
             if self.image_path != "assets/packetbug.png":
-                for i in range(9):
-                    particles.append([[self.rect.centerx, self.rect.centery] , [random.randint(-3,3),random.randint(-3,3)] , random.randint(4,8), color])
+                if particles.__len__() <= MAX_PARTICLES:
+                    for i in range(9):
+                        particles.append([[self.rect.centerx, self.rect.centery] , [random.randint(-3,3),random.randint(-3,3)] , random.randint(4,8), color])
 
             else:
-                for i in range(2):
-                    particles.append([[self.rect.centerx, self.rect.centery] , [random.randint(-3,3),random.randint(-3,3)] , random.randint(4,8), color])
+                if particles.__len__() <= MAX_PARTICLES:
+                    for i in range(2):
+                        particles.append([[self.rect.centerx, self.rect.centery] , [random.randint(-3,3),random.randint(-3,3)] , random.randint(4,8), color])
                 self.kill_score = 1
             if game_state == 1 :
                 score += self.kill_score
-                print(f"{color}-{self.kill_score}")
+
                 title_surface = score_add_font.render(str(f"+{self.kill_score}"),True,color)
                 score_text_to_add = [title_surface,self.rect.x,self.rect.y,10,2,255,color]
                 score_text.append(score_text_to_add)
@@ -1243,9 +1115,10 @@ class Bug(pygame.sprite.Sprite):
                     self.hp -= laser.damage
 
         if self.hp <= 0:
-             for i in range(4):
-                particle = [[self.rect.centerx, self.rect.centery] , [random.randint(-4,4),random.randint(-4,4)] , random.randint(3,8), (255,0,0)]
-                particles.append(particle)
+             if particles.__len__() <= MAX_PARTICLES:
+                for i in range(4):
+                    particle = [[self.rect.centerx, self.rect.centery] , [random.randint(-4,4),random.randint(-4,4)] , random.randint(3,8), (255,0,0)]
+                    particles.append(particle)
                 
 
 
@@ -1417,8 +1290,9 @@ class Mine(pygame.sprite.Sprite):
                 dist = math.hypot(bug.rect.centerx - self.rect.centerx,bug.rect.centery - self.rect.centery)
                 if dist <= self.explosion_radius or self.rect.colliderect(bug.rect):
                     bug.hp -= self.damage
-        for i in range(20):
-            particles.append([[self.rect.centerx, self.rect.centery] , [random.randint(-4,4),random.randint(-4,4)] , random.randint(3,8), (255,0,0)])
+        if particles.__len__() <= MAX_PARTICLES:
+            for i in range(20):
+                particles.append([[self.rect.centerx, self.rect.centery] , [random.randint(-4,4),random.randint(-4,4)] , random.randint(3,8), (255,0,0)])
         self.kill()
                 
 
@@ -1499,8 +1373,6 @@ class FileTower(pygame.sprite.Sprite):
         self.hp = hp
         self.max_hp = hp
         self.max_max_hp = hp
-        red_rect = pygame.rect.Rect(self.rect.centerx,self.rect.centery + 25,5,100)
-        green_rect = pygame.rect.Rect(self.rect.centerx,self.rect.centery + 25,5,(100/self.max_hp) * self.hp)
         self.heal = 0
     def update(self):
         global files_destroyed,enemy_lasers
@@ -1720,15 +1592,16 @@ class RecursionBoss(pygame.sprite.Sprite):
         if self.hp <= 0:
             self.kill()
             bugs.empty()
-            for i in range(90):
-                particles.append([[self.rect.centerx, self.rect.centery] , [random.randint(-10,10),random.randint(-10,10)] , random.randint(4,20), (0,255,0)])
-            for i in range(90):
-                particles.append([[self.rect.centerx, self.rect.centery] , [random.randint(-10,10),random.randint(-10,10)] , random.randint(4,20), (0,0,255)])
-            for i in range(90):
-                particles.append([[self.rect.centerx, self.rect.centery] , [random.randint(-10,10),random.randint(-10,10)] , random.randint(4,20), (255,0,0)])
+            if particles.__len__() <= MAX_PARTICLES:
+                for i in range(90):
+                    particles.append([[self.rect.centerx, self.rect.centery] , [random.randint(-10,10),random.randint(-10,10)] , random.randint(4,20), (0,255,0)])
+                for i in range(90):
+                    particles.append([[self.rect.centerx, self.rect.centery] , [random.randint(-10,10),random.randint(-10,10)] , random.randint(4,20), (0,0,255)])
+                for i in range(90):
+                    particles.append([[self.rect.centerx, self.rect.centery] , [random.randint(-10,10),random.randint(-10,10)] , random.randint(4,20), (255,0,0)])
 
-            for i in range(90):
-                particles.append([[self.rect.centerx, self.rect.centery] , [random.randint(-10,10),random.randint(-10,10)] , random.randint(4,20), (128,0,128)])
+                for i in range(90):
+                    particles.append([[self.rect.centerx, self.rect.centery] , [random.randint(-10,10),random.randint(-10,10)] , random.randint(4,20), (128,0,128)])
 
 
         red_rect = pygame.rect.Rect(self.rect.centerx  - self.w // 2 + 50,self.rect.top - 25,150,5)
@@ -1751,15 +1624,16 @@ class RecursionBoss(pygame.sprite.Sprite):
                 if memory_error_alive == False or self.image_path == "assets/memoryerror.png":
                     self.image.set_alpha(255)
                     if self.rect.colliderect(laser):
-                        for i in range(2):
-                            particles.append([[laser.centerx, laser.centery] , [random.randint(-2,2),random.randint(-2,2)] , random.randint(4,8), (0,255,0)])
-                        for i in range(2):
-                            particles.append([[laser.centerx, laser.centery] , [random.randint(-2,2),random.randint(-2,2)] , random.randint(4,8), (0,0,255)])
-                        for i in range(2):
-                            particles.append([[laser.centerx, laser.centery] , [random.randint(-2,2),random.randint(-2,2)] , random.randint(4,8), (255,0,0)])
+                        if particles.__len__() <= MAX_PARTICLES:
+                            for i in range(2):
+                                particles.append([[laser.centerx, laser.centery] , [random.randint(-2,2),random.randint(-2,2)] , random.randint(4,8), (0,255,0)])
+                            for i in range(2):
+                                particles.append([[laser.centerx, laser.centery] , [random.randint(-2,2),random.randint(-2,2)] , random.randint(4,8), (0,0,255)])
+                            for i in range(2):
+                                particles.append([[laser.centerx, laser.centery] , [random.randint(-2,2),random.randint(-2,2)] , random.randint(4,8), (255,0,0)])
 
-                        for i in range(2):
-                            particles.append([[laser.centerx, laser.centery] , [random.randint(-2,2),random.randint(-2,2)] , random.randint(4,8), (128,0,128)])
+                            for i in range(2):
+                                particles.append([[laser.centerx, laser.centery] , [random.randint(-2,2),random.randint(-2,2)] , random.randint(4,8), (128,0,128)])
                         self.hp -= laser.damage
                         self.float_y -= laser.knockback
                         for bug in bugs:
@@ -2120,12 +1994,13 @@ class FreezeMissile(pygame.rect.Rect):
         if self.left <= 0 or self.right >= WIDTH or self.top <= 0 or self.bottom >= HEIGHT:
             self.explode()
     def explode(self):
-        for i in range(25):
-            particles.append([[self.centerx, self.centery] , [random.randint(-6,6),random.randint(-6,6)] , random.randint(4,12), (0,0,255)])
-            shockwave = Shockwave(self.centerx,self.centery,min(self.w * 12,250),2)
-            shockwaves.append(shockwave)
-            if enemy_missiles.__contains__(self):
-                enemy_missiles.remove(self)
+        if particles.__len__() <= MAX_PARTICLES:
+            for i in range(25):
+                particles.append([[self.centerx, self.centery] , [random.randint(-6,6),random.randint(-6,6)] , random.randint(4,12), (0,0,255)])
+        shockwave = Shockwave(self.centerx,self.centery,min(self.w * 12,250),2)
+        shockwaves.append(shockwave)
+        if enemy_missiles.__contains__(self):
+            enemy_missiles.remove(self)
 
 
 class Bluegame_canvasOfDeath(pygame.sprite.Sprite):
@@ -2487,37 +2362,55 @@ the_lobby_cooldown = 10
 attempt_num = 0
 mouse_spark_color = (0,255,0)
 speed_add_for_minigame = 0
+just_restarted = False
+control_mode = None
+
+touch_x = None
+touch_y = None
+control_pad = []
+touches = {}
 async def main():
     
-    global score,mouse_spark_color,game_canvas_color,explosions_to_draw,upgrades_obtained,i_actually_chose_a_card,next_bug_id,all_bugs,p1_choosing_cards,p2_choosing_cards,im_choosing_cards, level_start,all_bugs_are_dead,other_bugs_are_dead,remote_shop_state,remote_level,other_player_in_shop,other_player_lv,level_start,network_connected,multiplayer_mode,player_id,pro_ships_2,ship2,titles,scroll_x,scroll_y,shop_items,stars,flip_to,transparency,shake_intensity,talking,mouse_pressed,textboxes,coverbricks,global_trail_surf,shockwaves,enemy_missiles,cur_frame,overdrive_charge,null_lasers,shotgun_1,double_1,mines_1,lives_left,ship_image,boss_lasers,keys,current_enemy,full_title,current_typed,typed_frame,type_letter,typer_speed,menu_buttons,back_button,game_state,mouse_pressed,mouse_pos,heal_1,heal_possible,server,enemy_lasers,particles,dash_possible,add_pierce_possible,ship,pierce_1,files_destroyed,bugsnum,cards_were_shuffled,card_options,card_was_chosen,symbols,current_level,keys,running,files,pro_ships,lasers,level_list,level,startx,starty,rowindex,colindex,spacer,bugs
+    global controls,control_mode,just_restarted,score,mouse_spark_color,game_canvas_color,explosions_to_draw,upgrades_obtained,next_bug_id,all_bugs,p1_choosing_cards,p2_choosing_cards,im_choosing_cards, level_start,all_bugs_are_dead,other_bugs_are_dead,remote_shop_state,remote_level,other_player_in_shop,other_player_lv,level_start,multiplayer_mode,pro_ships_2,ship2,titles,scroll_x,scroll_y,shop_items,stars,flip_to,transparency,shake_intensity,talking,mouse_pressed,textboxes,coverbricks,global_trail_surf,shockwaves,enemy_missiles,cur_frame,overdrive_charge,null_lasers,shotgun_1,double_1,mines_1,lives_left,ship_image,boss_lasers,keys,current_enemy,full_title,current_typed,typed_frame,type_letter,typer_speed,menu_buttons,back_button,game_state,mouse_pressed,mouse_pos,heal_1,heal_possible,server,enemy_lasers,particles,dash_possible,add_pierce_possible,ship,pierce_1,files_destroyed,bugsnum,cards_were_shuffled,card_options,card_was_chosen,symbols,current_level,keys,running,files,pro_ships,lasers,level_list,level,startx,starty,rowindex,colindex,spacer,bugs
 
 
     
     if current_level == 20:
         lives_left = 3
     while running:
-        if player_id == 1:
-            other_player_lv = level_start["p2_lv"]
-            other_player_in_shop = level_start["p2_inshop"]
-        elif player_id == 2:
-            other_player_lv = level_start["p1_lv"]
-            other_player_in_shop = level_start["p1_inshop"] 
+       
         # GAME STATE 5
-        if game_state == 5 and multiplayer_mode == False:
-            multiplayer_mode = True
-           
-            launch_network_thread(ship)
-            # game_state = 1
-            print("P2 LAUNCHED")
-
-
+        
         mouseclicked = False
         clock.tick(FPS)
         mouse_pos = pygame.mouse.get_pos()
+        game_canvas.fill(game_canvas_color)
+        if game_state == -1:
+            mouse_pos = pygame.mouse.get_pos()
+            win  = score_font.render(f"     Before you Start...\nWhich device are you using?",True , (255,0,0))
+            game_canvas.blit(win,win.get_rect(center = (WIDTH//2 , HEIGHT//2 - 70)))
+            win  = ui_font.render(f"If you choose the wrong one, you will have difficulty playing!",True , (255,0,0))
+            game_canvas.blit(win,win.get_rect(center = (WIDTH//2 , HEIGHT//2 - 20)))
+            current_level = 0
+
+            back_button = MenuButton("Computer (I have a keyboard and will use it)" ,WIDTH//2 - 200, HEIGHT//2 + 40,320,55,1)
+            back_button.draw(game_canvas,ui_font,mouse_pos)
+            back_button2 = MenuButton("          Phone/Tablet/Tablet Mode\n(I don't have/use a keyboard,give me buttons)" ,WIDTH//2 + 200, HEIGHT//2 + 40,320,55,1)
+            back_button2.draw(game_canvas,ui_font,mouse_pos)
+            mouse_pressed = pygame.mouse.get_pressed()
+            if back_button.check_clicks(mouse_pos,mouse_pressed):
+                game_state = 0
+  
+                control_mode = "Computer"
+            elif back_button2.check_clicks(mouse_pos,mouse_pressed):
+                game_state = 0
+           
+                control_mode = "Touchscreen"
         if game_state == 0:
-            for i in range(1):
-                particles.append([[mouse_pos[0]+25, mouse_pos[1]+25] , [random.randint(-2,2),random.randint(-2,2)] , random.randint(3,8),mouse_spark_color])
-            if particles.__len__() <= 90:
+            if particles.__len__() <= MAX_PARTICLES:
+                for i in range(1):
+                    particles.append([[mouse_pos[0]+25, mouse_pos[1]+25] , [random.randint(-2,2),random.randint(-2,2)] , random.randint(3,8),mouse_spark_color])
+            if particles.__len__() <= MAX_PARTICLES:
                 for i in range(1):
                     particles.append([[random.randint(0,WIDTH), random.randint(0,HEIGHT)] , [random.randint(-2,2),random.randint(-2,2)] , random.randint(6,6),random.choice([(255,0,0),(0,255,0),(0,0,255)])])
             level = [["i","i","i","i","i","i","i"],["x","i","e","e","e","i","x"],["x","i","e","e","e","i","x"],["x","i","e","e","e","i","x"],["x","i","e","e","e","i","x"],["x","x","x","x","x","x","x"]]                
@@ -2526,6 +2419,17 @@ async def main():
             if event.type == pygame.QUIT:
                 running = False
 
+            # Check for touchscreen events! CRITICAL!
+            elif event.type in (pygame.FINGERDOWN, pygame.FINGERMOTION):
+                touch_x = event.x * WIDTH
+                touch_y = event.y * HEIGHT
+                touches[event.finger_id] = (touch_x,touch_y)
+                for control in controls:
+                    control.draw()
+                    control.check_for_clicks(touches)
+            elif event.type == pygame.FINGERUP:
+                if event.finger_id in touches:
+                    del touches[event.finger_id]
             elif event.type == pygame.KEYDOWN:
                 if game_state == 3:
                     if event.key == pygame.K_RIGHT:
@@ -2541,10 +2445,9 @@ async def main():
                     if card.effect(event.key):
                         card_was_chosen = True
                         upgrades_obtained += 1
-                        if player_id == 2:
-                            cards_were_shuffled = False 
+                        
                         im_choosing_cards = False
-                        # print(f"{player_id} Chose a card! {card_was_chosen}, {event.key}")
+                
                         cards.clear()
                         symbols.empty()
             
@@ -2560,7 +2463,7 @@ async def main():
                      if back_button.check_clicks(mouse_pos,mouse_pressed):
                         game_state = back_button.target_state
                 mouseclicked = True
-        game_canvas.fill(game_canvas_color)
+        
         global the_lobby_cooldown,the_lobby_frame,attempt_num,text_to_type,text_index,text_line,keep_this_text
         if game_state == 5:
             game_canvas_color = (25,25,25)
@@ -2606,7 +2509,7 @@ async def main():
                 game_canvas.blit(ttr,ttr.get_rect( left = 180, top = text_stat[2]))
             game_canvas.blit(full_text2,full_text2.get_rect( left = 180, top = 100+text_line*20))
             
-            print(f"Finding Lobby...{cur_frame}")
+        
         else:
             game_canvas_color = (0,0,0)
         keys = pygame.key.get_pressed()
@@ -2714,7 +2617,9 @@ async def main():
             back_button.draw(game_canvas, ui_font, mouse_pos)
         elif game_state == 1:
             game_canvas.fill(game_canvas_color)
-            #print(f"{player_id},{other_player_in_shop},{other_bugs_are_dead},{other_player_lv},{p2_choosing_cards},{other_player_in_shop}")
+            memory_error_alive = any(bug.image_path == "assets/memoryerror.png" for bug in bugs)
+            for control in controls:
+                control.draw()
             cur_frame += 1
             if cur_frame > 20:
                 cur_frame = 0
@@ -2737,33 +2642,33 @@ async def main():
             mouse_pos = pygame.mouse.get_pos()
 
             bugs.draw(game_canvas)
-  
-            transparent_surface = pygame.Surface((WIDTH + 40, HEIGHT + 40),pygame.SRCALPHA)
-            if ship.hp <= 3:
-                flip_speed = 3
-                if transparency >= 128:
-                    flip_to = 0
-                if transparency <= 0:
-                    flip_to = 128
+         
+            # transparent_surface = pygame.Surface((WIDTH + 40, HEIGHT + 40),pygame.SRCALPHA)
+            # if ship.hp <= 3:
+            #     flip_speed = 3
+            #     if transparency >= 128:
+            #         flip_to = 0
+            #     if transparency <= 0:
+            #         flip_to = 128
 
-                if flip_to == 128:
-                    if flip_to + transparency >= 128:
-                        transparency += flip_speed
-                    else:
-                        transparency = 128
+            #     if flip_to == 128:
+            #         if flip_to + transparency >= 128:
+            #             transparency += flip_speed
+            #         else:
+            #             transparency = 128
                     
-                if flip_to == 0:
-                    if flip_speed <= transparency:
-                        transparency -= flip_speed
-                    else:
-                        transparency = 0
+            #     if flip_to == 0:
+            #         if flip_speed <= transparency:
+            #             transparency -= flip_speed
+            #         else:
+            #             transparency = 0
              
-                pygame.draw.rect(transparent_surface, (255, 40, 40,transparency), (20, 20, 20,HEIGHT))
-                pygame.draw.rect(transparent_surface, (255, 40, 40,transparency), (WIDTH, 20, 20,HEIGHT))
-                pygame.draw.rect(transparent_surface, (255, 40, 40,transparency), (20, 20,WIDTH,20))
-                pygame.draw.rect(transparent_surface, (255, 40, 40,transparency), (20, HEIGHT,WIDTH,20))
+            #     pygame.draw.rect(transparent_surface, (255, 40, 40,transparency), (20, 20, 20,HEIGHT))
+            #     pygame.draw.rect(transparent_surface, (255, 40, 40,transparency), (WIDTH, 20, 20,HEIGHT))
+            #     pygame.draw.rect(transparent_surface, (255, 40, 40,transparency), (20, 20,WIDTH,20))
+            #     pygame.draw.rect(transparent_surface, (255, 40, 40,transparency), (20, HEIGHT,WIDTH,20))
 
-            game_canvas.blit(transparent_surface,(0,0))
+            # game_canvas.blit(transparent_surface,(0,0))
 
             add_to_x = 0
             ############## OVERDRIVE CHARGE BAR ######################
@@ -2776,11 +2681,8 @@ async def main():
             tutorial_title = ui_font.render(f"Overdrive bar : {round(overdrive_charge,2)}% ",True,(0,180,255))
             game_canvas.blit(tutorial_title,tutorial_title.get_rect(center = (106+add_to_x, 405)))
             ########### HEALTH BAR ##############
-            ship_health_n = 0
-            if player_id == 1 or not multiplayer_mode : 
-                ship_health_n = ship.hp
-            elif player_id == 2:
-                ship_health_n = ship2.hp
+            ship_health_n = ship.hp
+           
             ship_health_background = pygame.rect.Rect(183+add_to_x,370,150,10)
             ship_health = pygame.rect.Rect(183+add_to_x,370,ship_health_n * 15,10)
             pygame.draw.rect(game_canvas,(255,0,0),ship_health_background)
@@ -2789,8 +2691,8 @@ async def main():
             game_canvas.blit(tutorial_title,tutorial_title.get_rect(center = (103+add_to_x, 374)))
             ###################### Cooldown Bar ##########################
             ship_cooldown = 0
-            ship_cooldown = ship.cooldown if not player_id == 2 else ship2.cooldown
-            ship_max_cooldown = ship.max_cooldown if not player_id == 2 else ship2.max_cooldown
+            ship_cooldown = ship.cooldown
+            ship_max_cooldown = ship.max_cooldown
             ship_health_background = pygame.rect.Rect(200+add_to_x,340,ship_max_cooldown,10)
             ship_health = pygame.rect.Rect(200+add_to_x,340,ship_cooldown,10)
             if ship.cooldown <= 0 and cur_frame >= 5 and cur_frame <= 10 :
@@ -2858,50 +2760,7 @@ async def main():
                         ship2.update()
                  
 
-                if not multiplayer_mode or network_connected:
-                    global incoming_remote_lasers,remote_level,remote_shop_state
-                    lasers_to_spawn = []
-                    with net_lock: 
-                        remote_level = level_start.get('p2_lv',1) if player_id == 1 else level_start.get("p1_lv",1)
-                        remote_shop_state = level_start.get("p2_inshop",False) if player_id == 1 else level_start.get("p1_inshop",False)
-                        if player_id == 2 and remote_level >= 1:
-                            current_level = remote_level
-
-                    try:
-                        
-                        if player_id == 1 or multiplayer_mode == False:
-                            if player_id == 1:
-                                ship2.rect.x = network_positions["p2_x"]
-                                ship2.rect.y = network_positions["p2_y"]
-
-                            pro_ships.draw(game_canvas)
-                            if multiplayer_mode:
-                                pro_ships_2.draw(game_canvas)
-             
-                       
-                        elif player_id == 2:
-                            
-                            ship.rect.x = network_positions["p1_x"]
-                            ship.rect.y = network_positions["p1_y"]
-                            pro_ships_2.draw(game_canvas)
-                            pro_ships.draw(game_canvas)
-            
-           
-                        with net_lock:
-                            if incoming_remote_lasers:
-                                    lasers_to_spawn = list(incoming_remote_lasers)
-                                    incoming_remote_lasers.clear()
-                          
-    
-                            for laser_data in lasers_to_spawn:
-                                remote_laser = Laser(laser_data["x"],laser_data["y"],5,5,damage=laser_data["d"],pierce = laser_data["p"])
-                                lasers.append(remote_laser)
-                    
-                    except Exception as e:
-                            print(f"Oh no : {e}")
-
-                    else:
-                        pass
+                
                     stars.draw(game_canvas)
                     for star in stars:
                         
@@ -2910,11 +2769,9 @@ async def main():
                     if card_was_chosen == True:
                         bugsnum = 0
                     for bug in bugs:
-                    
-                        if player_id == 1 or multiplayer_mode == False:
-                            if bug.image_path != "assets/recursionboss.png":
-                                bug.move()
-                                bug.check_for_collisions()
+                        if bug.image_path != "assets/recursionboss.png":
+                            bug.move()
+                            bug.check_for_collisions()
                         
                         bugsnum += 1
                     for card in cards:
@@ -2929,35 +2786,23 @@ async def main():
 
               
 
-                    if player_id == 1:
-                        
-                        other_bugs_are_dead = level_start['p2_bugs_are_dead']
-                    elif player_id == 2:
-                        other_bugs_are_dead = level_start['p1_bugs_are_dead']
-                    
-                    if bugsnum == 0 and bosses.__len__() == 0:
-                        all_bugs_are_dead = True
-                        if player_id == 1:
-                            level_start['p1_bugs_are_dead'] = True
-                           
-                        elif player_id == 2:
-                            level_start['p2_bugs_are_dead'] = True
+                   
                 
                 #######################(HEY IT WORKS!!!)###### DANGER DO NOT CROSS: Errors: p2_card_chosen causes levels not to be drawn but... I DONT KNOW WHY ###########################
-                    # print(bugsnum)
+            
                     if bugsnum <= 0 and bosses.__len__() <= 0:
                         
                         bugs.empty()
                         lasers.clear()
                         enemy_lasers.clear()
                         all_bugs.clear()
-                        # print("Cleared!")
+                      
                         if card_was_chosen == True  and previous_bugsnum > 0:
-                            print("Cards chosen!")
+                           
                             if multiplayer_mode == False:
                                 game_state = 4
                         # Tries to fix the cards (Fails most of the time help) (Hey it kind of works now...)
-                        if (previous_bugsnum > 0) and not cards_were_shuffled and card_was_chosen:
+                        if (previous_bugsnum > 0) and not cards_were_shuffled and card_was_chosen and not just_restarted:
                             card_options_current = card_options[:]
                             if current_level != 20:
                                 card1= random.choice(card_options_current)
@@ -2977,40 +2822,29 @@ async def main():
                             cards.append(card2)
                             cards.append(card3)
                             im_choosing_cards = True    
-                            print("Cards Loaded!")
+                           
                             cards_were_shuffled = True
                             card_was_chosen = False
                      
-                            print(card_was_chosen)
+                       
                         
                         elif previous_bugsnum > 0 and card_was_chosen == True and cards_were_shuffled == True:
                             cards.clear()
                             symbols.empty()
                             im_choosing_cards = False
 
-                            print(f"Cards chosen and destroyed! {card_was_chosen}, {cards_were_shuffled}, {(previous_bugsnum > 0 or player_id == 2)} ")
                             
                         else:
                             pass
                            
                    
                         
-                        if (player_id == 1 or multiplayer_mode == False) and current_level < len(level_list) and card_was_chosen and p2_choosing_cards == False:
+                        if current_level < len(level_list) and card_was_chosen and p2_choosing_cards == False:
                             current_level += 1
-                            print(f"|||=-----------===---===---------------------- Cards: {card_was_chosen}------------- LEVEL UP! LeveL : {current_level} -----------------")
-                            print("|||=-----------===---===----------------------------  NEW LEVEL  -----------------------------")
-                    
-                            print(f"Debug this: P ID {player_id} , Level :{current_level}, Was card chosen :{card_was_chosen},Were cards shuffled : {cards_were_shuffled}"
-                            )
+                            
                 
                             cards_were_shuffled = False
-                        # else:     
-                        #     # This should never run!
-                        #     # Why does it run?
-                        #     # I DONT KNOW OK, BRAIN!!
-                        #     # Fix youself... please bugs, I beg you.........PLEASE....HELP.................
-                        #     print(f"Problem! BIG PROBLEM! : Id : {player_id}, Was the card chosen? : {card_was_chosen},{current_level},{bugsnum}! HELP!")                                                      
-                        #     #print(card_was_chosen,cards_were_shuffled, current_level, bugsnum)
+                       
                        
                             level = level_list[current_level-1]
                             startx = (WIDTH // 2) - ((len(level[0]) / 2) * spacer)
@@ -3083,20 +2917,14 @@ async def main():
                             win  = title_font.render(f"YOU WIN \n(for now)",True , (0,255,0))
                             game_canvas.blit(win,(WIDTH//2 - 300,HEIGHT//2  - 100)) 
                             pass
-                            print(f"DOUBLE FAIL :{player_id,card_was_chosen,bugsnum,cards_were_shuffled,p2_choosing_cards}")
+                           
             
-            if player_id == 1 and not im_choosing_cards and p2_choosing_cards:
-                txt = subtitle_font.render("Waiting on p2 to \nchoose cards........",True,(0,125,255))
-                game_canvas.blit(txt, txt.get_rect(center = (WIDTH//2 , 100)) )
-                print("Weeee")
-            elif player_id == 2 and not im_choosing_cards and p1_choosing_cards:
-                txt = subtitle_font.render("Waiting on p1 to \n choose cards........", True,(255,125,0))
-                game_canvas.blit(txt,txt.get_rect(center = ( WIDTH//2 , 100) ))
-                print("Whooooooo")
+          
 
             title_surface = score_font.render(f"Score : {str(score)}",True,(0,255,80))
             game_canvas.blit(title_surface,title_surface.get_rect(right = 1000 , top = 30))
-
+            title_surface = score_font.render(f"FPS : {f"{round(clock.get_fps(),0)}"}",True,(0,255,80))
+            game_canvas.blit(title_surface,title_surface.get_rect(right = 1000 , top = 90))
             for score_stat in score_text:
                 score_surf = score_stat[0]
                 score_x,score_y = score_stat[1],score_stat[2]
@@ -3104,7 +2932,7 @@ async def main():
                 score_move_speed = score_stat[4]
                 score_alpha = score_stat[5]
                 score_color = score_stat[6]
-                # print(score_alpha)
+             
                 if score_alpha <= 0:
                     if score_stat in score_text:
                         score_text.remove(score_stat)
@@ -3113,7 +2941,7 @@ async def main():
                 temp_surf = score_surf.copy()
                 mask = pygame.Surface(temp_surf.get_size(),pygame.SRCALPHA)
                 mask.fill((score_color[0],score_color[1],score_color[2],score_alpha))
-                print(f"SCORE STUFF : {(score_color[0],score_color[1],score_color[2],score_alpha)}")
+               
                 score_stat[5] -= score_fade_duration
                 temp_surf.blit(mask,(0,0),special_flags = pygame.BLEND_RGBA_MULT)
 
@@ -3134,6 +2962,7 @@ async def main():
                 else:
                     boss.update()
             # Draw and update particles
+            pro_ships.draw(game_canvas)
             for explosion_list in explosions_to_draw:
                 image_path = explosion_list[2]
                 x = explosion_list[0]
@@ -3147,8 +2976,9 @@ async def main():
                     color = (255,165,0)
                 elif image_path == "assets/memoryerror.png":
                         color = (0,255,0)
-                        for i in range(9):
-                            particles.append([[x, y] , [random.randint(-3,3),random.randint(-3,3)] , random.randint(4,8),random.choice([(0,255,0),(255,0,0),(255,255,0)])])
+                        if particles.__len__() <= MAX_PARTICLES:
+                            for i in range(9):
+                                particles.append([[x, y] , [random.randint(-3,3),random.randint(-3,3)] , random.randint(4,8),random.choice([(0,255,0),(255,0,0),(255,255,0)])])
                 elif image_path == "assets/importerror.png":
                     color = (165,42,42)
                 elif image_path == "assets/brokenpipe.png":
@@ -3156,11 +2986,13 @@ async def main():
                 elif image_path == "assets/typeerror.png":
                     color = (random.randint(0,255),random.randint(0,255),random.randint(0,255))
                 if image_path != "assets/packetbug.png":
-                    for i in range(9):
-                        particles.append([[x, y] , [random.randint(-3,3),random.randint(-3,3)] , random.randint(4,8), color])
+                    if particles.__len__() <= MAX_PARTICLES:
+                        for i in range(9):
+                            particles.append([[x, y] , [random.randint(-3,3),random.randint(-3,3)] , random.randint(4,8), color])
                 else:
-                    for i in range(2):
-                        particles.append([[x, y] , [random.randint(-3,3),random.randint(-3,3)] , random.randint(4,8), color])
+                    if particles.__len__() <= MAX_PARTICLES:
+                        for i in range(2):
+                            particles.append([[x, y] , [random.randint(-3,3),random.randint(-3,3)] , random.randint(4,8), color])
                 explosions_to_draw.remove(explosion_list)
 
             for particle in particles[:]:
@@ -3199,13 +3031,14 @@ async def main():
             global_trail_surf.fill((0,0,0,0))
             if files_destroyed or lives_left <= 0:
                 # If the game runs out of levels then display the win screen
+                game_state = 6
                 win  = title_font.render(f"YOU LOSE...",True , (255,0,0))
                 game_canvas.blit(win,win.get_rect(center = (WIDTH//2 , 200)))
                 current_level = 0
-                ship = Ship(100,100,27,33,"assets/ship.png",1,1)
+                # ship = Ship(100,100,27,33,"assets/ship.png",1,1)
 
 
-
+          
         # Shakes the screen, then decreases intensity
         if shake_intensity > 0:
             offset_x = random.randint(-shake_intensity,shake_intensity)
@@ -3272,7 +3105,7 @@ async def main():
                         # Spawns a deprecated error
                         elif exception == "d":
                             bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,9,1.5,12,0.5,0.35,id = next_bug_id)
-                        # Spawns a deprecated giant
+                        # Spawns a deprecated giant 
                         elif exception == "dg":
                             bug = Bug(startx  + rowindex * spacer,starty - colindex,48,48,10,1.5,48,0.5,0.05,id = next_bug_id)
                             spacer += 1
@@ -3307,15 +3140,47 @@ async def main():
             bugs.draw(game_canvas)
             for bug in bugs:
                 bug.move()
-                # print(f"{bug.rect.x,bug.rect.y,bug.rect.w,bug.rect.h}")
-                for particle in particles:
-                    rparticle = pygame.rect.Rect(particle[0][0],particle[0][1],particle[2],particle[2])
-                    if bug.rect.colliderect(rparticle) and particle[3] == (0,255,255):
-                        bug.hp -= 0.5
+
+                # for particle in particles:
+                #     rparticle = pygame.rect.Rect(particle[0][0],particle[0][1],particle[2],particle[2])
+                #     if bug.rect.colliderect(rparticle) and particle[3] == (0,255,255):
+                #         bug.hp -= 0.5
                 bug.check_for_collisions()
+        just_restarted = False
+        if game_state == 6:
+            
+            mouse_pos = pygame.mouse.get_pos()
+            win  = title_font.render(f"YOU LOSE...",True , (255,0,0))
+            game_canvas.blit(win,win.get_rect(center = (WIDTH//2 , HEIGHT//2 - 40)))
+            current_level = 0
+
+            back_button = MenuButton("Reboot (Restart Game)" ,WIDTH//2, HEIGHT//2 + 40,320,55,1)
+            back_button.draw(game_canvas,ui_font,mouse_pos)
+            mouse_pressed = pygame.mouse.get_pressed()
+            # Restart all the game variables fdsdbvngjhgjjgfuyhdasdasdsdaddwawdasdfsfewasafesdsdas
+            if back_button.check_clicks(mouse_pos,mouse_pressed):
+                game_state = 0
+                bugs.empty()
+                current_level = 1
+                for file in files :
+                    file.hp = file.max_max_hp
+                particles.clear()
+                score = 0
+                lives_left = 3
+                ship.hp = 10
+                overdrive_charge = 100
+                card_was_chosen = True
+                cards_were_shuffled = False
+                just_restarted = True
+                game_state = back_button.target_state
+                ship.rect.x = WIDTH//2 - ship.rect.w
+                ship.rect.y = 400
+                ship.cooldown = 15
+                ship.damage = 1
+                ship.weapon_type = "Regular"
         screen.blit(game_canvas,(-20+offset_x,-20+offset_y))
         pygame.display.flip()
-        await asyncio.sleep(0.001)
+        await asyncio.sleep(0)
 asyncio.run(main())
 
 
