@@ -12,15 +12,17 @@ keep_this_text = []
 # 150 Hours ! Yay!
 # Updates
 # Added Score and Score Text when enemy dies #
-### Multiplayer : Working 
-#### Issues : Game starts without player 2 joining... May be easy to fix... or not...
-#### Multi-Lobbies Working!
-#### Add loading screen in multiplayer so player dont get confused.....
+### Multiplayer : Working DONE
+#### Issues : Game starts without player 2 joining... May be easy to fix... or not... NEED TO DO
+#### Multi-Lobbies Working! DONE
+#### Add loading screen in multiplayer so player dont get confused..... DONE
 from uuid import uuid4
 print(f"Platform : {sys.platform}")
 print("Started!")
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy()) # type: ignore
+
+# Other player things for multiplayer
 remote_level = 0
 remote_shop_state = False
 net_lock = threading.Lock() # Lock
@@ -30,11 +32,12 @@ network_connected = False
 network_thread_launched = False
 p1_coords = "400,600"
 p2_coords = "800,600"
-# SERVER_URL = "ws://localhost:8765"
+SERVER_URL = "ws://localhost:8765"
 # BROOOOOOOOOOOOOOOOOOOO IT NO WORKKK help help help
-SERVER_URL = "wss://code-invaders-server.onrender.com"
+# SERVER_URL = "wss://code-invaders-server.onrender.com"
 pygame.init()
 pygame.font.init()
+# Fonts lots of fonts
 font = pygame.font.SysFont(None,96)
 title_font = pygame.font.Font("assets/PressStart2P.ttf", 72)
 subtitle_font = pygame.font.Font("assets/PressStart2P.ttf", 42)
@@ -60,10 +63,11 @@ small_explosion_sound.set_volume(0.07)
 click_sound = pygame.mixer.Sound("assets/shortclick.ogg")
 laser_sound = pygame.mixer.Sound("assets/laser.ogg")
 laser_sound.set_volume(0.15)
-shake_intensity  =0
+shake_intensity = 0
+#### Shaking game canvas
 game_canvas = pygame.Surface((WIDTH + 40,HEIGHT + 40),pygame.SRCALPHA)
 #### Menu Stuff #####
-
+#### Multiplayer stuff also ####
 data_coins = 0 
 shop_showing = False
 shop_items = []
@@ -73,7 +77,7 @@ level_start = {'p1_lv' : 0,'p2_lv' : 0, 'p1_inshop' : False, 'p2_inshop' : False
 outbound_events = []
 incoming_remote_lasers = []
 p1_choosing_cards = False
-p2_choosing_cards =  False
+p2_choosing_cards =  True
 im_choosing_cards = False
 active_ws_connection = None
 all_bugs_are_dead = False
@@ -84,23 +88,28 @@ explosions = []
 explosions_to_draw = []
 
 game_id = uuid4()
-
+im_dead = False
+other_dead = False
 score = 0
-
+recieved_en_ids = []
+boss_exists = False
+####################################################################################################################
 async def network_sync_loop(ship_reference,game_id = 0):
     await asyncio.sleep(3)
-    global explosions_to_draw, all_bugs_are_dead,other_bugs_are_dead,active_ws_connection,p1_coords,level_start, p2_coords, network_connected, game_state, player_id,ship,ship2,network_positions,multiplayer_mode,net_lock,pro_ships_2,pro_ships
+    ###### ALL THE GLOBAL VARIABLES!!! ######
+    global im_dead,boss_exists,bosses,explosions_to_draw, all_bugs_are_dead,other_bugs_are_dead,active_ws_connection,p1_coords,level_start, p2_coords, network_connected, game_state, player_id,ship,ship2,network_positions,multiplayer_mode,net_lock,pro_ships_2,pro_ships
     try:
+        # Trying to connect
         print("Going to connect")
         async with websockets.connect(SERVER_URL,ping_interval=20,ping_timeout=20) as ws:
     
-            
+            # Try connecting again...
             handshake_data = await ws.recv()
             config_receipt = json.loads(handshake_data)
             print("CONNECTED")
             player_id = int(config_receipt["player_id"])
             lobby_id = config_receipt["lobby_id"]
-            print(f"Lobby ID : {lobby_id}")
+            print(f"Lobby ID : {lobby_id}, Player ID : {player_id}")
             multiplayer_mode = True
             network_connected = True
             if player_id == 1:
@@ -116,10 +125,11 @@ async def network_sync_loop(ship_reference,game_id = 0):
             game_state =  1
             ################################################################################### Receive the stuff (somehow working) ################AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA########
             async def receive_handler():
-                global explosions_to_draw,bugs,network_positions,lasers,net_lock,incoming_remote_lasers,level_start,p1_choosing_cards,p2_choosing_cards
+                global recieved_en_ids,explosions_to_draw,bugs,network_positions,lasers,net_lock,incoming_remote_lasers,level_start,p1_choosing_cards,p2_choosing_cards
                 try:
                     async for message in ws:
                         global_match_state = json.loads(message)
+                        # If you fired a laser, send it to another player , locked
                         if global_match_state.get("type") == "laser_fired":
                             with net_lock:
                                 incoming_remote_lasers.append({
@@ -131,45 +141,71 @@ async def network_sync_loop(ship_reference,game_id = 0):
                             
                             continue
                         
-            
+                        ######## Send p1 and p2 player positions back to other people ######
                         with net_lock:
                             p1_x,p1_y = map(int, global_match_state.get("p1","486,400").split(","))
                             p2_x,p2_y = map(int, global_match_state.get("p2","486,400").split(","))
-                           
+                        # Reset the positions for next transmission
                         with net_lock:
                             network_positions["p1_x"] = p1_x
                             network_positions["p1_y"] = p1_y
                             network_positions["p2_x"] = p2_x
                             network_positions["p2_y"] = p2_y
-
+                        # Sends the other player whether or not all your bugs are dead
                         with net_lock:
                             level_start['p1_bugs_are_dead'] = global_match_state.get("all_bugs_dead_p1", False)
                             level_start['p2_bugs_are_dead'] = global_match_state.get("all_bugs_dead_p2", False)
+                        # Send your level and whether you are in the shop or not
                         with net_lock:
+                            #### Create sending variables for level and in_shop
                             p1_lv = global_match_state.get('p1_level',1)
                             p2_lv = global_match_state.get('p2_level',1)
                             p1_shop = global_match_state.get('p1_in_shop',False)
                             p2_shop = global_match_state.get('p2_in_shop',False)
           
-
+                            ### Update the level and in_shop variables
                             level_start["p2_lv"] = p2_lv
                             level_start["p2_inshop"] = p2_shop
                             level_start["p1_lv"] = p1_lv
                             level_start["p1_inshop"] = p1_shop
+                            
+                        if player_id == 1:
+                            other_dead == global_match_state['p2_dead']
+                        
+                        elif player_id == 2:
+                            other_dead == global_match_state['p1_dead']
+                        # Get p1 and p2 choosing card variables
                         with net_lock:
                             p1_choosing_cards = global_match_state.get('p1_choosing_cards', False)
-                            p2_choosing_cards = global_match_state.get('p2_choosing_cards', False)
+                            p2_choosing_cards = global_match_state.get('p2_choosing_cards', True)
                         # Copies player 1 so sync works (right?) 
+                            # Copies player 1 bug ids and turns into a set to remove duplicates...
                             if player_id == 2:
                                 received_ids = set()
 
+                                boss_list = global_match_state["bosses_list"]
+                                en_lasers_list = global_match_state["enemy_lasers"]
+                                # Try getting explosions
                                 try:
                                     for explosion_data in global_match_state["explosions"]:
                                         explosions_to_draw.append([explosion_data[0],explosion_data[1],explosion_data[2]])
-                                        print("it worked!")
+
+                                
+
                                 except Exception as e:
                                       print(f"[Explosion Error] {e} ")
-                                for bug_data in global_match_state["bugs_list"]: # Gets the bug list from plahyer 1
+                                
+                                for laser_data in en_lasers_list:
+                                    if recieved_en_ids.__contains__(laser_data[4]):
+                                        for enemy_laser in enemy_lasers:
+                                            if enemy_laser.id == laser_data[4]:
+                                                enemy_laser.x == laser_data[0]
+                                                enemy_laser.y = laser_data[1]
+                                    else:
+                                        recieved_en_ids.append(laser_data[4])
+                                        enemy_lasers.append(EnemyLaser(laser_data[0],laser_data[1],laser_data[2],laser_data[3],laser_data[4]))
+                
+                                for bug_data in global_match_state["bugs_list"]: # Gets the bug list from player 1
 
                                     bug_id = bug_data[8]
 
@@ -208,7 +244,15 @@ async def network_sync_loop(ship_reference,game_id = 0):
 
                                         del network_bugs[bug_id]
                                 
-
+                                for boss in boss_list:
+                                    global boss_exists
+                                    if boss_exists == False:
+                                        print(boss)
+                                        boss_to_add = RecursionBoss(boss[0],boss[1],boss[2],boss[3],boss[4])
+                                        bosses.add(boss_to_add)
+                                        boss_exists = True
+                                    else:
+                                        pass
                 except Exception as e:
                         print(f"[Receiving Error]: Exception {e} from player {player_id}")
 
@@ -227,18 +271,30 @@ async def network_sync_loop(ship_reference,game_id = 0):
                         is_in_shop = False
                     if player_id == 1:
                         the_giant_list = []
+                        bosses_list = []
                         #  Create Explosions List
                         explosions_list = []
+                        enemy_lasers_list = []
                         for bug in bugs:
                             all_attributes = [bug.rect.x,bug.rect.y,bug.w,bug.h,bug.image_num,bug.damage,bug.hp,bug.speed,bug.id,bug.y_speed]
                             the_giant_list.append(all_attributes)
-                        
+                        for boss in bosses:
+                            all_attributes = [boss.x,boss.y,boss.w,boss.h,boss.image_path]
+                            bosses_list.append(all_attributes)
                         for explosion in explosions:
-                            explosions_list.append([explosion[0],explosion[1],explosion[2]])
-                        local_payload = {'x' : ship.rect.x,'y' : ship.rect.y, 'level' : current_level,'is_in_shop':is_in_shop,'bugs_dead' : all_bugs_are_dead,'choosing_cards' : im_choosing_cards,'bugs_list' : the_giant_list,'explosions' : explosions_list}
+                            try:
+                                explosions_list.append([explosion[0],explosion[1],explosion[2],explosion[3],explosion[4]])
+                            except:
+                                print("EXERROR")
+                        for enemy_laser in enemy_lasers:
+                            try:
+                                enemy_lasers_list.append([enemy_laser.x,enemy_laser.y,enemy_laser.w,enemy_laser.h,enemy_laser.id])
+                            except : 
+                                print("oioadsjklajflkahlkslkd")
+                        local_payload = {'x' : ship.rect.x,'y' : ship.rect.y, 'level' : current_level,'is_in_shop':is_in_shop,'bugs_dead' : all_bugs_are_dead,'choosing_cards' : im_choosing_cards,'im_dead' : im_dead,'bugs_list' : the_giant_list,'explosions' : explosions_list,'bosses_list' : bosses_list,'enemy_lasers' : enemy_lasers_list}
                         explosions.clear()
                     elif player_id == 2:
-                        local_payload = {'x' : ship2.rect.x, 'y' : ship2.rect.y, 'level' : current_level,'is_in_shop':is_in_shop,'bugs_dead' : all_bugs_are_dead,'choosing_cards' : im_choosing_cards}
+                        local_payload = {'x' : ship2.rect.x, 'y' : ship2.rect.y, 'level' : current_level,'is_in_shop':is_in_shop,'bugs_dead' : all_bugs_are_dead,'choosing_cards' : im_choosing_cards, 'im_dead' : im_dead}
                 
                     else:
 
@@ -259,19 +315,18 @@ async def network_sync_loop(ship_reference,game_id = 0):
 
 
 
-
+# Launch network thread 
 def launch_network_thread(ship_instance):
     global network_thread_launched
     if network_thread_launched:
         return
     
-    # This registers the network loop to run safely on the browser's main window thread
+
     asyncio.create_task(network_sync_loop(ship_instance))
     network_thread_launched = True
     
 
-
-
+# A box in the shop containing cost , description, text, and the main image
 class ShopItem:
     def __init__(self,name,cost,description,stats,effect_type,x,y,w = 260,h = 130,image = None):
         self.name = name
@@ -319,6 +374,8 @@ class ShopItem:
         game_canvas.blit(stat_surface,(self.rect.x + 15,self.rect.y + 150))
         if self.image != None:
             game_canvas.blit(self.image,(self.rect.right - self.image.width - 5,self.rect.top + self.image.width / 12 + 5))
+    
+    # Buy a shop card!!!!! (I worked so hard on the descriptions...)...... IDK why but...
     def buy(self, mouse_pos, mouse_pressed):
         global data_coins,max_overdrive,files,ship
         if (not self.purchased and mouse_pressed[0]
@@ -466,6 +523,9 @@ class ShopItem:
                 elif self.name == "Search Engine" : # Why are so many people searching up "Who would win : Taco vs. Grilled Cheese"?
                     ship.data_per_enemy = 4096
 
+
+            ######################## Multiply coin drops ##########################
+
             elif self.effect_type == "Data Coin Mult":
                 if self.name == "Self Organizing": ### Label and Ship the data yourself to recieve a quality bonus. 
                     # What, you want me to make their last 10 searches visible on a public website with 10,000 line of CSS for a QUALITY MULT?
@@ -486,12 +546,18 @@ class ShopItem:
                     ship.data_mult = 50
                 elif self.name == "Clone Machine" : # More people, More data... its simple, really.
                     ship.data_mult = 100
+
+################fhgdwasddwadwasdjddwasddwadwadsdwasddwaadwadwadsdwasddwasddwdadwasdwadwasddwasdasdwadhgfdwadwadsdadwadwadwadwasdwadwadsdwadwadwadwadwasddwadwashklkdwdwadwadwadwadawdaadwadwddwadwasdadwasjhkhkjhkjh# Scroll x and y for the shop so you can scroll through all options #################### 
 scroll_x, scroll_y = 0,50
+
+# Healing files special that can be used every time you enter shop
 
 heal_files_1 = ShopItem("Quick Fix",5,"Spray the code with pesticide\nand call it debugging.","Heals all files by 10%","Heal-Files",30+scroll_x,100+scroll_y, w = 280,h = 180)
 heal_files_2 = ShopItem("Bug Patch",10,"Tape and paint the bugs until no\none knows they're there...","Heals all files by 33%","Heal-Files",30+scroll_x,300+scroll_y, w = 280,h = 180)
 heal_files_3 = ShopItem("Security Update",20, "Change passcode from 1234 to 12345.\nWe're leading in cybersecurity.","Heals all files by 66%","Heal-Files",30+scroll_x,500+scroll_y,w = 280,h = 180)
 heal_files_4 = ShopItem("Full Refactor",30, "Oh, the library became insecure\nAFTER I wrote 10,000 lines of code.\nWhat a coincidence!","Heals all files to full health","Heal-Files",30+scroll_x,700+scroll_y,w=280,h = 180)
+
+# Text inside the shop to show each category
 
 name_surface = [subtitle_font.render("Heals", True , (0,255,0)),"Heals"]
 cooldown_surface = [subtitle_font.render("Cooldown", True , (0,0,255)),"Cooldown"]
@@ -508,6 +574,8 @@ titles.append(max_hp_surface)
 titles.append(speed_surface)
 titles.append(overdrive_surface)
 # All upgrades in shop
+
+# Items you can buy in the shop with data coins from enemies.
 cooldown_files_1 = ShopItem("Office Processor",25,"No! You can't open 2 tabs at once!","Cooldown reduced by 10%","Heal-Files",330+scroll_x,100+scroll_y, w = 300,h = 180,image = "assets/officecore.png")
 cooldown_files_2 = ShopItem("Gaming Processor",125,"They don't need to fire their weapons.\nThey just need to wear a skin with more\nthan one color to crash my laptop...","Cooldown reduced by 20%","Heal-Files",330+scroll_x,300+scroll_y, w = 300,h = 180,image = "assets/gamingcore.png")
 cooldown_files_3 = ShopItem("Dev Processor",750, "Finally, I can run Vs Code and ChatGPT\nat the same time!","Cooldown reduced by 35%","Heal-Files",330+scroll_x,500+scroll_y,w = 300,h = 180, image = "assets/devcore.png")
@@ -530,7 +598,7 @@ cooler_files_3 = ShopItem("Aluminum Tower",125, "A Nice tower with copper pipes\
 cooler_files_4 = ShopItem("Pure Metal Dual-Tower",800, "Sure, it cools well, but someone put ONE\nstack of papers next to the cooling fan and\nnow the whole building somehow has our\npaper.",r"Overdrive lasts 100% longer","Heal-Files",1320+scroll_x,700+scroll_y,w=320,h = 180,image = "assets/coolingtower2.png")
 cooler_files_5 = ShopItem("Liquid Nitrogen Cooling Pot",4500, "When you never want to lag again, this is\nthe perfect cooler. Also functions as\nAir Conditioning in the summmer\nmy making the room 10 degrees colder.",r"Overdrive lasts 325% Longer","Heal-Files",1320+scroll_x,900+scroll_y,w = 320,h = 180, image = "assets/liquidnitrogencooler.png")
 cooler_files_6 = ShopItem("Cyrostat Dilution Refrigarator",45000, "I'm sure Google won't mind us putting our\nservers in there next to the quantum\ncomputer.All I know is I can't use the\ncooling racks for my yougurt anymore...",r"Overdrive lasts 500% Longer" ,"Heal-Files",1320+scroll_x,1100+scroll_y,w=320,h = 180,image = "assets/quantumcooler.png")
-
+# Adds item effects
 for item in (cooldown_files_1, cooldown_files_2, cooldown_files_3, cooldown_files_4):
     item.effect_type = "Cooldown-Decrease"
 for item in (speed_files_1, speed_files_2, speed_files_3, speed_files_4):
@@ -550,7 +618,7 @@ case_files_5 = ShopItem("Titantium Safe",2000, "Protects the program files from 
 
 for item in (case_files_1, case_files_2, case_files_3, case_files_4, case_files_5):
     item.effect_type = "File Max Hp"
-
+# Add all shop items into the shop item list to draw later
 shop_items.append(heal_files_1)
 shop_items.append(heal_files_2)
 shop_items.append(heal_files_3)
@@ -582,6 +650,8 @@ shop_items.append(case_files_4)
 shop_items.append(case_files_5)
 textboxes = []
 
+
+# Messages for the tutorial
 messages = [["C:/Users/You","Hello, World!"], 
             ["C:/Users/You" , "Oh, finally got my IDE working... "],
             ["C:/Users/You" , "Now I can finally test my new debugging program!"],
@@ -616,6 +686,8 @@ messages = [["C:/Users/You","Hello, World!"],
             [""]
             ]
 
+enemy_laser_id = 0
+# Display the tutorial textbox because people don't like clicking the tutorial button and then complain i never told them the controls.
 class Textbox():
     def __init__(self,x,y,w,h,text_to_write,text_speed,speaker,speaker_color,text_color):
         global messages
@@ -668,6 +740,9 @@ class Textbox():
         surface.blit(text_surface,(self.box_rect.x + 20,self.box_rect.y + 55))
 
 turn_button_teal = [False,False,False,False,False]
+
+
+# Buttons for menu to choose modes and to go to enemy screen
 class MenuButton():
     def __init__(self,text,center_x,center_y,width,height,target_state,color = (30,30,35)):
         self.text = text
@@ -704,7 +779,10 @@ class MenuButton():
 
     def check_clicks(self,mouse_pos , mouse_pressed ):
         if self.rect.collidepoint(mouse_pos) and mouse_pressed[0]:
+            global current_level
             bugs.empty()
+            if self.target_state == 0:
+                current_level = 0
             return True
             
         return False
@@ -713,6 +791,7 @@ class MenuButton():
 ##### Game Stuff #####
 # ########### SHIPPY ########## 
 
+# Buttons for Touchscreen Mode
 class ControlButton(pygame.rect.Rect):
     def __init__(self,x,y,w,h,dir,color,symbol):
         super().__init__(x,y,w,h)
@@ -723,13 +802,17 @@ class ControlButton(pygame.rect.Rect):
         self.dir = dir
         self.color = color
         self.symbol = symbol
-
+        if self.symbol != None:
+            self.symbol = pygame.image.load(self.symbol).convert_alpha()
+            self.symbol = pygame.transform.scale(self.symbol,(72,72))
     def draw(self):
-        pygame.draw.rect(game_canvas,self.color,self,border_radius=5)
-
+        
+        if self.symbol != None:
+            game_canvas.blit(self.symbol,(self.right - self.symbol.width - 5,self.top + self.symbol.width / 12 + 5))
     def check_for_clicks(self,touches):
         global ship,ship2
         for key,coords in touches.items():
+            ####################################### TOUCH CONTROL!!!! ################################# Havent tested on a actual touch device tho....
             if self.collidepoint((coords[0],coords[1])):
                 if self.dir == "Up":
                     if player_id == 1 or multiplayer_mode == False:
@@ -763,11 +846,11 @@ class ControlButton(pygame.rect.Rect):
                     elif player_id == 2:
                         ship2.overdrive_duration = ship2.max_overdrive_duration
 
-controls = [ControlButton(200,100,80,80,"Up",(255,200,60),None),ControlButton(200,200,80,80,"Down",(255,200,60),None),ControlButton(100,200,80,80,"Left",(255,200,60),None),ControlButton(300,200,80,80,"Right",(255,200,60),None),ControlButton(300,100,80,80,"Shoot",(255,200,60),None)]
+controls = [ControlButton(200,100,80,80,"Up",(255,200,60),"assets/up.png"),ControlButton(200,200,80,80,"Down",(255,200,60),"assets/down.png"),ControlButton(100,200,80,80,"Left",(255,200,60),"assets/left.png"),ControlButton(300,200,80,80,"Right",(255,200,60),"assets/right.png"),ControlButton(300,100,80,80,"Shoot",(255,200,60),"assets/shootlaser.png")]
 
 
 
-
+# Ship class - The main character :)
 class Ship(pygame.sprite.Sprite):
     def __init__(self,x,y,w,h,image_path,damage,hp = 10,speed = 6,knockback = 0,pierce = 0):
         super().__init__()
@@ -786,7 +869,7 @@ class Ship(pygame.sprite.Sprite):
         self.hp = hp
         self.speed = speed
         if self.weapon_type != "Shotgun" and self.weapon_type != "Mine" :
-            self.cooldown = 8
+            self.cooldown = 12
         elif self.weapon_type == "Shotgun":
             self.cooldown = 45
         elif self.weapon_type == "Mine":
@@ -833,6 +916,7 @@ class Ship(pygame.sprite.Sprite):
                 elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
                     self.rect.x -= self.speed
                 self.invert_duration -= 1
+                print(f"Help {self.invert_duration}")
 
             
 
@@ -871,8 +955,19 @@ class Ship(pygame.sprite.Sprite):
                 self.max_cooldown = self.max_max_cooldown * 2
             elif self.weapon_type == "Mine":
                 self.max_cooldown = self.max_max_cooldown * 4
-        global lives_left
-        
+        global lives_left,shake_intensity
+        if multiplayer_mode and self.image_path == "assets/ship2.png":
+            for bug in bugs:
+                if self.rect.colliderect(bug.rect):
+                    shake_intensity = 30
+                    if self.is_dashing == False:
+                        bug.kill()
+                        self.hp -= bug.damage
+                        print("ASDASDASF SHIP 2 HIT1")
+                        
+                    else:
+                        bug.hp -= self.dash_damage
+
         if self.hp <= 0:
             lives_left -= 1
             self.hp = self.max_hp
@@ -889,10 +984,11 @@ class Ship(pygame.sprite.Sprite):
             else :
                 self.max_cooldown = 0.25 * self.max_max_cooldown
     def shoot(self,this_is_a_trigger= False):
-        global lasers,card_was_chosen,overdrive_charge,net_lock,outbound_events
+        global shots_fired,lasers,card_was_chosen,overdrive_charge,net_lock,outbound_events
 
         if (keys[pygame.K_SPACE] or keys[pygame.K_e] or this_is_a_trigger) and self.cooldown <= 0 and self.is_local:
             if self.weapon_type == "Regular":
+                shots_fired += 1
                 laser = Laser(self.rect.centerx,self.rect.top,5,5,damage=self.damage,knockback=self.knockback,pierce=self.pierce)
                 lasers.append(laser)
                 self.cooldown = self.max_cooldown
@@ -926,7 +1022,7 @@ class Ship(pygame.sprite.Sprite):
                 click_sound.play()
                 self.cooldown = self.max_cooldown
             
-        elif self.cooldown > 0 and card_was_chosen == True:
+        elif self.cooldown > 0 and card_was_chosen == True and not this_is_a_trigger:
             self.cooldown -= 1
         else:
             pass
@@ -1021,9 +1117,9 @@ class Bug(pygame.sprite.Sprite):
 
         self.float_y += self.y_speed
         self.rect.y = int(self.float_y)
-# Thoughts : How to spawn boss? Custom
+# Thoughts : How to spawn boss? Custom spawner?? 
     def check_for_collisions(self):
-        global explosions,bugs,enemy_lasers,current_level,ship,overdrive_charge,lasers,mines,cur_frame,shake_intensity,max_overdrive
+        global shots_hit,explosions,bugs,enemy_lasers,current_level,ship,overdrive_charge,lasers,mines,cur_frame,shake_intensity,max_overdrive
         memory_error_alive = any(bug.image_path == "assets/memoryerror.png" for bug in bugs)
         if memory_error_alive == True:
             self.image.set_alpha(100)
@@ -1035,9 +1131,12 @@ class Bug(pygame.sprite.Sprite):
         for laser in lasers:
             memory_error_alive = any(bug.image_path == "assets/memoryerror.png" for bug in bugs)
             if memory_error_alive == False or self.image_path == "assets/memoryerror.png":
+         
                 self.y_speed = self.og_y_speed
                 self.image.set_alpha(255)
                 if self.rect.colliderect(laser):
+                    shots_hit += 1
+                    print("Steve")
                     if self.image_path != "assets/sqlinjector.png":
                         self.hp -= laser.damage
                     if self.image_path == "assets/sqlinjector.png":
@@ -1058,18 +1157,18 @@ class Bug(pygame.sprite.Sprite):
                     if self.hp <= 0:
                         global data_coins
                         if self.image_path == "assets/exception.png":
-                            data_coins += 1
+                            data_coins += 0
 
                 
             elif memory_error_alive == True:
                 self.image.set_alpha(100)
                 self.y_speed = 0.5 * self.og_y_speed
         if self.hp <= 0:
-            global explosions,score,score_add_font,score_text,game_state
+            global total_kills,explosions,score,score_add_font,score_text,game_state,next_bug_id
             color = (255,0,0)
             type_of_explosion = self.image_path
             explosion = [self.rect.x,self.rect.y,type_of_explosion] 
-            print(explosion)
+            # print(explosion) adwadwadwadwaddwasddwadwadwawsddwadwadwadwadwasdgkhkhkuhkjhdwadwdwasddwhljljiljllijlijlijlijiijllijlijdwadadwadwadadwadwfdwadwaddwfesfesdwasdadwasd
             explosions.append(explosion)
   
             self.kill()
@@ -1084,26 +1183,56 @@ class Bug(pygame.sprite.Sprite):
             if self.image_path == "assets/exception.png":
                 color = (0,255,0)
                 self.kill_score = 10
+                data_coins += 3
             elif self.image_path == "assets/indentationerrorlow.png" or self.image_path == "assets/indentationerror.png":
                 color = (0,0,255)
                 self.kill_score = 20
+                data_coins += 7
             elif self.image_path == "assets/indexerror.png":
                 color = (255,165,0)
                 self.kill_score = 20
+                data_coins += 7
             elif self.image_path == "assets/memoryerror.png":
                  color = (0,255,0)
                  self.kill_score = 100
+                 data_coins += 25
                  for i in range(9):
                     particles.append([[self.rect.centerx, self.rect.centery] , [random.randint(-3,3),random.randint(-3,3)] , random.randint(4,8),random.choice([(0,255,0),(255,0,0),(255,255,0)])])
             elif self.image_path == "assets/importerror.png":
                 color = (165,42,42)
                 self.kill_score = 50
+                data_coins += 25
             elif self.image_path == "assets/brokenpipe.png":
                 color = (255,255,255)
                 self.kill_score = 25
+                data_coins += 25
+            elif self.image_path == "assets/nullpointererror.png":
+                color = (128,0,128)
+                self.kill_score = 25
+                data_coins += 40
+            elif self.image_path == "assets/deprecatedmethod.png":
+                color = (165,42,42)
+                self.kill_score = 40
+                data_coins += 60
+            elif self.image_path == "assets/deprecatedgiant.png":
+                color = (165,42,42)
+                self.kill_score = 160
+                data_coins += 250
+            elif self.image_path == "assets/racecondition.png":
+                color = random.choice([(255,0,0),(0,255,0),(0,0,255)])
+                self.kill_score = 50
+                data_coins += 120
+            elif self.image_path == "assets/sqlinjector.png":
+                color = (255,192,203)
+                self.kill_score = 75
+                data_coins += 150
+            elif self.image_path == "assets/sleepthread.png":
+                color = (173,216,230)
+                self.kill_score = 100
+                data_coins += 200
             elif self.image_path == "assets/typeerror.png":
                 color = (random.randint(0,255),random.randint(0,255),random.randint(0,255))
-                self.kill_score = 40
+                self.kill_score = random.randint(20,80)
             if self.image_path != "assets/packetbug.png":
                 for i in range(9):
                     particles.append([[self.rect.centerx, self.rect.centery] , [random.randint(-3,3),random.randint(-3,3)] , random.randint(4,8), color])
@@ -1114,7 +1243,8 @@ class Bug(pygame.sprite.Sprite):
                 self.kill_score = 1
             if game_state == 1 :
                 score += self.kill_score
-                print(f"{color}-{self.kill_score}")
+                total_kills += 1
+
                 title_surface = score_add_font.render(str(f"+{self.kill_score}"),True,color)
                 score_text_to_add = [title_surface,self.rect.x,self.rect.y,10,2,255,color]
                 score_text.append(score_text_to_add)
@@ -1128,6 +1258,7 @@ class Bug(pygame.sprite.Sprite):
                  
                 else:
                     self.hp -= ship.dash_damage
+        
         for file in files:
             if current_level != 20 and self.image_path != "assets/packetbug.png":
                 if self.rect.colliderect(file.rect):
@@ -1139,16 +1270,19 @@ class Bug(pygame.sprite.Sprite):
             self.image_path = "assets/indentationerrorlow.png"
             self.image = pygame.transform.scale(pygame.image.load(self.image_path).convert_alpha(),(self.w,self.h))
             self.rect = self.image.get_rect(topleft = (self.rect.x,self.rect.y))
-        if self.image_path == "assets/importerror.png":
+        if self.image_path == "assets/importerror.png" and (player_id == 1 or multiplayer_mode == False):
+            next_bug_id += 1
             if self.creation_cooldown <= 0:
-                child_bug = Bug(self.rect.x, self.rect.bottom,24,24,0,1,1,1)
+                child_bug = Bug(self.rect.x, self.rect.bottom,24,24,0,1,1,1,id = next_bug_id)
                 bugs.add(child_bug)
                 self.creation_cooldown = self.max_creation_cooldown
             else:
                 self.creation_cooldown -= 1
 
         if self.image_path == "assets/brokenpipe.png" and self.cooldown <= 0:
-            enemy_laser = EnemyLaser(self.rect.centerx - 2, self.float_y,9,9,damage=0.5,speed=6)
+            global enemy_laser_id
+            enemy_laser_id += 1
+            enemy_laser = EnemyLaser(self.rect.centerx - 2, self.float_y,9,9,damage=0.5,speed=6,id = enemy_laser_id)
             enemy_lasers.append(enemy_laser)
             self.cooldown = self.max_cooldown
         elif self.image_path == "assets/brokenpipe.png" and self.cooldown > 0:
@@ -1225,28 +1359,34 @@ class Bug(pygame.sprite.Sprite):
 
         
         if self.image_path == "assets/deprecatedmethod.png" and self.hp <= 0:
+            
                 startx,starty = self.rect.x,self.rect.y
+                next_bug_id += 1
                 for i in range(3):
                     for j in range(3):
-                        bug = Bug(startx + i * 10,starty- colindex + j * 10 ,9,9,7,1,1,0.4,y_speed = 0)
+                        bug = Bug(startx + i * 10,starty- colindex + j * 10 ,9,9,7,1,1,0.4,y_speed = 0,id = next_bug_id)
                         bugs.add(bug)
                         bug.orbit_angle = random.uniform(0,2*math.pi)
                         bug.target_radius = random.uniform(140,180)
+                        next_bug_id += 1
                 bugs.remove(self)
         if self.image_path == "assets/deprecatedgiant.png":
                 if self.hp <= 0:
+                    next_bug_id += 1
                     startx,starty = self.rect.x,self.rect.y
                     for i in range(10):
                         for j in range(10):
-                            bug = Bug(startx + i * 10,starty- colindex + j * 10 ,9,9,7,1,1,0.4,y_speed = 0)
+                            bug = Bug(startx + i * 10,starty- colindex + j * 10 ,9,9,7,1,1,0.4,y_speed = 0,id = next_bug_id)
                             bugs.add(bug)
                             bug.orbit_angle = random.uniform(0,2*math.pi)
                             bug.target_radius = random.uniform(140,180)
+                            next_bug_id += 1
                     bugs.remove(self)
                 else:
                     if self.packetcooldown <= 0:
+                        next_bug_id += 1
                         startx,starty = self.rect.x,self.rect.y
-                        bug = Bug(startx,starty,9,9,7,1,1,0.4,y_speed = 0)
+                        bug = Bug(startx,starty,9,9,7,1,1,0.4,y_speed = 0,id = next_bug_id)
                         bugs.add(bug)
                         bug.orbit_angle = random.uniform(0,2*math.pi)
                         bug.target_radius = random.uniform(140,180)
@@ -1287,12 +1427,13 @@ class Bug(pygame.sprite.Sprite):
                 self.sleep_freeze_cooldown = self.max_sleep_freeze_cooldown
             else:
                 self.sleep_freeze_cooldown -= 1
-    def explode_into_pieces(self):
-        for laser in lasers:
-            if self.rect.colliderect(laser):
-                if laser in lasers:
-                    lasers.remove(laser)
-                    self.hp -= laser.damage
+    # def explode_into_pieces(self):
+    #     for laser in lasers:
+    #         if self.rect.colliderect(laser):
+    #             if laser in lasers:
+    #                 lasers.remove(laser)
+    #                 self.hp -= laser.damage
+    #                 print("Stove")
 
         if self.hp <= 0:
              for i in range(4):
@@ -1302,12 +1443,13 @@ class Bug(pygame.sprite.Sprite):
 
 
 class EnemyLaser(pygame.rect.Rect):
-    def __init__(self,x,y,w,h,color = (0,0,255),speed = 9, damage = 1, knockback = 0,pierce = 0,xv=0,yv = 0):
+    def __init__(self,x,y,w,h,id,color = (0,0,255),speed = 9, damage = 0.5, knockback = 0,pierce = 0,xv=0,yv = 0):
         super().__init__(x, y, w, h)
         self.x = x
         self.y = y
         self.w = w
         self.h = h
+        self.id = id
         self.color = color
         self.speed = speed
         self.damage = damage
@@ -1509,7 +1651,8 @@ class Laser(pygame.rect.Rect):
         if self.state == "Normal":
             for enlaser in enemy_lasers:
                 if self.colliderect(enlaser):
-                    lasers.remove(self)
+                    if self in lasers:
+                        lasers.remove(self)
                     try:
                         enemy_lasers.remove(enlaser)
                     except:
@@ -1522,22 +1665,32 @@ class Laser(pygame.rect.Rect):
             if self.colliderect(ship):
                 ship.hp -= self.damage
                 lasers.remove(self)
+        # Crash with bugs, do stuff
         for bug in bugs:
             if self.colliderect(bug.rect):
+                global shots_hit
                 if self.pierce <= 0 or bug.hp > 0 : 
                     if self in lasers:
                         lasers.remove(self)
+                        shots_hit += 1
                     bug.hp -= self.damage
                 elif bug.hp <= 0:
                     self.pierce -= 1
                   
     
-
+        # If it hits the top, remove itself
         if self.top <= 0 :
             lasers.remove(self)
             coord_pairs = [(-4.24,4.24),(-3.00,5.20),(-1.55,5.80),(0.00,6.00),(1.55,5.80),(3.00,5.20),(4.24,4.24)]
 
-       
+########### The class of files you protect with you ship from enemies , this is the main item to protect from bug enemies.... 
+########### I hope this work let that it work...
+########### Classes ###########
+
+
+################################################################################
+################################################################################
+
 class FileTower(pygame.sprite.Sprite):
     def __init__(self, x,y,w,h,image_path,hp):
         super().__init__()
@@ -1552,11 +1705,14 @@ class FileTower(pygame.sprite.Sprite):
         self.max_hp = hp
         self.max_max_hp = hp
         self.heal = 0
+
+    # Update tower to lose (or gain!) health
     def update(self):
         global files_destroyed,enemy_lasers
         if self.hp <= 0:
-            self.kill()
+            # self.kill()
             files_destroyed = True
+            print("***File Destroyed***! You lose!")
         red_rect = pygame.rect.Rect(self.rect.x + 10,self.rect.top - 25,50,5)
         green_rect = pygame.rect.Rect(self.rect.x + 10,self.rect.top - 25,(50/self.max_hp) * self.hp,5)
         pygame.draw.rect(game_canvas,(255,0,0),red_rect)
@@ -1567,6 +1723,8 @@ class FileTower(pygame.sprite.Sprite):
                 enemy_lasers.remove(laser)
         if self.hp < self.max_hp:
             self.hp += self.heal
+
+# Those circles and squares on the cards symbol sprites
 class SymbolSprite(pygame.sprite.Sprite):
     def __init__(self, x,y,w,h,image_path):
         super().__init__()
@@ -1579,6 +1737,7 @@ class SymbolSprite(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(topleft = (x,y))
 
 
+### Upgradecard sprites with the symbol and text ###
 class UpgradeCard(pygame.sprite.Sprite):
     def __init__(self, x, y, w, h, typeofcard, upgradeitem, amounttoadd, lineupnum,upgrade_name = "Laser"):
         super().__init__() 
@@ -1593,7 +1752,7 @@ class UpgradeCard(pygame.sprite.Sprite):
         self.lineupnum = lineupnum
         self.upgrade_name = upgrade_name
         self.the_color = (255,255,255)
-        
+    # Draw the upgrade card, with symbol and text
     def draw(self):
         
         self.x = self.x_values[self.lineupnum]
@@ -1640,47 +1799,60 @@ class UpgradeCard(pygame.sprite.Sprite):
         game_canvas.blit(description, text_rect)
         game_canvas.blit(stat_text, stat_rect)
         game_canvas.blit(type_text, type_rect)
+    # CARD EFFECTS add the actual effect when the card is clicked
     def effect(self,pressed_key):
         ################## ALL CARD UPGRADES ############################
         if (self.lineupnum == 0 and  pressed_key == pygame.K_1) or (self.lineupnum == 1 and  pressed_key == pygame.K_2) or (self.lineupnum == 2 and pressed_key == pygame.K_3):
+            # Cooldown upgrade
             if self.upgradeitem == "Cooldown":
                 ship.max_cooldown += self.amounttoadd
                 ship.max_max_cooldown += self.amounttoadd
     
                 return True
+            # Laser Damage Upgrade 
             elif self.upgradeitem == "Ship Atk":
                 ship.damage += self.amounttoadd
                 ship.original_damage = ship.damage
                 return True
+            # Ship Speed Upgrade
             elif self.upgradeitem == "Ship Speed":
                 ship.speed += self.amounttoadd
                 return True
+            # Tower Health Upgrade
             elif self.upgradeitem == "Tower Health":
                 for file in files.sprites():
                     file.hp += self.amounttoadd
                     file.max_hp += self.amounttoadd
                 return True
+            # Upgrade Knockback (Not Used)
             elif self.upgradeitem == "Knockback":
                 ship.knockback += self.amounttoadd
                 return True
-     
+
+            # Upgrade the pierce upgrade
             elif self.upgradeitem == "Pierce":
                 ship.pierce += self.amounttoadd
                 if card_options.__contains__(pierce_1):
                     card_options.remove(pierce_1)
                 return True
+
+            # Upgrade the Dash upgrade to allow dashing
             elif self.upgradeitem == "Dash":
                 ship.can_dash = True
                 ship.dash_damage += self.amounttoadd
                 if card_options.__contains__(dash_1):
                     card_options.remove(dash_1)
                 return True
+
+            # Upgrade file healing
             elif self.upgradeitem == "Heal":
                 for file in files.sprites():
                     file.heal += self.amounttoadd
                 if card_options.__contains__(heal_1):
                     card_options.remove(heal_1)
                 return True
+
+            # Change the weapon to double blaster
             elif self.upgradeitem == "Double":
                     ship.weapon_type = "Double"
                     try:
@@ -1690,6 +1862,8 @@ class UpgradeCard(pygame.sprite.Sprite):
                     except:
                         pass
                     return True
+
+            ### Change the weapon to Shotgun ###
             elif self.upgradeitem == "Shotgun":
                     ship.weapon_type = "Shotgun"
                     try:
@@ -1700,6 +1874,7 @@ class UpgradeCard(pygame.sprite.Sprite):
                         pass
 
                     return True
+            ### Change the weapon to Mines ###
             elif self.upgradeitem == "Mines":
                     ship.weapon_type = "Mine"
                     try:
@@ -1713,9 +1888,9 @@ class UpgradeCard(pygame.sprite.Sprite):
         return False
 
 
-
+######### The first boss, the recursion boss. #########
 class RecursionBoss(pygame.sprite.Sprite):
-    def __init__(self, x,y,w,h,image_path,damage,hp,id):
+    def __init__(self, x,y,w,h,image_path):
         super().__init__()
         self.x = x
         self.y = y
@@ -1726,7 +1901,7 @@ class RecursionBoss(pygame.sprite.Sprite):
         self.image_path = image_path
         self.image = pygame.transform.scale(pygame.image.load(self.image_path).convert_alpha(),(w,h))
         self.rect = self.image.get_rect(topleft = (x,y))
-        self.damage = damage
+        self.damage = 1
 
         self.max_hp = 800
         self.create_child_cooldown = 300
@@ -1749,6 +1924,7 @@ class RecursionBoss(pygame.sprite.Sprite):
         self.giant_beam_count = 0 
         self.max_giant_beam_count = 3
         self.shots_fired = 0
+    # Update the boss
     def update(self):
         global bugs
         if self.stage == "Moving":
@@ -1767,6 +1943,7 @@ class RecursionBoss(pygame.sprite.Sprite):
                     self.direction = "Left"
             
             self.rect.y = int(self.float_y) 
+        # Massive explosion when the boss dies
         if self.hp <= 0:
             self.kill()
             bugs.empty()
@@ -1780,16 +1957,18 @@ class RecursionBoss(pygame.sprite.Sprite):
             for i in range(90):
                 particles.append([[self.rect.centerx, self.rect.centery] , [random.randint(-10,10),random.randint(-10,10)] , random.randint(4,20), (128,0,128)])
 
-
+        # Draw healthbar above boss
         red_rect = pygame.rect.Rect(self.rect.centerx  - self.w // 2 + 50,self.rect.top - 25,150,5)
         green_rect = pygame.rect.Rect(self.rect.centerx  - self.w // 2 + 50,self.rect.top - 25,(150/self.max_hp) * self.hp,5)
         pygame.draw.rect(game_canvas,(255,0,0),red_rect)
         pygame.draw.rect(game_canvas,(0,255,0),green_rect)
 
-
+    ######### Check for boss and collisions #########
     def check_for_collisions(self):
             global bugs,enemy_lasers
             memory_error_alive = any(bug.image_path == "assets/memoryerror.png" for bug in bugs)
+
+            ### This slows down things when memory error is alive
             if memory_error_alive == True:
                 self.image.set_alpha(100)
                 self.y_speed = 0
@@ -1800,6 +1979,7 @@ class RecursionBoss(pygame.sprite.Sprite):
                 memory_error_alive = any(bug.image_path == "assets/memoryerror.png" for bug in bugs)
                 if memory_error_alive == False or self.image_path == "assets/memoryerror.png":
                     self.image.set_alpha(255)
+                    # When a laser hits, give off small sparks for effect
                     if self.rect.colliderect(laser):
                         for i in range(2):
                             particles.append([[laser.centerx, laser.centery] , [random.randint(-2,2),random.randint(-2,2)] , random.randint(4,8), (0,255,0)])
@@ -1815,14 +1995,20 @@ class RecursionBoss(pygame.sprite.Sprite):
                         for bug in bugs:
                             if self.x == bug.x:
                                 bug.float_y -= laser.knockback
+
+                        # Laser removal system...
                         if laser in lasers:
                             if laser.pierce <= 0 or self.hp > 0 :
                                 lasers.remove(laser)
                             elif self.hp <= 0:
                                 laser.pierce -= 1
+
+                # If memory error is existent, become a bit see-through to show that you cannot be hit.
                 elif memory_error_alive == True:
                     self.image.set_alpha(100)
                     self.y_speed = 0
+
+    ### The boss has 3 different bullet patterns, and chooses one randomly ###
     def shoot(self):
         coord_pairs = [(-4.24,4.24),(-3.00,5.20),(-1.55,5.80),(0.00,6.00),(1.55,5.80),(3.00,5.20),(4.24,4.24)]
         self.speed = 0
@@ -1841,6 +2027,7 @@ class RecursionBoss(pygame.sprite.Sprite):
                 if self.burst_count < self.max_burst_count:
                     self.laser_cooldown = self.frame_shoot_delay
                     if self.burst_count == 1:
+                        ### Spawn child enemies ###
                         if self.hp <= 499:
                             if self.hp <= 499 and self.shots_fired >= 3:
                                 self.shots_fired = 0
@@ -1877,6 +2064,9 @@ class RecursionBoss(pygame.sprite.Sprite):
                     self.laser_cooldown = self.max_laser_cooldwon
                     self.stage = "Moving"
                     self.shots_fired += 1
+
+
+            ######## Shooting stile 2 I think the minigun ########
             elif self.shoot_style == 2:
                 self.stage = "Shooting"
                 bullet1 = BossLaser(self.rect.centerx - 22,self.rect.centery,0,8,1,(255,255,0),9)
@@ -1889,6 +2079,7 @@ class RecursionBoss(pygame.sprite.Sprite):
                 if self.beam_count < self.max_beam_count:
                     self.laser_cooldown = 1
                     if self.beam_count == 1:
+                        #### Enemy Spawning Program ####
                         if self.hp <= 499  and self.shots_fired >= 3:
                             for i in range(5):
                                 the_choice = random.choice(("assets/exception.png",
@@ -1896,7 +2087,7 @@ class RecursionBoss(pygame.sprite.Sprite):
                                                 "assets/indexerror.png",
                                                 "assets/memoryerror.png",
                                                 "assets/importerror.png",
-                                                "assets/brokenpipe.png","typeerror.png"))
+                                                "assets/brokenpipe.png","assets/typeerror.png"))
                                 
                                 if the_choice == "assets/exception.png":
                                     bug = Bug(self.rect.centerx + i * 35,self.rect.bottom,24,24,0,1,1,1)
@@ -1923,6 +2114,7 @@ class RecursionBoss(pygame.sprite.Sprite):
                     self.laser_cooldown = self.max_laser_cooldwon
                     self.stage = "Moving"
                     self.shots_fired += 1
+            ##### 3rd shooting style, giant laser beams #####
             elif self.shoot_style == 3:
                 bullet1 = BossLaser(random.randint(self.rect.x,self.rect.right-24),self.rect.centery,0,8,10,(255,255,0),9,w=48,h=48)
                 boss_lasers.append(bullet1)
@@ -1950,7 +2142,7 @@ class RecursionBoss(pygame.sprite.Sprite):
 
     
         
-
+##### A special class for boss lasers , different from normal lasers #####
 class BossLaser(pygame.rect.Rect):
     def __init__(self,x,y,xv,yv,damage,color,speed,w=6,h=6):
         super().__init__(x,y,w,h)
@@ -1967,6 +2159,8 @@ class BossLaser(pygame.rect.Rect):
         self.float_y = y
         self.knockback = 0
         self.pierce = 0 
+
+    ##### Update boss laser to move with float presicion #####
     def update(self):
         global boss_lasers,ship,lasers
         self.float_x += self.xv
@@ -1975,6 +2169,7 @@ class BossLaser(pygame.rect.Rect):
         self.x = int(self.float_x)
         self.y = int(self.float_y)
 
+        ##### Destroy laser if it goes out of bounds #####
         if (self.top < 0 or       
         self.bottom > HEIGHT or     
         self.left > 1280 or  
@@ -1989,6 +2184,8 @@ class BossLaser(pygame.rect.Rect):
                 except:
                     pass
 
+
+        ##### Collide with ship if one of 3 lasers #####
         if self.colliderect(ship.rect) and (self.color == (255,0,0) or self.color == (255,255,0) or self.color == (0,255,0)):
             try:
                 boss_lasers.remove(self)
@@ -1999,12 +2196,12 @@ class BossLaser(pygame.rect.Rect):
                 except:
                     pass
 
-    
+    ##### Draw the laser as a rect #####
     def draw(self):
         laser = pygame.rect.Rect(self.x,self.y,self.w,self.h)
         pygame.draw.rect(game_canvas,self.color,laser)
 
-
+##### Create the stars group to spawn stars in the background #####
 stars = pygame.sprite.Group()
 class Star(pygame.sprite.Sprite):
     def __init__(self,x,y,w,h):
@@ -2013,6 +2210,7 @@ class Star(pygame.sprite.Sprite):
         self.y = y
         self.w = w
         self.h = h
+        ##### ##### Set random attributes to make the background different every time ##### #####
         size = random.randint(10,30)
         self.images = [pygame.transform.scale(pygame.image.load("assets/star.png").convert_alpha(),(size,size)),pygame.transform.scale(pygame.image.load("assets/otherstar.png").convert_alpha(),(size,size)),pygame.transform.scale(pygame.image.load("assets/otherotherstar.png").convert_alpha(),(size,size))]
         self.image = self.images[random.randint(0,len(self.images)-1)]
@@ -2022,6 +2220,8 @@ class Star(pygame.sprite.Sprite):
         self.blink_time = random.randint(5,12)
         self.max_blink_cooldown = self.blink_cooldown
         self.max_blink_time = self.blink_time
+
+    # Attempt to blink start but doesnt happen
     def update(self):
         if self.blink_cooldown > 0:
             self.draw_self = True
@@ -2036,8 +2236,13 @@ class Star(pygame.sprite.Sprite):
             self.draw_self = False
         elif self.blink_time <= 0 and self.draw_self == True:
             self.blink_cooldown = self.max_blink_cooldown
+
+
+### Create one test star i guess... I don't know why this is still here but i scared to remove it ###
 star = Star(100,100,30,30)
 stars.add(star)
+
+########## Shockwaves for missile explosion ##########
 class Shockwave:
     def __init__(self,x,y,max_radius = 120,dmg = 2):
         self.x = int(x)
@@ -2047,6 +2252,8 @@ class Shockwave:
         self.speed = 8
         self.alpha = 255
         self.dmg = dmg
+    #######################################
+    ###### Make the shockwave expand ######
     def update(self):
         global pro_ships,shockwaves,bosses
         self.radius += self.speed
@@ -2066,7 +2273,7 @@ class Shockwave:
         if self.radius > self.max_radius:
             if self in shockwaves:
                 shockwaves.remove(self)
-
+    ########### Draw the shockwave using the circle shape ###########
     def draw(self):
         global game_canvas
         if self.alpha > 0:
@@ -2083,7 +2290,7 @@ global_trail_surf = pygame.Surface((WIDTH,HEIGHT),pygame.SRCALPHA)
 
 
 
-
+##### Freeze Missile Class that explodes , used by HangingThread enemies and the BlueScreenOfDeath boss, which explodes and causes a shockwave #####
 class FreezeMissile(pygame.rect.Rect):
     def __init__(self,x,y,w,h,target_x,target_y,xv,yv,move_speed,turn_speed,freeze_duration):
         super().__init__(x,y,w,h)
@@ -2103,6 +2310,10 @@ class FreezeMissile(pygame.rect.Rect):
         self.max_trail_len = 12
         self.current_angle = 0 
 
+    ###################################################################################################
+    ####### Tracking code to track player , turns slowly so can be avoided and crash into walls #######
+    ###################################################################################################
+
     def update(self):
         global ship,game_canvas,pro_ships,lasers,global_trail_surf
         dx = ship.rect.centerx - self.centerx
@@ -2114,6 +2325,7 @@ class FreezeMissile(pygame.rect.Rect):
 
         max_turn_rate = 0.035
 
+        ##### Turning at a max of 0.035 ,so it can track but not too powerful #####
         if abs(angle_difference) <= max_turn_rate:
             self.current_angle = target_angle
         else:
@@ -2121,7 +2333,7 @@ class FreezeMissile(pygame.rect.Rect):
                 self.current_angle += max_turn_rate
             else:
                 self.current_angle -= max_turn_rate
-
+        ##### Math stuff stuff i dont know #####
         dist = math.hypot(dx,dy)
         if dist > 0:
             self.float_x += math.cos(self.current_angle) * self.move_speed
@@ -2132,6 +2344,7 @@ class FreezeMissile(pygame.rect.Rect):
         if len(self.history) > self.max_trail_len:
             self.history.pop(0)
 
+        ######### Creat the blue trail behind the missile #########
         trail_surface = pygame.Surface((WIDTH,HEIGHT),pygame.SRCALPHA)
         for i,pos in enumerate(self.history):
             factor = i / len(self.history)
@@ -2144,10 +2357,12 @@ class FreezeMissile(pygame.rect.Rect):
 
      
 
-        
+        ###### Draw the missile as a rect ######
         missile = pygame.rect.Rect(self.x,self.y,self.w,self.h)
         pygame.draw.rect(game_canvas,self.color,missile)
-        
+
+
+        ########## If you collide with other missiles, combine together ##########
         for freeze_mis in enemy_missiles:
                 if freeze_mis != self:
                     if self.colliderect(freeze_mis):
@@ -2155,6 +2370,9 @@ class FreezeMissile(pygame.rect.Rect):
                         self.w += 12
                         self.h += 12
                         self.freeze_duration += self.w * 12
+
+        ########## Check for collision with ships ##########
+        ####################################################
 
         for ship in pro_ships:
             if self.colliderect(ship.rect):
@@ -2169,6 +2387,7 @@ class FreezeMissile(pygame.rect.Rect):
 
         if self.left <= 0 or self.right >= WIDTH or self.top <= 0 or self.bottom >= HEIGHT:
             self.explode()
+    ### MISSILE GO BOOOOM ###
     def explode(self):
         for i in range(25):
             particles.append([[self.centerx, self.centery] , [random.randint(-6,6),random.randint(-6,6)] , random.randint(4,12), (0,0,255)])
@@ -2177,7 +2396,7 @@ class FreezeMissile(pygame.rect.Rect):
             if enemy_missiles.__contains__(self):
                 enemy_missiles.remove(self)
 
-
+# The Blue Screen of death, the 2nd boss #
 class Bluegame_canvasOfDeath(pygame.sprite.Sprite):
     def __init__(self,x,y,w,h,image_path):
         super().__init__()
@@ -2407,7 +2626,7 @@ mouse_pos = ()
 mouse_pressed = False
 
 ########################ALL LEVELS######################333333
-current_level = 1
+current_level = 0
 level1 = [["e","e","e","e","e"],["e","e","e","e","e"],["e","e","e","e","e"],["e","e","e","e","e"]]
 level2 = [["e","e","e","e","e","e","e"],["e","e","e","e","e","e","e"],["e","e","e","e","e","e","e"],["e","e","e","e","e","e","e"]]
 level3 = [["i","i","i","i","i","i"],["e","e","e","e","e","e",],["i","i","i","i","i","i"],["e","e","e","e","e","e",]]
@@ -2544,9 +2763,28 @@ touch_x = None
 touch_y = None
 control_pad = []
 touches = {}
+# Drawing shooting icon
+# Death stats set to 0...
+total_kills = 0
+damage_dealt = 0
+accuracy = 0
+shots_fired = 0
+shots_hit = 0
+
+
+# Upgrade Stats for end...
+upgrades_chosen = 0
+dmg_upgrades = 0
+cooldown_upgrades = 0
+ship_speed_upgrades = 0
+file_max_health_upgrades = 0
+file_heal_upgrades = 0
+
+
+
 async def main():
     
-    global controls,control_mode,just_restarted,score,mouse_spark_color,game_canvas_color,explosions_to_draw,upgrades_obtained,i_actually_chose_a_card,next_bug_id,all_bugs,p1_choosing_cards,p2_choosing_cards,im_choosing_cards, level_start,all_bugs_are_dead,other_bugs_are_dead,remote_shop_state,remote_level,other_player_in_shop,other_player_lv,level_start,network_connected,multiplayer_mode,player_id,pro_ships_2,ship2,titles,scroll_x,scroll_y,shop_items,stars,flip_to,transparency,shake_intensity,talking,mouse_pressed,textboxes,coverbricks,global_trail_surf,shockwaves,enemy_missiles,cur_frame,overdrive_charge,null_lasers,shotgun_1,double_1,mines_1,lives_left,ship_image,boss_lasers,keys,current_enemy,full_title,current_typed,typed_frame,type_letter,typer_speed,menu_buttons,back_button,game_state,mouse_pressed,mouse_pos,heal_1,heal_possible,server,enemy_lasers,particles,dash_possible,add_pierce_possible,ship,pierce_1,files_destroyed,bugsnum,cards_were_shuffled,card_options,card_was_chosen,symbols,current_level,keys,running,files,pro_ships,lasers,level_list,level,startx,starty,rowindex,colindex,spacer,bugs
+    global im_dead,other_dead,data_coins,accuracy,shots_fired,shots_hit,controls,control_mode,just_restarted,score,mouse_spark_color,game_canvas_color,explosions_to_draw,upgrades_obtained,i_actually_chose_a_card,next_bug_id,all_bugs,p1_choosing_cards,p2_choosing_cards,im_choosing_cards, level_start,all_bugs_are_dead,other_bugs_are_dead,remote_shop_state,remote_level,other_player_in_shop,other_player_lv,level_start,network_connected,multiplayer_mode,player_id,pro_ships_2,ship2,titles,scroll_x,scroll_y,shop_items,stars,flip_to,transparency,shake_intensity,talking,mouse_pressed,textboxes,coverbricks,global_trail_surf,shockwaves,enemy_missiles,cur_frame,overdrive_charge,null_lasers,shotgun_1,double_1,mines_1,lives_left,ship_image,boss_lasers,keys,current_enemy,full_title,current_typed,typed_frame,type_letter,typer_speed,menu_buttons,back_button,game_state,mouse_pressed,mouse_pos,heal_1,heal_possible,server,enemy_lasers,particles,dash_possible,add_pierce_possible,ship,pierce_1,files_destroyed,bugsnum,cards_were_shuffled,card_options,card_was_chosen,symbols,current_level,keys,running,files,pro_ships,lasers,level_list,level,startx,starty,rowindex,colindex,spacer,bugs
 
 
     
@@ -2559,7 +2797,6 @@ async def main():
         elif player_id == 2:
             other_player_lv = level_start["p1_lv"]
             other_player_in_shop = level_start["p1_inshop"] 
-        # GAME STATE 5
         if game_state == 5 and multiplayer_mode == False:
             multiplayer_mode = True
            
@@ -2578,7 +2815,7 @@ async def main():
             game_canvas.blit(win,win.get_rect(center = (WIDTH//2 , HEIGHT//2 - 70)))
             win  = ui_font.render(f"If you choose the wrong one, you will have difficulty playing!",True , (255,0,0))
             game_canvas.blit(win,win.get_rect(center = (WIDTH//2 , HEIGHT//2 - 20)))
-            current_level = 0
+            # current_level = 0
 
             back_button = MenuButton("Computer (I have a keyboard and will use it)" ,WIDTH//2 - 200, HEIGHT//2 + 40,320,55,1)
             back_button.draw(game_canvas,ui_font,mouse_pos)
@@ -2611,8 +2848,9 @@ async def main():
                 touch_y = event.y * HEIGHT
                 touches[event.finger_id] = (touch_x,touch_y)
                 for control in controls:
-                    control.draw()
-                    control.check_for_clicks(touches)
+                    if control_mode == "Touchscreen":
+                        control.draw()
+                        control.check_for_clicks(touches)
             elif event.type == pygame.FINGERUP:
                 if event.finger_id in touches:
                     del touches[event.finger_id]
@@ -2634,7 +2872,6 @@ async def main():
                         if player_id == 2:
                             cards_were_shuffled = False 
                         im_choosing_cards = False
-                        # print(f"{player_id} Chose a card! {card_was_chosen}, {event.key}")
                         cards.clear()
                         symbols.empty()
             
@@ -2650,7 +2887,7 @@ async def main():
                      if back_button.check_clicks(mouse_pos,mouse_pressed):
                         game_state = back_button.target_state
                 mouseclicked = True
-        
+        # Multiplayer lobby connection screen so player get less bored.
         global the_lobby_cooldown,the_lobby_frame,attempt_num,text_to_type,text_index,text_line,keep_this_text
         if game_state == 5:
             game_canvas_color = (25,25,25)
@@ -2659,12 +2896,14 @@ async def main():
                 if attempt_num <= 20:
                     full_text = f">>> [Lobby_Attempt_{attempt_num}] Attempting to join Lobby with ID {str(uuid4())}..."
                 else:
+                    # Its ok guys my server bad
                     full_text = f">>> [MyServerIsSlowError] Too many attempts. Try refreshing the page.                                                                                                                                                                                                                                                                                                                                                                                            " 
-            # text_to_type = ""
-            
+
+            ####### Text adding thing variable #######
             text_to_type += list(full_text)[text_index]
             
             text_index += 1
+            ### Draw that text for joining ###
             if text_index >= len(full_text):
                 text_index = 0
                 keep_this_text.append([text_to_type,80,100+text_line*20])
@@ -2674,11 +2913,13 @@ async def main():
             if attempt_num >= 22:
                 game_state = 0
             full_text2 = card_font.render(text_to_type,True,(0,255,0))
-
+            # Make a terminal
             terminal_background = pygame.rect.Rect((WIDTH//2 - 350),(HEIGHT//2 - 250),800,500)
             terminal_top_bar1 = pygame.rect.Rect(((WIDTH//2 - 350)+320),(HEIGHT//2 - 240),75,25)
             tgc = 105
             tgc2 = 169
+
+            ############### All top bars with terminal text ###############
             pygame.draw.rect(game_canvas,(0,0,0),terminal_background,border_radius = 15)
             pygame.draw.rect(game_canvas,(tgc,tgc,tgc),terminal_top_bar1,border_radius = 5)
             ttr = card_font.render("Problems",True,(tgc2,tgc2,tgc2))
@@ -2701,6 +2942,7 @@ async def main():
             game_canvas_color = (0,0,0)
         keys = pygame.key.get_pressed()
         mouse_pos = pygame.mouse.get_pos()
+        #### Keypress detection for movement ###
         if game_state == 4:
             if keys[pygame.K_e]:
                 game_state = 1
@@ -2713,6 +2955,7 @@ async def main():
             elif keys[pygame.K_RIGHT]:
                 scroll_x -= 4
             global heal_files_1,ram_files_1,cooldown_files_1,speed_files_1,case_files_1,cooler_files_1
+            #### Titles in shop ####
             for title in titles:
                 if title[1] == "Heals":
                     game_canvas.blit(title[0],(heal_files_1.rect.centerx - 100,heal_files_1.rect.top - 50))
@@ -2729,6 +2972,7 @@ async def main():
             for item in shop_items:
                 item.draw(mouse_pos)
                 item.buy(mouse_pos, mouse_pressed)
+        ### Start Screen ### 
         if game_state == 0:
             if type_letter < len(full_title):
                 typed_frame += 1
@@ -2742,13 +2986,13 @@ async def main():
             game_canvas.blit(title_surface,title_surface.get_rect(center = (WIDTH // 2 ,180)))
             for btn in menu_buttons:
                 btn.draw(game_canvas,ui_font,mouse_pos)
-
+        ##### Tutorial screen #####
         elif game_state == 2:
             tutorial_title = subtitle_font.render("README.md (How to play)",True,(0,180,255))
             game_canvas.blit(tutorial_title,tutorial_title.get_rect(center = (WIDTH//2, 100)))
             pygame.draw.rect(game_canvas, (20, 20, 25), (70, 160, 900, 420), border_radius=24)
             pygame.draw.rect(game_canvas, (0, 255, 0), (70, 160, 900, 420), width=8, border_radius=12)
-
+            ### Text for tutorial ###
             tutorial_text = [
                 "Controls : WASD or Arrow Keys to Control Ship Movement",
                 "Controls : Spacebar, Q, or E to fire lasers",
@@ -2759,14 +3003,14 @@ async def main():
                 "Waves : There are 16 Waves (So Far). Beat all of them to finally finish your program :)",
                 "IRL : If you like the game , play the real version... by learning Python! (Or just play the game again...)"
             ]
-
+            # Draw tutorial text
             for i, line in enumerate(tutorial_text):
                 txt = small_font.render(line,True,(240,240,240))
                 game_canvas.blit(txt,(100,200 + i * 45))
             back_button.draw(game_canvas, ui_font, mouse_pos)
             if back_button.check_clicks(mouse_pos,mouse_pressed):
                 game_state = back_button.target_state
-
+        # Enemy error index see all enemy types
         elif game_state == 3:
             error_log_title = subtitle_font.render("SYSTEM ERROR LOG \n(Enemy Index)",True,(0,255,100))
             game_canvas.blit(error_log_title,error_log_title.get_rect(center = (WIDTH//2 , 60)))
@@ -2781,7 +3025,7 @@ async def main():
                 "BrokenPipeError : A fragile shooter error. It shoots projectiles straight toward you and your files. HP : 1 , ATK : 0.5 , Speed : 0.5"
 
             ]
-
+            ### Enemy image list ###
             image_list = [
                 "assets/exception.png",
                 "assets/indentationerror.png",
@@ -2791,9 +3035,10 @@ async def main():
                 "assets/brokenpipe.png"
             ]
 
-
+            ##### Text and button drawing #####
             text = ui_font.render(error_list[int(current_enemy)],True,(255,255,255))
             image = pygame.image.load(image_list[int(current_enemy)]).convert_alpha()
+            
             image = pygame.transform.scale(image,(96,96))
             game_canvas.blit(text,text.get_rect(center = (WIDTH//2 , 400)))
             game_canvas.blit(image,(WIDTH//2 - (image.width //2),200))
@@ -2802,19 +3047,22 @@ async def main():
                 game_state = back_button.target_state
        
             back_button.draw(game_canvas, ui_font, mouse_pos)
+        # If you are playing the game
         elif game_state == 1:
             game_canvas.fill(game_canvas_color)
 
             for control in controls:
-                control.draw()
-            #print(f"{player_id},{other_player_in_shop},{other_bugs_are_dead},{other_player_lv},{p2_choosing_cards},{other_player_in_shop}")
+                if control_mode == "Touchscreen":
+                    control.draw()
             cur_frame += 1
             if cur_frame > 20:
                 cur_frame = 0
 
-            
+            # Draw lives on screen
             for i in range(lives_left):
                 game_canvas.blit(ship_image,(i*30+25,25))
+
+            # Adds pierce to the deck if you have damage and cooldown
             if (not card_options.__contains__(pierce_1)) and ship.damage > 1 and ship.cooldown < 15 and add_pierce_possible:
                 card_options.append(pierce_1)
                 add_pierce_possible = False
@@ -2828,9 +3076,9 @@ async def main():
                 heal_possible = False
             keys = pygame.key.get_pressed()
             mouse_pos = pygame.mouse.get_pos()
-
+            # Draw bugs...
             bugs.draw(game_canvas)
-  
+            # Blaring ship low hp alarm
             transparent_surface = pygame.Surface((WIDTH + 40, HEIGHT + 40),pygame.SRCALPHA)
             if ship.hp <= 3:
                 flip_speed = 3
@@ -2850,7 +3098,7 @@ async def main():
                         transparency -= flip_speed
                     else:
                         transparency = 0
-             
+                ##### Draws the blaring ship low hp alarm #####
                 pygame.draw.rect(transparent_surface, (255, 40, 40,transparency), (20, 20, 20,HEIGHT))
                 pygame.draw.rect(transparent_surface, (255, 40, 40,transparency), (WIDTH, 20, 20,HEIGHT))
                 pygame.draw.rect(transparent_surface, (255, 40, 40,transparency), (20, 20,WIDTH,20))
@@ -2859,7 +3107,7 @@ async def main():
             game_canvas.blit(transparent_surface,(0,0))
 
             add_to_x = 0
-            ############## OVERDRIVE CHARGE BAR ######################
+            ################### OVERDRIVE CHARGE BAR #########################
             overdrive_background = pygame.rect.Rect(186+add_to_x,401,150,10)
             overdrive_bar = pygame.rect.Rect(186+add_to_x,401,overdrive_charge * 1.5,10)
             if overdrive_charge >= 100 and cur_frame >= 5 and cur_frame <= 7 :
@@ -2868,7 +3116,7 @@ async def main():
             pygame.draw.rect(game_canvas,(255,165,0),overdrive_bar)
             tutorial_title = ui_font.render(f"Overdrive bar : {round(overdrive_charge,2)}% ",True,(0,180,255))
             game_canvas.blit(tutorial_title,tutorial_title.get_rect(center = (106+add_to_x, 405)))
-            ########### HEALTH BAR ##############
+            ############################ HEALTH BAR #################################
             ship_health_n = 0
             if player_id == 1 or not multiplayer_mode : 
                 ship_health_n = ship.hp
@@ -2880,7 +3128,9 @@ async def main():
             pygame.draw.rect(game_canvas,(0,255,0),ship_health)
             tutorial_title = ui_font.render(f"Ship Health: {round(ship_health_n,1)} / 10",True,(0,180,255))
             game_canvas.blit(tutorial_title,tutorial_title.get_rect(center = (103+add_to_x, 374)))
-            ###################### Cooldown Bar ##########################
+
+            # Stat bars to show stats.............
+            ############################################################ Cooldown Bar ####################################################
             ship_cooldown = 0
             ship_cooldown = ship.cooldown if not player_id == 2 else ship2.cooldown
             ship_max_cooldown = ship.max_cooldown if not player_id == 2 else ship2.max_cooldown
@@ -2890,10 +3140,14 @@ async def main():
                 pygame.draw.rect(game_canvas, (255, 255, 255), (200 - 2, 340 - 2, ship.max_cooldown + 4, 10 + 4), width=4)
             pygame.draw.rect(game_canvas,(197,180,227),ship_health_background)
             pygame.draw.rect(game_canvas,(128,0,128),ship_health)
-            tutorial_title = ui_font.render(f"Weapon Cooldown: {round(ship_cooldown,1)} / {round(ship_max_cooldown)}",True,(0,180,255))
+            tutorial_title = ui_font.render(f"Weapon Cooldown: {round(ship_cooldown,1)} / {round(ship_max_cooldown,1)}",True,(0,180,255))
             game_canvas.blit(tutorial_title,tutorial_title.get_rect(center = (110+add_to_x, 343)))
-            ############################################################
-            ####################### INVERT BAR ##################
+
+            ###########################################################################
+            ################################ INVERT BAR ###############################
+            tutorial_title = score_font.render(f"Data Coins: {data_coins}",True,(0,180,255))
+            game_canvas.blit(tutorial_title,tutorial_title.get_rect(right = WIDTH - 3, top = HEIGHT // 2 - 210))
+            #### The invert bar to show how long your controls are inverted ####
             ship_invert_background = pygame.rect.Rect(242+add_to_x,310,ship.invert_duration + 15,10)
             pygame.draw.rect(game_canvas,(0,0,255),ship_invert_background)
             tutorial_title = ui_font.render(f"Controls Inverted for : {round(ship.invert_duration,0)} / {round(ship.max_cooldown)}",True,(0,180,255))
@@ -2903,17 +3157,22 @@ async def main():
                     ship.overdrive_duration = ship.max_overdrive_duration
             game_canvas.blit(tutorial_title,tutorial_title.get_rect(center = (132+add_to_x, 314)))
 
+            # Draw file UNLESS this is the boss level
             if not current_level == 20:
                 files.draw(game_canvas)
 
+            # Get mouse state and launch mines
             mouse_state = pygame.mouse.get_pressed()
             if mouse_state[0] and ship.weapon_type == "Mine":
                     if ship.cooldown <= 0 and card_was_chosen:
                         mine = Mine(ship.rect.x,ship.rect.y,8,8,6,0,0,ship.damage * 3,mouse_pos[0],mouse_pos[1])
                         mines.add(mine)
                         ship.cooldown = ship.max_cooldown  
-                        
-            if not talking:      
+
+
+            ####### If the tutorial is not ongoing #######
+            if not talking:   
+                # If some files are still alive   
                 if not files_destroyed:
                     for coverbrick in coverbricks:
                         coverbrick.draw()
@@ -2921,6 +3180,7 @@ async def main():
                     for null_laser in null_lasers:
                         null_laser.draw()
                         null_laser.update()
+                    # Draw and update mines
                     mines.draw(game_canvas)
                     mines.update()
                     for enms in enemy_missiles:
@@ -2931,7 +3191,7 @@ async def main():
                     for laser in lasers:
                         laser.draw()
                         laser.update()
-            
+                        # Shotgun short-range blast removal...
                         if ship.weapon_type == "Shotgun":
                             if laser.y < ship.rect.y - 150:
                                 try:
@@ -2940,7 +3200,7 @@ async def main():
                                     pass
                 
         
-
+                    # If the card is actually chosen and not on screen
                     if card_was_chosen:
                         ship.move()
                         ship.shoot()
@@ -2950,7 +3210,7 @@ async def main():
                         ship2.shoot()
                         ship2.update()
                  
-
+                # If singleplayer mode
                 if not multiplayer_mode or network_connected:
                     global incoming_remote_lasers,remote_level,remote_shop_state
                     lasers_to_spawn = []
@@ -2961,7 +3221,7 @@ async def main():
                             current_level = remote_level
 
                     try:
-                        
+                        # Create ship #2
                         if player_id == 1 or multiplayer_mode == False:
                             if player_id == 1:
                                 ship2.rect.x = network_positions["p2_x"]
@@ -2971,7 +3231,7 @@ async def main():
                             if multiplayer_mode:
                                 pro_ships_2.draw(game_canvas)
              
-                       
+                        # Create ship #1
                         elif player_id == 2:
                             
                             ship.rect.x = network_positions["p1_x"]
@@ -2979,7 +3239,7 @@ async def main():
                             pro_ships_2.draw(game_canvas)
                             pro_ships.draw(game_canvas)
             
-           
+                        # Take laser data from other player and draw it on screen
                         with net_lock:
                             if incoming_remote_lasers:
                                     lasers_to_spawn = list(incoming_remote_lasers)
@@ -2989,16 +3249,22 @@ async def main():
                             for laser_data in lasers_to_spawn:
                                 remote_laser = Laser(laser_data["x"],laser_data["y"],5,5,damage=laser_data["d"],pierce = laser_data["p"])
                                 lasers.append(remote_laser)
-                    
+                    # Oh no
                     except Exception as e:
                             print(f"Oh no : {e}")
-
+                    # No exception, do nothing....
                     else:
                         pass
+                    ### Draw and update stars ###
                     stars.draw(game_canvas)
                     for star in stars:
-                        
+                        ### Update the stars ###
                         star.update()
+                    ### Define previous bugsnum ###
+
+
+
+                
                     previous_bugsnum = bugsnum
                     if card_was_chosen == True:
                         bugsnum = 0
@@ -3010,6 +3276,8 @@ async def main():
                                 bug.check_for_collisions()
                         
                         bugsnum += 1
+
+                    ################# Draw cards ################### 
                     for card in cards:
                         card.draw()
                     for enlaser in enemy_lasers:
@@ -3021,9 +3289,8 @@ async def main():
 
 
               
-
+                    ################ Player 1 and player 2 bug dead variables ##################
                     if player_id == 1:
-                        
                         other_bugs_are_dead = level_start['p2_bugs_are_dead']
                     elif player_id == 2:
                         other_bugs_are_dead = level_start['p1_bugs_are_dead']
@@ -3036,46 +3303,54 @@ async def main():
                         elif player_id == 2:
                             level_start['p2_bugs_are_dead'] = True
                 
-                #######################(HEY IT WORKS!!!)###### DANGER DO NOT CROSS: Errors: p2_card_chosen causes levels not to be drawn but... I DONT KNOW WHY ###########################
-                    # print(bugsnum)
+                ######## (HEY IT WORKS Somehow!!!!)###### DANGER DO NOT CROSS: Errors: p2_card_chosen causes levels not to be drawn but... I DONT KNOW WHY ###########################
+     
                     if bugsnum <= 0 and bosses.__len__() <= 0:
-                        
+                        # Clear all things to create new level
                         bugs.empty()
                         lasers.clear()
                         enemy_lasers.clear()
                         all_bugs.clear()
-                        # print("Cleared!")
+                       
                         if card_was_chosen == True  and previous_bugsnum > 0:
                             print("Cards chosen!")
                             if multiplayer_mode == False:
                                 game_state = 4
-                        # Tries to fix the cards (Fails most of the time help) (Hey it kind of works now...)
+                        ### Tries to fix the cards (Fails most of the time help) (Hey it kind of works now...)
                         if (previous_bugsnum > 0) and not cards_were_shuffled and card_was_chosen and not just_restarted:
                             card_options_current = card_options[:]
+
+                            ########### Summon and add 3 new cards to the options ############
                             if current_level != 20:
-                                card1= random.choice(card_options_current)
+                                card1 = random.choice(card_options_current)
                                 card_options_current.remove(card1)
-                                card2= random.choice(card_options_current)
+                                card2 = random.choice(card_options_current)
                                 card_options_current.remove(card2)
-                                card3= random.choice(card_options_current)
+                                card3 = random.choice(card_options_current)
                                 card_options_current.remove(card3)
                             else:
-                                card1= shotgun_1
-                                card2= double_1
-                                card3= mines_1
+                                ### If you defeated the lv 20 boss, gain a new weapon for the new levels. ###
+                                card1 = shotgun_1
+                                card2 = double_1
+                                card3 = mines_1
+                                print("NEW WEAPONS!")
+
+                            ##### Order the cards in order of creation #####
                             card1.lineupnum = 0
                             card2.lineupnum = 1
                             card3.lineupnum = 2
-                            cards.append(card1)
-                            cards.append(card2)
-                            cards.append(card3)
+                            ### Add cards to the cards to draw list ###
+                            if game_state != 0:
+                                cards.append(card1)
+                                cards.append(card2)
+                                cards.append(card3)
                             im_choosing_cards = True    
                             print("Cards Loaded!")
                             cards_were_shuffled = True
                             card_was_chosen = False
                      
                             print(card_was_chosen)
-                        
+                        ### When a card is chosen, destroy it?? ###
                         elif previous_bugsnum > 0 and card_was_chosen == True and cards_were_shuffled == True:
                             cards.clear()
                             symbols.empty()
@@ -3087,9 +3362,13 @@ async def main():
                             pass
                            
                    
-                        
-                        if (player_id == 1 or multiplayer_mode == False) and current_level < len(level_list) and card_was_chosen and p2_choosing_cards == False:
+                        ### Add level code if you are player 1 ###
+                        if (player_id == 1 or multiplayer_mode == False) and current_level < len(level_list) and card_was_chosen and (p2_choosing_cards == False or multiplayer_mode == False):
                             current_level += 1
+                            if current_level == 20 and multiplayer_mode:
+                                current_level = 21
+                            if current_level == 40:
+                                current_level == 41
                             print(f"|||=-----------===---===---------------------- Cards: {card_was_chosen}------------- LEVEL UP! LeveL : {current_level} -----------------")
                             print("|||=-----------===---===----------------------------  NEW LEVEL  -----------------------------")
                     
@@ -3097,51 +3376,45 @@ async def main():
                             )
                 
                             cards_were_shuffled = False
-                        # else:     
-                        #     # This should never run!
-                        #     # Why does it run?
-                        #     # I DONT KNOW OK, BRAIN!!
-                        #     # Fix youself... please bugs, I beg you.........PLEASE....HELP.................
-                        #     print(f"Problem! BIG PROBLEM! : Id : {player_id}, Was the card chosen? : {card_was_chosen},{current_level},{bugsnum}! HELP!")                                                      
-                        #     #print(card_was_chosen,cards_were_shuffled, current_level, bugsnum)
-                       
+                      
+                        ##### Set the level correctly #####
                             level = level_list[current_level-1]
                             startx = (WIDTH // 2) - ((len(level[0]) / 2) * spacer)
                             colindex = 0
                             # Draws the enemies based  
                             for row in level:
                                 for exception in row:
-                                    # Draws the basic exception enemy 
+                                    ### Draws the basic exception enemy 
                                     if exception == "e":
-                                        bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,0,1,1,1,y_speed=0.05,id = next_bug_id)
-                                    # Draws the mini-tank indentation error enem
+                                        bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,0,1,1,1,id = next_bug_id)
+                                    ### Draws the mini-tank indentation error enem
                                     elif exception == "i":
                                         bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,1,1.5,3,0.8,id = next_bug_id)
-                                    # Draws the fast, rusher exception error
+                                    ### Draws the fast, rusher exception error
                                     elif exception == "x":
                                         bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,2,1,1,1,y_speed = 1.2,id = next_bug_id)
-                                    # Draws the tanky supporting memory error
+                                    ### Draws the tanky supporting memory error
                                     elif exception == "m":
                                         bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,3,3,7,0.4,y_speed = 0.2,id = next_bug_id)
-                                    # Draws the giant tank spawner import error
+                                    ### Draws the giant tank spawner import error
                                     elif exception == "p":
                                         bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,4,3,15,0.25,y_speed = 0.2,id = next_bug_id)
-                                    # Spawns the shooting brokenpipe error
+                                    ### Spawns the shooting brokenpipe error
                                     elif exception == "b":
                                         bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,5,3,1,0.4,y_speed = 0.5,id = next_bug_id)
-                                    # Spawns the typeerror enemy
+                                    ### Spawns the typeerror enemy
                                     elif exception == "t":
                                         bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,6,random.randint(1,7),random.randint(1,7),0.4,y_speed = random.uniform(0.5,1.5),id = next_bug_id)
                                     elif exception == "n":
                                         bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,8,0,24,0.5,id = next_bug_id)
-                                    # Spawns the recursion boss
+                                    ### Spawns the recursion boss
                                     elif exception == "BOSS":
-                                        bug = RecursionBoss(WIDTH//2 - 150,50,240,120,"assets/recursionboss.png",1,100,id = next_bug_id)
+                                        bug = RecursionBoss(WIDTH//2 - 150,50,240,120,"assets/recursionboss.png")
                                         bosses.add(bug)
-                                    # Spawns a deprecated error
+                                    ### Spawns a deprecated error
                                     elif exception == "d":
                                         bug = Bug(startx  + rowindex * spacer,starty - colindex,24,24,9,1.5,12,0.5,0.35,id = next_bug_id)
-                                    # Spawns a deprecated giant
+                                    ### Spawns a deprecated giant
                                     elif exception == "dg":
                                         bug = Bug(startx  + rowindex * spacer,starty - colindex,48,48,10,1.5,48,0.5,0.05,id = next_bug_id)
                                         spacer += 1
@@ -3154,14 +3427,14 @@ async def main():
                                         bug = Bug(startx + rowindex * spacer, starty - colindex,24,24,13,3,5,1.75,0.3,id = next_bug_id)
                                     if exception not in ("", "s", "BOSS", "BSOD"):
                                         bugs.add(bug)
-                                     
+                                    ### Spawn packet bugs
                                     if exception == "s":
                                         for i in range(3):
                                             for j in range(3):
                                                 bug = Bug((startx  + rowindex * spacer ) + i * 10,(starty - colindex) + j * 10 ,9,9,7,1,1,0.4,y_speed = 0,id = next_bug_id)
                                                 bugs.add(bug)
                                                 next_bug_id += 1
-                                    
+                                    # Spawns the boss
                                     elif exception == "BSOD":
                                         boss = Bluegame_canvasOfDeath(0,50,200,100,"assets/bluescreenofdeath.png")
                                         bosses.add(boss)
@@ -3172,46 +3445,111 @@ async def main():
                                 rowindex = 0
                             for bug in bugs:
                                 all_bugs.append(bug)
-                        elif current_level >= len(level_list) and bosses.__len__() == 0:
+                        elif current_level >= len(level_list) and bosses.__len__() == 0 or (current_level >= 21 and multiplayer_mode == True):
                             win  = title_font.render(f"YOU WIN \n(for now)",True , (0,255,0))
-                            game_canvas.blit(win,(WIDTH//2 - 300,HEIGHT//2  - 100)) 
+                            game_canvas.blit(win,(WIDTH//2 - 300,HEIGHT//2  - 100))
+                            if shots_fired != 0:
+                
+                                accuracy = shots_hit/shots_fired
+                            else:
+                                accuracy = 0
+                            acc_text  = ui_font.render(f"Accuracy : { round(round(accuracy,3) * 100,2)}%",True , (255,0,0))
+                            game_canvas.blit(acc_text,acc_text.get_rect(center = (WIDTH//2 , HEIGHT//2 + 120)))
+                
+                            shots_fired_text  = ui_font.render(f"Shots Fired : {shots_fired}",True , (255,0,0))
+                            game_canvas.blit(shots_fired_text,shots_fired_text.get_rect(center = (WIDTH//2 , HEIGHT//2 + 140)))
+                
+                            shots_hit_text  = ui_font.render(f"Shots Landed : {shots_hit}",True , (255,0,0))
+                            game_canvas.blit(shots_hit_text,shots_hit_text.get_rect(center = (WIDTH//2 , HEIGHT//2 + 160)))
+                
+                            kill_text  = ui_font.render(f"Enemies Destroyed : {total_kills}",True , (255,0,0))
+                            game_canvas.blit(kill_text,kill_text.get_rect(center = (WIDTH//2 , HEIGHT//2 + 180)))
+                            # Restart all the game variables
+                            current_level = 40000000
+                            if back_button.check_clicks(mouse_pos,mouse_pressed):
+                                game_state = 0
+                                bugs.empty()
+                                current_level = 1
+                                for file in files :
+                                    file.hp = file.max_max_hp
+                                particles.clear()
+                                score = 0
+                                lives_left = 3
+                                ship.hp = 10
+                                overdrive_charge = 100
+                                card_was_chosen = True
+                                cards_were_shuffled = False
+                                just_restarted = True
+                                files_destroyed = False
+                                game_state = back_button.target_state
+                                ship.rect.x = WIDTH//2 - ship.rect.w
+                                ship.rect.y = 400
+                                ship.cooldown = 15
+                                ship.damage = 1
+                                ship.weapon_type = "Regular"
+                                multiplayer_mode = False
+                                player_id = 0
+                                outbound_events = []
+                                incoming_remote_lasers = []
+                                p1_choosing_cards = False
+                                p2_choosing_cards =  True
+                                im_choosing_cards = False
+                                active_ws_connection = None
+                                all_bugs_are_dead = False
+                                other_bugs_are_dead = False
+                                next_bug_id = 0
+                                network_bugs = {}
+                                explosions = []
+                                explosions_to_draw = []
+                            back_button = MenuButton("Back to Start Screen" ,WIDTH//2, HEIGHT//2 + 40,320,55,0)
+                            back_button.draw(game_canvas,ui_font,mouse_pos)
+                            mouse_pressed = pygame.mouse.get_pressed()
+                           
+
                             pass
                             print(f"DOUBLE FAIL :{player_id,card_was_chosen,bugsnum,cards_were_shuffled,p2_choosing_cards}")
             
-            if player_id == 1 and not im_choosing_cards and p2_choosing_cards:
+            if player_id == 1 and not im_choosing_cards and p2_choosing_cards and current_level > 1:
                 txt = subtitle_font.render("Waiting on p2 to \nchoose cards........",True,(0,125,255))
                 game_canvas.blit(txt, txt.get_rect(center = (WIDTH//2 , 100)) )
-                print("Weeee")
+            elif player_id == 1 and not im_choosing_cards and p2_choosing_cards and current_level <= 1:
+                txt = subtitle_font.render("Waiting on p2 to \nchoose join...",True,(0,125,255))
+                game_canvas.blit(txt, txt.get_rect(center = (WIDTH//2 , 100)) )
             elif player_id == 2 and not im_choosing_cards and p1_choosing_cards:
                 txt = subtitle_font.render("Waiting on p1 to \n choose cards........", True,(255,125,0))
                 game_canvas.blit(txt,txt.get_rect(center = ( WIDTH//2 , 100) ))
-                print("Whooooooo")
+ 
+            # Create and display the score and score text
+            if multiplayer_mode == False:
+                title_surface = score_font.render(f"Score : {str(score)}",True,(0,255,80))
+                game_canvas.blit(title_surface,title_surface.get_rect(right = 1000 , top = 30))
 
-            title_surface = score_font.render(f"Score : {str(score)}",True,(0,255,80))
-            game_canvas.blit(title_surface,title_surface.get_rect(right = 1000 , top = 30))
+            # Create small score labels that float up and disappear #
+            if multiplayer_mode == False:
+                for score_stat in score_text:
 
-            for score_stat in score_text:
-                score_surf = score_stat[0]
-                score_x,score_y = score_stat[1],score_stat[2]
-                score_fade_duration = score_stat[3]
-                score_move_speed = score_stat[4]
-                score_alpha = score_stat[5]
-                score_color = score_stat[6]
-                # print(score_alpha)
-                if score_alpha <= 0:
-                    if score_stat in score_text:
-                        score_text.remove(score_stat)
-                        continue
-                score_alpha = int(max(0,min(score_alpha,255)))
-                temp_surf = score_surf.copy()
-                mask = pygame.Surface(temp_surf.get_size(),pygame.SRCALPHA)
-                mask.fill((score_color[0],score_color[1],score_color[2],score_alpha))
-                print(f"SCORE STUFF : {(score_color[0],score_color[1],score_color[2],score_alpha)}")
-                score_stat[5] -= score_fade_duration
-                temp_surf.blit(mask,(0,0),special_flags = pygame.BLEND_RGBA_MULT)
+                    ### Fading Score Text Variables ###
+                    score_surf = score_stat[0]
+                    score_x,score_y = score_stat[1],score_stat[2]
+                    score_fade_duration = score_stat[3]
+                    score_move_speed = score_stat[4]
+                    score_alpha = score_stat[5]
+                    score_color = score_stat[6]
 
-                game_canvas.blit(temp_surf,temp_surf.get_rect(center = (score_x , score_y)))
-                score_stat[2] -= score_move_speed
+                    if score_alpha <= 0:
+                        if score_stat in score_text:
+                            score_text.remove(score_stat)
+                            continue
+                    score_alpha = int(max(0,min(score_alpha,255)))
+                    temp_surf = score_surf.copy()
+                    mask = pygame.Surface(temp_surf.get_size(),pygame.SRCALPHA)
+                    mask.fill((score_color[0],score_color[1],score_color[2],score_alpha))
+
+                    score_stat[5] -= score_fade_duration
+                    temp_surf.blit(mask,(0,0),special_flags = pygame.BLEND_RGBA_MULT)
+
+                    game_canvas.blit(temp_surf,temp_surf.get_rect(center = (score_x , score_y)))
+                    score_stat[2] -= score_move_speed
             # Draw bosses
             bosses.draw(game_canvas)
             # Update boss lasers
@@ -3290,9 +3628,10 @@ async def main():
             # Draws the trails for missiles
             game_canvas.blit(global_trail_surf,(0,0))
             global_trail_surf.fill((0,0,0,0))
-            if files_destroyed or lives_left <= 0:
+            if files_destroyed or lives_left <= 0 or (multiplayer_mode == True and other_dead):
                 # If the game runs out of levels then display the win screen
                 game_state = 6
+                im_dead = True
                 win  = title_font.render(f"YOU LOSE...",True , (255,0,0))
                 game_canvas.blit(win,win.get_rect(center = (WIDTH//2 , 200)))
                 current_level = 0
@@ -3401,13 +3740,26 @@ async def main():
             bugs.draw(game_canvas)
             for bug in bugs:
                 bug.move()
-                # print(f"{bug.rect.x,bug.rect.y,bug.rect.w,bug.rect.h}")
+                
                 for particle in particles:
                     rparticle = pygame.rect.Rect(particle[0][0],particle[0][1],particle[2],particle[2])
                     if bug.rect.colliderect(rparticle) and particle[3] == (0,255,255):
                         bug.hp -= 0.5
                 bug.check_for_collisions()
         just_restarted = False
+        if shots_fired != 0:
+            accuracy = shots_hit/shots_fired
+        else:
+            accuracy = 0
+        # Death Stats when you... Die......... I guess...
+        acc_text  = ui_font.render(f"Accuracy : { round(round(accuracy,3) * 100,2)}%",True , (255,0,0))
+        game_canvas.blit(acc_text,acc_text.get_rect(center = (WIDTH//2 , HEIGHT//2 + 120)))
+        shots_fired_text  = ui_font.render(f"Shots Fired : {shots_fired}",True , (255,0,0))
+        game_canvas.blit(shots_fired_text,shots_fired_text.get_rect(center = (WIDTH//2 , HEIGHT//2 + 140)))
+        shots_hit_text  = ui_font.render(f"Shots Landed : {shots_hit}",True , (255,0,0))
+        game_canvas.blit(shots_hit_text,shots_hit_text.get_rect(center = (WIDTH//2 , HEIGHT//2 + 160)))
+        kill_text  = ui_font.render(f"Enemies Destroyed : {total_kills}",True , (255,0,0))
+        game_canvas.blit(kill_text,kill_text.get_rect(center = (WIDTH//2 , HEIGHT//2 + 180)))
         if game_state == 6:
             
             mouse_pos = pygame.mouse.get_pos()
@@ -3418,7 +3770,25 @@ async def main():
             back_button = MenuButton("Reboot (Restart Game)" ,WIDTH//2, HEIGHT//2 + 40,320,55,1)
             back_button.draw(game_canvas,ui_font,mouse_pos)
             mouse_pressed = pygame.mouse.get_pressed()
-            # Restart all the game variables fdsdbvngjhgjjgfuyhdasdasdsdaddwawdasdfsfewasafesdsdas
+            if multiplayer_mode:
+                im_dead = True
+            if shots_fired != 0:
+
+                accuracy = shots_hit/shots_fired
+            else :
+                accuracy = 0
+            acc_text  = ui_font.render(f"Accuracy : { round(round(accuracy,3) * 100,2)}%",True , (255,0,0))
+            game_canvas.blit(acc_text,acc_text.get_rect(center = (WIDTH//2 , HEIGHT//2 + 120)))
+
+            shots_fired_text  = ui_font.render(f"Shots Fired : {shots_fired}",True , (255,0,0))
+            game_canvas.blit(shots_fired_text,shots_fired_text.get_rect(center = (WIDTH//2 , HEIGHT//2 + 140)))
+
+            shots_hit_text  = ui_font.render(f"Shots Landed : {shots_hit}",True , (255,0,0))
+            game_canvas.blit(shots_hit_text,shots_hit_text.get_rect(center = (WIDTH//2 , HEIGHT//2 + 160)))
+
+            kill_text  = ui_font.render(f"Enemies Destroyed : {total_kills}",True , (255,0,0))
+            game_canvas.blit(kill_text,kill_text.get_rect(center = (WIDTH//2 , HEIGHT//2 + 180)))
+            # Restart all the game variables
             if back_button.check_clicks(mouse_pos,mouse_pressed):
                 game_state = 0
                 bugs.empty()
@@ -3433,6 +3803,7 @@ async def main():
                 card_was_chosen = True
                 cards_were_shuffled = False
                 just_restarted = True
+                files_destroyed = False
                 game_state = back_button.target_state
                 ship.rect.x = WIDTH//2 - ship.rect.w
                 ship.rect.y = 400

@@ -7,19 +7,19 @@ Last-Modified: Tue, 17 Mar 2026 18:25:30 GMT
 Access-Control-Allow-Origin: *
 Strict-Transport-Security: max-age=31556952
 ETag: "69b99c9a-c4fa"
-expires: Thu, 20 Aug 2026 02:47:48 GMT
+expires: Thu, 20 Aug 2026 12:14:07 GMT
 Cache-Control: max-age=600
 x-proxy-cache: MISS
-X-GitHub-Request-Id: 2EFE:B1156:1020BAE:10E2345:6A866878
+X-GitHub-Request-Id: 4F42:B1156:1D3DFAB:1EA6271:6A86ED37
 x-github-edge-region: iad
 Accept-Ranges: bytes
 Age: 0
-Date: Thu, 20 Aug 2026 03:00:12 GMT
+Date: Thu, 20 Aug 2026 12:04:07 GMT
 Via: 1.1 varnish
-X-Served-By: cache-dfw-kdal2120050-DFW
-X-Cache: HIT
+X-Served-By: cache-dfw-kdal2120028-DFW
+X-Cache: MISS
 X-Cache-Hits: 0
-X-Timer: S1787194813.841573,VS0,VE45
+X-Timer: S1787227448.705203,VS0,VE46
 Vary: Accept-Encoding
-X-Fastly-Request-ID: f4559f88e711c5cbeaabdcebe96412b146e348f0
+X-Fastly-Request-ID: 9e58e645fb984df6cbea3d64eea658ac07dd1e92
 

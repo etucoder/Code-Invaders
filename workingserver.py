@@ -37,10 +37,15 @@ def create_lobby():
             "all_bugs_dead_p2" : False,
 
             "p1_choosing_cards" : False,
-            "p2_choosing_cards" : False,
+            "p2_choosing_cards" : True,
+
+            "p1_dead" : False,
+            "p2_dead" : False,
 
             "bugs_list" : [],
-            "explosions" : []
+            "explosions" : [],
+            "bosses_list" : [],
+            "enemy_lasers" : []
 
         }
     }
@@ -172,6 +177,20 @@ async def route_security_packets(websocket):
                         incoming_payload["explosions"]
                     ) 
 
+                if "bosses_list" in incoming_payload and player_id == 1:
+                    telemetry["bosses_list"] = (
+                        incoming_payload["bosses_list"]
+                    )
+
+                if "enemy_lasers" in incoming_payload and player_id == 1:
+                                    telemetry["enemy_lasers"] = (
+                                        incoming_payload["enemy_lasers"]
+                                    )
+
+                if "im_dead" in incoming_payload :
+                    telemetry[f"p{player_id}_dead"] = (
+                        incoming_payload["im_dead"]
+                    )
                 await send_lobby_state(lobby_id)
             except Exception as e:
                 print(f"[Small Lobby Error] : {e}")

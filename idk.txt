@@ -1,0 +1,63 @@
+ if overdrive_charge < max_overdrive and ship.overdrive_duration <= 0:
+                if bug.image_path != "assets/packetbug.png": 
+                    overdrive_charge += 100
+                else:
+                    overdrive_charge += 0.25
+                bug.kill_score = 1
+            color = (0,255,0)
+            if bug.image_path == "assets/exception.png":
+                color = (0,255,0)
+                bug.kill_score = 10
+            elif bug.image_path == "assets/indentationerrorlow.png" or bug.image_path == "assets/indentationerror.png":
+                color = (0,0,255)
+                bug.kill_score = 20
+            elif bug.image_path == "assets/indexerror.png":
+                color = (255,165,0)
+                bug.kill_score = 20
+            elif bug.image_path == "assets/memoryerror.png":
+                 color = (0,255,0)
+                 bug.kill_score = 100
+                 for i in range(9):
+                    particles.append([[bug.rect.centerx, bug.rect.centery] , [random.randint(-3,3),random.randint(-3,3)] , random.randint(4,8),random.choice([(0,255,0),(255,0,0),(255,255,0)])])
+            elif bug.image_path == "assets/importerror.png":
+                color = (165,42,42)
+                bug.kill_score = 50
+            elif bug.image_path == "assets/brokenpipe.png":
+                color = (255,255,255)
+                bug.kill_score = 25
+            elif bug.image_path == "assets/nullpointererror.png":
+                color = (128,0,128)
+                bug.kill_score = 25
+            elif bug.image_path == "assets/deprecatedmethod.png":
+                color = (165,42,42)
+                bug.kill_score = 40
+            elif bug.image_path == "assets/deprecatedgiant.png":
+                color = (165,42,42)
+                bug.kill_score = 160
+            elif bug.image_path == "assets/racecondition.png":
+                color = random.choice([(255,0,0),(0,255,0),(0,0,255)])
+                bug.kill_score = 50
+            elif bug.image_path == "assets/sqlinjector.png":
+                color = (255,192,203)
+                bug.kill_score = 75
+            elif bug.image_path == "assets/sleepthread.png":
+                color = (173,216,230)
+                bug.kill_score = 100
+            elif bug.image_path == "assets/typeerror.png":
+                color = (random.randint(0,255),random.randint(0,255),random.randint(0,255))
+                bug.kill_score = random.randint(20,80)
+            if bug.image_path != "assets/packetbug.png":
+                for i in range(9):
+                    particles.append([[bug.rect.centerx, bug.rect.centery] , [random.randint(-3,3),random.randint(-3,3)] , random.randint(4,8), color])
+
+            else:
+                for i in range(2):
+                    particles.append([[bug.rect.centerx, bug.rect.centery] , [random.randint(-3,3),random.randint(-3,3)] , random.randint(4,8), color])
+                bug.kill_score = 1
+            if game_state == 1 :
+                score += bug.kill_score
+                total_kills += 1
+
+                title_surface = score_add_font.render(str(f"+{bug.kill_score}"),True,color)
+                score_text_to_add = [title_surface,bug.rect.x,bug.rect.y,10,2,255,color]
+                score_text.append(score_text_to_add)

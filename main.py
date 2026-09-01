@@ -10,7 +10,7 @@ MAX_PARTICLES = 200
 text_to_type,text_index,text_line = "",0,0
 keep_this_text = []
 # 150 Hours ! Yay!
-# Updates
+# Updates #####
 # Added Score and Score Text when enemy dies #
 ### Multiplayer : Working 
 #### Issues : Game starts without player 2 joining... May be easy to fix... or not...
@@ -37,7 +37,7 @@ card_font = pygame.font.SysFont(None,20)
 ui_font = pygame.font.Font("assets/VT323-Regular.ttf", 20)
 small_font = ui_font = pygame.font.Font("assets/VT323-Regular.ttf", 18)
 WIDTH , HEIGHT = 1000 ,600
-FPS =  60                
+FPS = 60                
 screen = pygame.display.set_mode((WIDTH,HEIGHT))
 running = True
 clock = pygame.time.Clock()
@@ -52,8 +52,8 @@ click_sound = pygame.mixer.Sound("assets/shortclick.ogg")
 laser_sound = pygame.mixer.Sound("assets/laser.ogg")
 laser_sound.set_volume(0.15)
 shake_intensity  =0
-game_canvas = pygame.Surface((WIDTH + 40,HEIGHT + 40)).convert()
-# game_canvas = screen
+
+game_canvas = screen
 #### Menu Stuff #####
 
 data_coins = 0 
@@ -674,13 +674,6 @@ class Ship(pygame.sprite.Sprite):
     def update(self):
         if not self.overdrive_duration > 0 or self.freeze_duration > 0:
             if self.weapon_type != "Shotgun" and self.weapon_type != "Mine" :
-                self.max_max_cooldown = 1
-            elif self.weapon_type == "Shotgun":
-                self.max_max_cooldown = 45
-            elif self.weapon_type == "Mine":
-                self.max_max_cooldown = 45
-
-            if self.weapon_type != "Shotgun" and self.weapon_type != "Mine" :
                 self.max_cooldown = self.max_max_cooldown
             elif self.weapon_type == "Shotgun":
                 self.max_cooldown = self.max_max_cooldown * 2
@@ -705,10 +698,11 @@ class Ship(pygame.sprite.Sprite):
                 self.max_cooldown = 0.25 * self.max_max_cooldown
     def shoot(self,this_is_a_trigger= False):
     
-        global lasers,card_was_chosen,overdrive_charge,outbound_events
+        global shots_fired,lasers,card_was_chosen,overdrive_charge,outbound_events
 
         if (keys[pygame.K_SPACE] or keys[pygame.K_e] or this_is_a_trigger) and self.cooldown <= 0 and self.is_local:
             if self.weapon_type == "Regular":
+                shots_fired += 1
                 laser = Laser(self.rect.centerx,self.rect.top,5,5,damage=self.damage,knockback=self.knockback,pierce=self.pierce)
                 lasers.append(laser)
                 self.cooldown = self.max_cooldown
@@ -850,39 +844,40 @@ class Bug(pygame.sprite.Sprite):
         else:
             self.max_creation_cooldown = 100
         for laser in lasers:
-            memory_error_alive = any(bug.image_path == "assets/memoryerror.png" for bug in bugs)
-            if memory_error_alive == False or self.image_path == "assets/memoryerror.png":
-                self.y_speed = self.og_y_speed
-                self.image.set_alpha(255)
-                if self.rect.colliderect(laser):
-                    if self.image_path != "assets/sqlinjector.png":
-                        self.hp -= laser.damage
-                    if self.image_path == "assets/sqlinjector.png":
-                        self.hp -= laser.damage
-                        laser.yv = laser.speed
-                        laser.state = "Reflected"
-                        self.float_y -= laser.knockback
-                    
-                    else:
-                        for bug in bugs:
-                            if self.x == bug.x:
-                                bug.float_y -= laser.knockback
-                        if laser in lasers:
-                            if laser.pierce <= 0 or self.hp > 0 :
-                                lasers.remove(laser)
-                            elif self.hp <= 0:
-                                laser.pierce -= 1
-                    if self.hp <= 0:
-                        global data_coins
-                        if self.image_path == "assets/exception.png":
-                            data_coins += 1
+            if abs(laser.x - self.rect.centerx) > 50:
+                memory_error_alive = any(bug.image_path == "assets/memoryerror.png" for bug in bugs)
+                if memory_error_alive == False or self.image_path == "assets/memoryerror.png":
+                    self.y_speed = self.og_y_speed
+                    self.image.set_alpha(255)
+                    if self.rect.colliderect(laser):
+                        if self.image_path != "assets/sqlinjector.png":
+                            self.hp -= laser.damage
+                        if self.image_path == "assets/sqlinjector.png":
+                            self.hp -= laser.damage
+                            laser.yv = laser.speed
+                            laser.state = "Reflected"
+                            self.float_y -= laser.knockback
+                        
+                        else:
+                            for bug in bugs:
+                                if self.x == bug.x:
+                                    bug.float_y -= laser.knockback
+                            if laser in lasers:
+                                if laser.pierce <= 0 or self.hp > 0 :
+                                    lasers.remove(laser)
+                                elif self.hp <= 0:
+                                    laser.pierce -= 1
+                        if self.hp <= 0:
+                            global data_coins
+                            if self.image_path == "assets/exception.png":
+                                data_coins += 1
 
-                
-            elif memory_error_alive == True:
-                self.image.set_alpha(100)
-                self.y_speed = 0.5 * self.og_y_speed
+                    
+                elif memory_error_alive == True:
+                    self.image.set_alpha(100)
+                    self.y_speed = 0.5 * self.og_y_speed
         if self.hp <= 0:
-            global explosions,score,score_add_font,score_text,game_state
+            global total_kills,explosions,score,score_add_font,score_text,game_state
             color = (255,0,0)
             type_of_explosion = self.image_path
             explosion = [self.rect.x,self.rect.y,type_of_explosion] 
@@ -926,15 +921,17 @@ class Bug(pygame.sprite.Sprite):
                 if particles.__len__() <= MAX_PARTICLES:
                     for i in range(9):
                         particles.append([[self.rect.centerx, self.rect.centery] , [random.randint(-3,3),random.randint(-3,3)] , random.randint(4,8), color])
-
+                    
             else:
                 if particles.__len__() <= MAX_PARTICLES:
                     for i in range(2):
                         particles.append([[self.rect.centerx, self.rect.centery] , [random.randint(-3,3),random.randint(-3,3)] , random.randint(4,8), color])
                 self.kill_score = 1
+
+
             if game_state == 1 :
                 score += self.kill_score
-
+                total_kills += 1
                 title_surface = score_add_font.render(str(f"+{self.kill_score}"),True,color)
                 score_text_to_add = [title_surface,self.rect.x,self.rect.y,10,2,255,color]
                 score_text.append(score_text_to_add)
@@ -1316,6 +1313,7 @@ class Laser(pygame.rect.Rect):
         self.float_x = float(x)
         self.float_y = float(y)
         self.state = "Normal"
+        self.has_pierced = False
     def draw(self):
   
         pygame.draw.rect(game_canvas,self.color,self)
@@ -1344,14 +1342,17 @@ class Laser(pygame.rect.Rect):
             if self.colliderect(ship):
                 ship.hp -= self.damage
                 lasers.remove(self)
-        for bug in bugs:
-            if self.colliderect(bug.rect):
-                if self.pierce <= 0 or bug.hp > 0 : 
-                    if self in lasers:
-                        lasers.remove(self)
-                    bug.hp -= self.damage
-                elif bug.hp <= 0:
-                    self.pierce -= 1
+        # for bug in bugs:
+        #     if self.colliderect(bug.rect):
+        #         if not self.has_pierced:
+        #             shots_hit += 1
+        #             self.has_pierced = True
+        #         if self.pierce <= 0 or bug.hp > 0 : 
+        #             if self in lasers:
+        #                 lasers.remove(self)
+        #             bug.hp -= self.damage
+        #         elif bug.hp <= 0:
+        #             self.pierce -= 1
                   
     
 
@@ -2369,11 +2370,17 @@ touch_x = None
 touch_y = None
 control_pad = []
 touches = {}
+
+total_kills = 0
+damage_dealt = 0
+accuracy = 0
+shots_fired = 0
+shots_hit = 0
 async def main():
     
-    global controls,control_mode,just_restarted,score,mouse_spark_color,game_canvas_color,explosions_to_draw,upgrades_obtained,next_bug_id,all_bugs,p1_choosing_cards,p2_choosing_cards,im_choosing_cards, level_start,all_bugs_are_dead,other_bugs_are_dead,remote_shop_state,remote_level,other_player_in_shop,other_player_lv,level_start,multiplayer_mode,pro_ships_2,ship2,titles,scroll_x,scroll_y,shop_items,stars,flip_to,transparency,shake_intensity,talking,mouse_pressed,textboxes,coverbricks,global_trail_surf,shockwaves,enemy_missiles,cur_frame,overdrive_charge,null_lasers,shotgun_1,double_1,mines_1,lives_left,ship_image,boss_lasers,keys,current_enemy,full_title,current_typed,typed_frame,type_letter,typer_speed,menu_buttons,back_button,game_state,mouse_pressed,mouse_pos,heal_1,heal_possible,server,enemy_lasers,particles,dash_possible,add_pierce_possible,ship,pierce_1,files_destroyed,bugsnum,cards_were_shuffled,card_options,card_was_chosen,symbols,current_level,keys,running,files,pro_ships,lasers,level_list,level,startx,starty,rowindex,colindex,spacer,bugs
+    global shots_fired,shots_hit,accuracy,controls,control_mode,just_restarted,score,mouse_spark_color,game_canvas_color,explosions_to_draw,upgrades_obtained,next_bug_id,all_bugs,p1_choosing_cards,p2_choosing_cards,im_choosing_cards, level_start,all_bugs_are_dead,other_bugs_are_dead,remote_shop_state,remote_level,other_player_in_shop,other_player_lv,level_start,multiplayer_mode,pro_ships_2,ship2,titles,scroll_x,scroll_y,shop_items,stars,flip_to,transparency,shake_intensity,talking,mouse_pressed,textboxes,coverbricks,global_trail_surf,shockwaves,enemy_missiles,cur_frame,overdrive_charge,null_lasers,shotgun_1,double_1,mines_1,lives_left,ship_image,boss_lasers,keys,current_enemy,full_title,current_typed,typed_frame,type_letter,typer_speed,menu_buttons,back_button,game_state,mouse_pressed,mouse_pos,heal_1,heal_possible,server,enemy_lasers,particles,dash_possible,add_pierce_possible,ship,pierce_1,files_destroyed,bugsnum,cards_were_shuffled,card_options,card_was_chosen,symbols,current_level,keys,running,files,pro_ships,lasers,level_list,level,startx,starty,rowindex,colindex,spacer,bugs
 
-
+    
     
     if current_level == 20:
         lives_left = 3
@@ -2721,7 +2728,7 @@ async def main():
                         mine = Mine(ship.rect.x,ship.rect.y,8,8,6,0,0,ship.damage * 3,mouse_pos[0],mouse_pos[1])
                         mines.add(mine)
                         ship.cooldown = ship.max_cooldown  
-                        
+            # AAAAAAAAAH I DONT KNOW IF I CAN FINISH ddddwdwadwasddwadwdwasdxsxsdgdasdasdswaddwadwadwadwdadswadswadwadwadwadwadwadwdwadwadwadwad!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
             if not talking:      
                 if not files_destroyed:
                     for coverbrick in coverbricks:
@@ -2961,6 +2968,8 @@ async def main():
                     boss.shoot()
                 else:
                     boss.update()
+
+            # accuracy = shots_fired / shots_hit
             # Draw and update particles
             pro_ships.draw(game_canvas)
             for explosion_list in explosions_to_draw:
@@ -3052,7 +3061,7 @@ async def main():
         # Blits the shaking screen to the static screen
 
         
-        if game_state == 0:
+        if game_state == 0  :
             for particle in particles[:]:
                 particle[0][0] += particle[1][0] 
                 particle[0][1] += particle[1][1] 
@@ -3141,10 +3150,7 @@ async def main():
             for bug in bugs:
                 bug.move()
 
-                # for particle in particles:
-                #     rparticle = pygame.rect.Rect(particle[0][0],particle[0][1],particle[2],particle[2])
-                #     if bug.rect.colliderect(rparticle) and particle[3] == (0,255,255):
-                #         bug.hp -= 0.5
+    
                 bug.check_for_collisions()
         just_restarted = False
         if game_state == 6:
@@ -3157,7 +3163,7 @@ async def main():
             back_button = MenuButton("Reboot (Restart Game)" ,WIDTH//2, HEIGHT//2 + 40,320,55,1)
             back_button.draw(game_canvas,ui_font,mouse_pos)
             mouse_pressed = pygame.mouse.get_pressed()
-            # Restart all the game variables fdsdbvngjhgjjgfuyhdasdasdsdaddwawdasdfsfewasafesdsdas
+            # Restart all the game variables 
             if back_button.check_clicks(mouse_pos,mouse_pressed):
                 game_state = 0
                 bugs.empty()
@@ -3178,7 +3184,10 @@ async def main():
                 ship.cooldown = 15
                 ship.damage = 1
                 ship.weapon_type = "Regular"
-        screen.blit(game_canvas,(-20+offset_x,-20+offset_y))
+                # accuracy = shots_hit / shots_fired
+                # win  = title_font.render(f"Accuracy: {accuracy}",True , (255,0,0))
+                # game_canvas.blit(win,win.get_rect(center = (WIDTH//2 , HEIGHT//2 - 300)))
+        # screen.blit(game_canvas,(-20+offset_x,-20+offset_y))
         pygame.display.flip()
         await asyncio.sleep(0)
 asyncio.run(main())
