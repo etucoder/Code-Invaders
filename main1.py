@@ -168,7 +168,7 @@ async def network_sync_loop(ship_reference,game_id = 0):
                             level_start["p2_inshop"] = p2_shop
                             level_start["p1_lv"] = p1_lv
                             level_start["p1_inshop"] = p1_shop
-                            
+
                         if player_id == 1:
                             other_dead == global_match_state['p2_dead']
                         
@@ -3752,14 +3752,7 @@ async def main():
         else:
             accuracy = 0
         # Death Stats when you... Die......... I guess...
-        acc_text  = ui_font.render(f"Accuracy : { round(round(accuracy,3) * 100,2)}%",True , (255,0,0))
-        game_canvas.blit(acc_text,acc_text.get_rect(center = (WIDTH//2 , HEIGHT//2 + 120)))
-        shots_fired_text  = ui_font.render(f"Shots Fired : {shots_fired}",True , (255,0,0))
-        game_canvas.blit(shots_fired_text,shots_fired_text.get_rect(center = (WIDTH//2 , HEIGHT//2 + 140)))
-        shots_hit_text  = ui_font.render(f"Shots Landed : {shots_hit}",True , (255,0,0))
-        game_canvas.blit(shots_hit_text,shots_hit_text.get_rect(center = (WIDTH//2 , HEIGHT//2 + 160)))
-        kill_text  = ui_font.render(f"Enemies Destroyed : {total_kills}",True , (255,0,0))
-        game_canvas.blit(kill_text,kill_text.get_rect(center = (WIDTH//2 , HEIGHT//2 + 180)))
+        
         if game_state == 6:
             
             mouse_pos = pygame.mouse.get_pos()

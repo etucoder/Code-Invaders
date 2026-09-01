@@ -1,7 +1,8 @@
 # Code Invaders
 A Space-Invaders Themed Game where you defend your code files from different errors and upgrade your ship to survive...
-# How to open
-Option 1 : Open the Itch.io page, and click the 'play' button 
+# How to open and play
+Option 1 : Open the Itch.io page, download the .zip, unpack it, and run main1.exe
+
 
 # How to play
  ---> Control your ship with the arrow keys / WASD
@@ -24,7 +25,7 @@ Option 1 : Open the Itch.io page, and click the 'play' button
 # Currently Working On:
 Laser Drawing for multiplayer
 # The itch.io build is:
-Outdated
+Current
 # Content
 14 Varieties of Enemies
 2 Stages
@@ -43,8 +44,8 @@ If a file has low health, protect it
 If a file is about to take a final hit before it dies, and you have 3 lives, jump in front of it to block the hit, preventing the game from ending
 
 # Hours Spent
-21 Hours, 21 Minutes
-1253 Lines of Code
+208 Hours, 50 Minutes
+4061 Lines of Code
 
 
 # Restart Button
