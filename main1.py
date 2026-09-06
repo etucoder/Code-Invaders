@@ -1168,14 +1168,14 @@ class Bug(pygame.sprite.Sprite):
             color = (255,0,0)
             type_of_explosion = self.image_path
             explosion = [self.rect.x,self.rect.y,type_of_explosion] 
-            # print(explosion) adwadwadwadwaddwasddwadwadwawsddwadwadwadwadwasdgkhkhkuhkjhdwadwdwasddwhljljiljllijlijlijlijiijllijlijdwadadwadwadadwadwfdwadwaddwfesfesdwasdadwasd
+            
             explosions.append(explosion)
   
             self.kill()
             small_explosion_sound.play()
             if overdrive_charge < max_overdrive and ship.overdrive_duration <= 0:
                 if self.image_path != "assets/packetbug.png": 
-                    overdrive_charge += 100
+                    overdrive_charge += 1
                 else:
                     overdrive_charge += 0.25
                 self.kill_score = 1
